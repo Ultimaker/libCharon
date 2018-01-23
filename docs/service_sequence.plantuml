@@ -1,0 +1,40 @@
+@startuml
+
+hide footbox
+
+box "DBus"
+    participant Client
+    participant FileService
+end box
+
+Client -> FileService: requestMetaData
+FileService --> Client
+
+FileService -> Queue: enqueue
+Queue --> FileService
+
+Client -> FileService: requestMetaData
+FileService --> Client
+
+Worker -> Queue: takeNext
+Queue --> Worker: job
+
+activate Worker
+Worker -> Worker: Process File
+
+FileService -> Queue: enqueue
+Queue --> FileService
+
+Client -> FileService: cancelRequest
+FileService --> Client
+
+FileService -> Queue: dequeue
+Queue --> FileService
+
+Worker -> FileService: requestFinished
+FileService --> Worker
+deactivate Worker
+
+FileService -> Client: requestFinished
+
+@enduml

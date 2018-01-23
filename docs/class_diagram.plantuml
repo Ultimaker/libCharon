@@ -1,0 +1,57 @@
+@startuml
+
+package Service {
+    class FileService << DBusService >> {
+        +requestMetaData(file: String, parameters: dict)
+        +cancelRequest(file: String)
+        ---
+        +signal requestFinished(file: String, data: dict)
+    }
+
+    class Queue {
+        +enqueue(job: Job)
+        +dequeue(job: Job)
+        +takeNext() : Job
+    }
+
+    class Worker << Thread >> {
+        +run()
+    }
+
+    abstract class Job {
+        {abstract} +execute()
+        +requestCount : int
+    }
+
+    FileService *-- Queue
+
+    Queue o-- Job
+
+    Worker --> Queue : Take
+    Worker --> Job : Execute
+}
+
+package Library {
+
+    class VirtualFile << ContextManager >> {
+        +open(path : Optional[String] = None, mode : OpenMode = ReadOnly)
+        +close()
+        +flush()
+        +getMetaData() : Dict[str, Any]
+        +setMetaData(metadata: Dict[str, Any])
+        +getStream(virtual_path : String) : BufferedIOBase
+        +toByteArray(offset: int = 0, count: int = -1) : Bytes
+
+        -backend : FileBackend
+    }
+
+    abstract class FileImplementation {
+    }
+
+    VirtualFile *-- FileImplementation
+
+    FileImplementation <|-- GCodeFile
+    FileImplementation <|-- ContainerFile
+}
+
+@enduml
