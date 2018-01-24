@@ -33,22 +33,32 @@ package Service {
 
 package Library {
 
-    class VirtualFile << ContextManager >> {
+    interface FileInterface {
         +open(path : Optional[String] = None, mode : OpenMode = ReadOnly)
         +close()
         +flush()
-        +getMetaData() : Dict[str, Any]
-        +setMetaData(metadata: Dict[str, Any])
+        +getMetaData(virtual_path: String) : Dict[str, Any]
+        +setMetaData(virtual_path: String, metadata: Dict[str, Any])
         +getStream(virtual_path : String) : BufferedIOBase
         +toByteArray(offset: int = 0, count: int = -1) : Bytes
+    }
 
-        -backend : FileBackend
+    class VirtualFile << ContextManager >> {
+        -implementation : FileImplementation
     }
 
     abstract class FileImplementation {
     }
 
+    FileInterface <|-- VirtualFile
+    FileInterface <|-- FileImplementation
+
     VirtualFile *-- FileImplementation
+    note on link
+        VirtualFile creates a FileImplementation
+        based on the path to the file it should
+        open.
+    end note
 
     FileImplementation <|-- GCodeFile
     FileImplementation <|-- ContainerFile
