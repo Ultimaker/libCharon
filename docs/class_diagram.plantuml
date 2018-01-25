@@ -38,7 +38,7 @@ package Library {
         +close()
         +flush()
         +getMetadata(virtual_path: String) : Dict[str, Any]
-        +setMetadata(virtual_path: String, metadata: Dict[str, Any])
+        +setMetadata(metadata: Dict[str, Any])
         +getStream(virtual_path : String) : BufferedIOBase
         +toByteArray(offset: int = 0, count: int = -1) : Bytes
     }
