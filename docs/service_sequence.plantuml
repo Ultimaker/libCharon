@@ -7,13 +7,13 @@ box "DBus"
     participant FileService
 end box
 
-Client -> FileService: requestMetaData
+Client -> FileService: requestMetadata
 FileService --> Client
 
 FileService -> Queue: enqueue
 Queue --> FileService
 
-Client -> FileService: requestMetaData
+Client -> FileService: requestMetadata
 FileService --> Client
 
 Worker -> Queue: takeNext

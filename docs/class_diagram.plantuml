@@ -2,7 +2,7 @@
 
 package Service {
     class FileService << DBusService >> {
-        +requestMetaData(file: String, parameters: dict)
+        +requestMetadata(file: String, parameters: dict)
         +cancelRequest(file: String)
         ---
         +signal requestFinished(file: String, data: dict)
@@ -37,8 +37,8 @@ package Library {
         +open(path : Optional[String] = None, mode : OpenMode = ReadOnly)
         +close()
         +flush()
-        +getMetaData(virtual_path: String) : Dict[str, Any]
-        +setMetaData(virtual_path: String, metadata: Dict[str, Any])
+        +getMetadata(virtual_path: String) : Dict[str, Any]
+        +setMetadata(virtual_path: String, metadata: Dict[str, Any])
         +getStream(virtual_path : String) : BufferedIOBase
         +toByteArray(offset: int = 0, count: int = -1) : Bytes
     }
