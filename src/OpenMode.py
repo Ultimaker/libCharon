@@ -12,10 +12,7 @@ import enum #The class in this file is an enum.
 #   differently.
 class OpenMode(enum.Enum):
     ##  The file can only be read from.
-    ReadOnly = 0
+    ReadOnly = "r"
 
     ##  The file can only be written to.
-    WriteOnly = 1
-
-    ##  The file can both be read from and written to.
-    ReadWrite = 2
+    WriteOnly = "a"
