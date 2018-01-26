@@ -1,7 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
-from typing import Optional
+from typing import Any, Dict, Optional
 import xml.etree.ElementTree as ET #For writing XML manifest files.
 import zipfile
 
@@ -20,6 +20,7 @@ class UltimakerContainerFile(FileInterface):
     def open(self, path: Optional[str] = None, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
         self.zipfile = zipfile.ZipFile(path, self.mode.value, compression = zipfile.ZIP_DEFLATED)
+        self.metadata = {}
 
         #Load or create the content types element.
         self.content_types_element = None
@@ -59,6 +60,21 @@ class UltimakerContainerFile(FileInterface):
     def flush(self):
         #Zipfile doesn't need flushing.
         pass
+
+    def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
+        #Find all metadata that begins with the specified virtual path!
+        result = {}
+
+        if virtual_path in self.metadata: #The exact match.
+            result[virtual_path] = self.metadata[virtual_path]
+        for entry_path, value in self.metadata.items():
+            #We only want to match subdirectories of the provided virtual paths.
+            #So if you provide "/foo" then we don't want to match on "/foobar"
+            #but we do want to match on "/foo/zoo". This is why we check if they
+            #start with the provided virtual path plus a slash.
+            if entry_path.startswith(virtual_path + "/"):
+                result[entry_path] = value
+        return result
 
     def getStream(self, virtual_path):
         if self.mode == OpenMode.WriteOnly and virtual_path not in self.zipfile.namelist(): #File doesn't exist yet.
