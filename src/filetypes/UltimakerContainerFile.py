@@ -17,9 +17,11 @@ class UltimakerContainerFile(FileInterface):
         self.mode = mode
         self.zipfile = zipfile.ZipFile(path, self.mode.value, compression = zipfile.ZIP_DEFLATED)
         self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+        self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
 
         #Set up an empty container.
         self._updateRels()
+        self._updateContentTypes()
 
     def close(self):
         self.flush()
@@ -53,3 +55,6 @@ class UltimakerContainerFile(FileInterface):
     #   this update function to actually update it in the file.
     def _updateRels(self):
         self.zipfile.writestr("_rels/.rels", ET.tostring(self.xml_header) + "\n" + ET.tostring(self.relations_element))
+
+    def _updateContentTypes(self):
+        self.zipfile.writestr("[Content_Types].xml", ET.tostring(self.xml_header) + "\n" + ET.tostring(self.content_types_element))
