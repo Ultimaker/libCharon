@@ -31,8 +31,6 @@ class UltimakerContainerFile(FileInterface):
                 self.content_types_element = content_types_element
         if not self.content_types_element:
             self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
-            if self.mode != OpenMode.ReadOnly:
-                self._updateContentTypes()
         #If there is no type for the Rels file, create it.
         if self.mode != OpenMode.ReadOnly:
             for type_element in self.content_types_element.iterfind("Default"):
@@ -50,16 +48,14 @@ class UltimakerContainerFile(FileInterface):
                 self.relations_element = relations_element
         if not self.relations_element: #File didn't exist or didn't contain a Relationships element.
             self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
-            if self.mode != OpenMode.ReadOnly:
-                self._updateRels()
 
     def close(self):
         self.flush()
         self.zipfile.close()
 
     def flush(self):
-        #Zipfile doesn't need flushing.
-        pass
+        self._updateContentTypes()
+        self._updateRels()
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
         #Find all metadata that begins with the specified virtual path!
@@ -100,7 +96,6 @@ class UltimakerContainerFile(FileInterface):
                 raise UFPError("Content type for extension {extension} already exists.".format(extension = extension))
 
         ET.SubElement(self.content_types_element, "Default", Extension = extension, ContentType = mime_type)
-        self._updateContentTypes()
 
     ##  Adds a relation concerning a file type.
     #   \param virtual_path The target file that the relation is about.
@@ -123,7 +118,6 @@ class UltimakerContainerFile(FileInterface):
 
         #Create the element itself.
         ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = file_type, Id = unique_name)
-        self._updateRels()
 
     ##  When an element is added to the relations_element, we should update the
     #   rels file in the archive.
