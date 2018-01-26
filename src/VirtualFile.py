@@ -14,28 +14,30 @@ from .filetypes.UltimakerContainerFile import UltimakerContainerFile
 #   file it needs to open.
 class VirtualFile(FileInterface):
     def __init__(self):
-        self.__implementation = None
+        self._implementation = None
 
     def open(self, path, *args, **kwargs):
         _, extension = os.path.splitext(path)
         if extension == ".ufp": #TODO: Register file types dynamically.
-            self.__implementation = UltimakerContainerFile()
-            return self.__implementation.open(path, *args, **kwargs)
+            self._implementation = UltimakerContainerFile()
+            return self._implementation.open(path, *args, **kwargs)
         raise IOError("Unknown extension {extension}.".format(extension = extension))
 
     def close(self, *args, **kwargs):
         if not self.__implementation:
             raise IOError("Can't close a file before it's opened.")
-        result = self.__implementation.close(*args, **kwargs)
-        self.__implementation = None #You have to open a file again, which might need a different implementation.
+        result = self._implementation.close(*args, **kwargs)
+        self._implementation = None #You have to open a file again, which might need a different implementation.
         return result
 
     ##  Causes all calls to functions that aren't defined in this class to be
     #   passed through to the implementation.
-    def __getattr__(self, item):
-        if not self.__implementation:
-            raise IOError("Can't use {attribute} before a file is opened.".format(attribute = item))
-        return getattr(self.__implementation, item)
+    def __getattribute__(self, item):
+        if item == "open" or item == "close" or item == "__del__" or item == "_implementation": #Attributes that VirtualFile overwrites should be called normally.
+            return object.__getattribute__(self, item)
+        if not object.__getattribute__(self, "_implementation"):
+            raise IOError("Can't use '{attribute}' before a file is opened.".format(attribute = item))
+        return getattr(self._implementation, item)
 
     ##  When the object is deleted, close the file.
     def __del__(self):
