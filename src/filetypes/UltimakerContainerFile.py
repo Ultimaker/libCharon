@@ -19,9 +19,12 @@ class UltimakerContainerFile(FileInterface):
         self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
         self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
 
-        #Set up an empty container.
-        self._updateRels()
-        self._updateContentTypes()
+        if self.mode == OpenMode.WriteOnly and zipfile.ZipInfo:
+            #Set up an empty container if some of these are missing.
+            if "_rels/.rels" not in self.zipfile.namelist():
+                self._updateRels()
+            if "[Content_Types].xml" not in self.zipfile.namelist():
+                self._updateContentTypes()
 
     def close(self):
         self.flush()
