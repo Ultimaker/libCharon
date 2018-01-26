@@ -79,7 +79,6 @@ class UltimakerContainerFile(FileInterface):
     def getStream(self, virtual_path):
         if self.mode == OpenMode.WriteOnly and virtual_path not in self.zipfile.namelist(): #File doesn't exist yet.
             self.zipfile.writestr(virtual_path, "")
-            #TODO: Add manifest.
 
         return self.zipfile.open(virtual_path, self.mode.value)
 
@@ -132,7 +131,7 @@ class UltimakerContainerFile(FileInterface):
     #   Make sure that self.relations_element is up to date first, then call
     #   this update function to actually update it in the file.
     def _updateRels(self):
-        self.zipfile.writestr(self.rels_file, ET.tostring(self.xml_header) + "\n" + ET.tostring(self.relations_element))
+        self.zipfile.writestr(self.rels_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.relations_element))
 
     ##  When a content type is added to content_types_element, we should update
     #   the content types file in the archive.
@@ -140,7 +139,7 @@ class UltimakerContainerFile(FileInterface):
     #   Make sure that self.content_types_element is up to date first, then call
     #   this update function to actually update it in the file.
     def _updateContentTypes(self):
-        self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + "\n" + ET.tostring(self.content_types_element))
+        self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
 
 ##  Error to raise that something went wrong with reading/writing a UFP file.
 class UFPError(Exception):
