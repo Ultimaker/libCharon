@@ -77,6 +77,20 @@ class UltimakerContainerFile(FileInterface):
                 f.seek(offset)
             return f.read(count)
 
+    ##  Adds a new content type to the archive.
+    #   \param extension The file extension of the type
+    def addContentType(self, extension, mime_type):
+        if self.mode == OpenMode.ReadOnly:
+            raise ReadOnlyError()
+
+        #First check if it already exists.
+        for content_type in self.content_types_element.iterfind("Default"):
+            if "Extension" in content_type.attrib and content_type.attrib["Extension"] == extension:
+                raise UCFError("Content type for extension {extension} already exists.".format(extension = extension))
+
+        ET.SubElement(self.content_types_element, "Default", Extension = extension, ContentType = mime_type)
+        self._updateContentTypes()
+
     ##  Adds a relation concerning a file type.
     #   \param virtual_path The target file that the relation is about.
     #   \param file_type The type of the target file. Any reader of UCF should
