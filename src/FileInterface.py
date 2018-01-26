@@ -1,13 +1,10 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
+from io import BufferedIOBase #To indicate that getStream must return a stream.
 from typing import Any, Dict, Optional
 
 from OpenMode import OpenMode
-
-MYPY = False
-if MYPY:
-    from io import BufferedIOBase #To indicate that getStream must return a stream.
 
 ##  An interface for accessing files.
 #
