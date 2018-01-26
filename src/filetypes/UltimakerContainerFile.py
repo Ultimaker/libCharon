@@ -31,6 +31,13 @@ class UltimakerContainerFile(FileInterface):
             self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
             if self.mode != OpenMode.ReadOnly:
                 self._updateContentTypes()
+        #If there is no type for the Rels file, create it.
+        if self.mode != OpenMode.ReadOnly:
+            for type_element in self.content_types_element.iterfind("Default"):
+                if "Extension" in type_element.attrib and type_element.attrib["Extension"] == "rels":
+                    break
+            else:
+                ET.SubElement(self.content_types_element, "Default", Extension = "rels", ContentType = "application/vnd.openxmlformats-package.relationships+xml")
 
         #Load or create the relations element.
         self.relations_element = None
