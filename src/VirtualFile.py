@@ -24,7 +24,7 @@ class VirtualFile(FileInterface):
         raise IOError("Unknown extension {extension}.".format(extension = extension))
 
     def close(self, *args, **kwargs):
-        if not self.__implementation:
+        if not self._implementation:
             raise IOError("Can't close a file before it's opened.")
         result = self._implementation.close(*args, **kwargs)
         self._implementation = None #You have to open a file again, which might need a different implementation.
