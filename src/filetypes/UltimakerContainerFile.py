@@ -59,5 +59,10 @@ class UltimakerContainerFile(FileInterface):
     def _updateRels(self):
         self.zipfile.writestr("_rels/.rels", ET.tostring(self.xml_header) + "\n" + ET.tostring(self.relations_element))
 
+    ##  When a content type is added to content_types_element, we should update
+    #   the content types file in the archive.
+    #
+    #   Make sure that self.content_types_element is up to date first, then call
+    #   this update function to actually update it in the file.
     def _updateContentTypes(self):
         self.zipfile.writestr("[Content_Types].xml", ET.tostring(self.xml_header) + "\n" + ET.tostring(self.content_types_element))
