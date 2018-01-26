@@ -98,6 +98,7 @@ class UltimakerContainerFile(FileInterface):
 
         #Create the element itself.
         ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = file_type, Id = unique_name)
+        self._updateRels()
 
     ##  When an element is added to the relations_element, we should update the
     #   rels file in the archive.
