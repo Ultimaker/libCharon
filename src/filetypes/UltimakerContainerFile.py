@@ -73,9 +73,6 @@ class UltimakerContainerFile(FileInterface):
         return result
 
     def getStream(self, virtual_path):
-        if self.mode == OpenMode.WriteOnly and virtual_path not in self.zipfile.namelist(): #File doesn't exist yet.
-            self.zipfile.writestr(virtual_path, "")
-
         return self.zipfile.open(virtual_path, self.mode.value)
 
     def toByteArray(self, offset: int = 0, count: int = -1):
