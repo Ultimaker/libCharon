@@ -19,7 +19,7 @@ class UltimakerContainerFile(FileInterface):
         self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
 
         #Set up an empty container.
-        self.zipfile.writestr("_rels/.rels", ET.tostring(self.xml_header) + "\n" + ET.tostring(self.relations_element))
+        self._updateRels()
 
     def close(self):
         self.flush()
@@ -45,3 +45,11 @@ class UltimakerContainerFile(FileInterface):
             if offset > 0:
                 f.seek(offset)
             return f.read(count)
+
+    ##  When an element is added to the relations_element, we should update the
+    #   rels file in the archive.
+    #
+    #   Make sure that self.relations_element is up to date first, then call
+    #   this update function to actually update it in the file.
+    def _updateRels(self):
+        self.zipfile.writestr("_rels/.rels", ET.tostring(self.xml_header) + "\n" + ET.tostring(self.relations_element))
