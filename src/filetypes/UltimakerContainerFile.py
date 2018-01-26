@@ -98,14 +98,14 @@ class UltimakerContainerFile(FileInterface):
         #First check if it already exists.
         for content_type in self.content_types_element.iterfind("Default"):
             if "Extension" in content_type.attrib and content_type.attrib["Extension"] == extension:
-                raise UCFError("Content type for extension {extension} already exists.".format(extension = extension))
+                raise UFPError("Content type for extension {extension} already exists.".format(extension = extension))
 
         ET.SubElement(self.content_types_element, "Default", Extension = extension, ContentType = mime_type)
         self._updateContentTypes()
 
     ##  Adds a relation concerning a file type.
     #   \param virtual_path The target file that the relation is about.
-    #   \param file_type The type of the target file. Any reader of UCF should
+    #   \param file_type The type of the target file. Any reader of UFP should
     #   be able to understand all types that are added via relations.
     def addRelation(self, virtual_path, file_type):
         if self.mode == OpenMode.ReadOnly:
@@ -114,7 +114,7 @@ class UltimakerContainerFile(FileInterface):
         #First check if it already exists.
         for relationship in self.relations_element.iterfind("Relationship"):
             if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
-                raise UCFError("Relation for virtual path {target} already exists.".format(target = virtual_path))
+                raise UFPError("Relation for virtual path {target} already exists.".format(target = virtual_path))
 
         #Find a unique name.
         unique_id = 0
@@ -142,6 +142,6 @@ class UltimakerContainerFile(FileInterface):
     def _updateContentTypes(self):
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + "\n" + ET.tostring(self.content_types_element))
 
-##  Error to raise that something went wrong with reading/writing a UCF file.
-class UCFError(Exception):
+##  Error to raise that something went wrong with reading/writing a UFP file.
+class UFPError(Exception):
     pass #This is just a marker class.

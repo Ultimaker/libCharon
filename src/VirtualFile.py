@@ -18,7 +18,7 @@ class VirtualFile(FileInterface):
 
     def open(self, path, *args, **kwargs):
         _, extension = os.path.splitext(path)
-        if extension == ".ucf": #TODO: Register file types dynamically.
+        if extension == ".ufp": #TODO: Register file types dynamically.
             self.__implementation = UltimakerContainerFile()
             return self.__implementation.open(path, *args, **kwargs)
         raise IOError("Unknown extension {extension}.".format(extension = extension))
