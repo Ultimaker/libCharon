@@ -30,7 +30,13 @@ class VirtualFile(FileInterface):
         self.__implementation = None #You have to open a file again, which might need a different implementation.
         return result
 
+    ##  Causes all calls to functions that aren't defined in this class to be
+    #   passed through to the implementation.
     def __getattr__(self, item):
         if not self.__implementation:
             raise IOError("Can't use {attribute} before a file is opened.".format(attribute = item))
         return getattr(self.__implementation, item)
+
+    ##  When the object is deleted, close the file.
+    def __del__(self):
+        self.close()
