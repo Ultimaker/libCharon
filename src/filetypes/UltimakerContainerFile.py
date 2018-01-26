@@ -7,6 +7,7 @@ import zipfile
 
 from ..FileInterface import FileInterface #The interface we're implementing.
 from ..OpenMode import OpenMode #To detect whether we want to read and/or write to the file.
+from ..ReadOnlyError import ReadOnlyError #To be thrown when trying to write while in read-only mode.
 
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
@@ -76,6 +77,28 @@ class UltimakerContainerFile(FileInterface):
                 f.seek(offset)
             return f.read(count)
 
+    ##  Adds a relation concerning a file type.
+    #   \param virtual_path The target file that the relation is about.
+    #   \param file_type The type of the target file. Any reader of UCF should
+    #   be able to understand all types that are added via relations.
+    def addRelation(self, virtual_path, file_type):
+        if self.mode == OpenMode.ReadOnly:
+            raise ReadOnlyError(virtual_path)
+
+        #First check if it already exists.
+        for relationship in self.relations_element.iterfind("Relationship"):
+            if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
+                raise UCFError("Relation for virtual path {target} already exists.".format(target = virtual_path))
+
+        #Find a unique name.
+        unique_id = 0
+        while self.relations_element.find("rel" + str(unique_id)):
+            unique_id += 1
+        unique_name = "rel" + str(unique_id)
+
+        #Create the element itself.
+        ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = file_type, Id = unique_name)
+
     ##  When an element is added to the relations_element, we should update the
     #   rels file in the archive.
     #
@@ -91,3 +114,7 @@ class UltimakerContainerFile(FileInterface):
     #   this update function to actually update it in the file.
     def _updateContentTypes(self):
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + "\n" + ET.tostring(self.content_types_element))
+
+##  Error to raise that something went wrong with reading/writing a UCF file.
+class UCFError(Exception):
+    pass #This is just a marker class.
