@@ -15,4 +15,4 @@ class OpenMode(enum.Enum):
     ReadOnly = "r"
 
     ##  The file can only be written to.
-    WriteOnly = "a"
+    WriteOnly = "w"

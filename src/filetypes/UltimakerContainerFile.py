@@ -81,11 +81,7 @@ class UltimakerContainerFile(FileInterface):
             self.zipfile.writestr(virtual_path, "")
             #TODO: Add manifest.
 
-        if self.mode == OpenMode.WriteOnly: #Instead of appending, we want to overwrite this file completely.
-            subfile_mode = "w"
-        else:
-            subfile_mode = self.mode.value
-        return self.zipfile.open(virtual_path, subfile_mode)
+        return self.zipfile.open(virtual_path, self.mode.value)
 
     def toByteArray(self, offset: int = 0, count: int = -1):
         with open(self.zipfile.filename, "b") as f:
