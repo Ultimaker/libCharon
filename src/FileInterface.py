@@ -4,7 +4,7 @@
 from io import BufferedIOBase #To indicate that getStream must return a stream.
 from typing import Any, Dict, Optional
 
-from OpenMode import OpenMode
+from .OpenMode import OpenMode
 
 ##  An interface for accessing files.
 #

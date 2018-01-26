@@ -3,10 +3,10 @@
 
 import os.path #To get the file extension from a path.
 
-from FileInterface import FileInterface #The interface we're implementing.
+from .FileInterface import FileInterface #The interface we're implementing.
 
 #The supported file types.
-from filetypes.UltimakerContainerFile import UltimakerContainerFile
+from .filetypes.UltimakerContainerFile import UltimakerContainerFile
 
 ##  A facade for a file object.
 #
