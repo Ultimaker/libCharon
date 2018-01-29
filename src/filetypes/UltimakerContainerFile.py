@@ -1,6 +1,8 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
+import json #The metadata format.
+import collections #For writing to JSON in order.
 from typing import Any, Dict, Optional
 import xml.etree.ElementTree as ET #For writing XML manifest files.
 import zipfile
@@ -16,6 +18,7 @@ class UltimakerContainerFile(FileInterface):
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
     rels_file = "_rels/.rels" #Where the main relationships file is.
     content_types_file = "[Content_Types].xml" #Where the content types file is.
+    global_metadata_file = "metadata/metadata.json" #Where the global metadata file is.
 
     def open(self, path: Optional[str] = None, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
@@ -55,6 +58,7 @@ class UltimakerContainerFile(FileInterface):
 
     def flush(self):
         self._updateContentTypes()
+        self._updateMetadata()
         self._updateRels()
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
@@ -71,6 +75,9 @@ class UltimakerContainerFile(FileInterface):
             if entry_path.startswith(virtual_path + "/"):
                 result[entry_path] = value
         return result
+
+    def setMetadata(self, metadata: Dict[str, Any]):
+        self.metadata.update(metadata)
 
     def getStream(self, virtual_path):
         return self.zipfile.open(virtual_path, self.mode.value)
@@ -131,6 +138,61 @@ class UltimakerContainerFile(FileInterface):
     #   this update function to actually update it in the file.
     def _updateContentTypes(self):
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
+
+    ##  At the end of writing a file, update the metadata in the archive.
+    #
+    #   Make sure that self.metadata is up to date first, then call this update
+    #   function to actually write it in the file.
+    def _updateMetadata(self):
+        keys_left = set(self.metadata.keys()) #The keys that are not associated with a particular file (global metadata).
+        metadata_per_file = {}
+        for file_name in self.zipfile.namelist():
+            metadata_per_file[file_name] = {}
+            for metadata_key in self.metadata:
+                if metadata_key.startswith(file_name + "/"):
+                    #Strip the prefix: "/a/b/c.stl/print_time" becomes just "print_time" about the file "/a/b/c.stl".
+                    metadata_per_file[file_name][metadata_key[len(file_name) + 1:]] = self.metadata[metadata_key]
+                    keys_left.remove(metadata_key)
+        #keys_left now contains only global metadata keys.
+
+        global_metadata = {key:self.metadata[key] for key in keys_left}
+        self._writeMetadataToFile(global_metadata, "/metadata/ucf_global.json")
+        for file_name, metadata in metadata_per_file.items():
+            self._writeMetadataToFile(metadata, file_name + ".json")
+
+    ##  Writes one dictionary of metadata to a JSON file.
+    #   \param metadata The metadata dictionary to write.
+    #   \param file_name The virtual path of the JSON file to write to.
+    def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str):
+        #Split the metadata into a hierarchical structure.
+        document = collections.OrderedDict()
+        for key, value in metadata.items():
+            if key.endswith("/"):
+                key = key[:-1] #TODO: Should paths ending in a slash give an error?
+            path = key.split("/")
+            current_element = document
+            for element in path:
+                if element not in current_element:
+                    current_element[element] = collections.OrderedDict()
+                current_element = current_element[element]
+            current_element[""] = value
+
+        #We've created some empty-string keys to allow values to occur next to subelements.
+        #If this empty-string key is the only key inside a node, fold it in to be just the value.
+        for key in metadata:
+            if key.endswith("/"):
+                key = key[:-1]
+            path = key.split("/")
+            current_element = document
+            parent = document
+            for element in path:
+                parent = current_element
+                current_element = current_element[element]
+            if len(current_element) == 1: #The empty string is the only element.
+                assert "" in current_element
+                parent[path[-1]] = current_element[""] #Fold down the singleton dictionary.
+
+        self.zipfile.writestr(file_name, json.dumps(document))
 
 ##  Error to raise that something went wrong with reading/writing a UFP file.
 class UFPError(Exception):
