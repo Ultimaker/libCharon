@@ -56,6 +56,8 @@ class UltimakerContainerFile(FileInterface):
         self.zipfile.close()
 
     def flush(self):
+        if self.mode == OpenMode.ReadOnly:
+            return #No need to flush reading of zip archives as they are blocking calls.
         self._writeMetadata() #Metadata must be updated first, because that adds rels and a content type.
         self._writeContentTypes()
         self._writeRels()
