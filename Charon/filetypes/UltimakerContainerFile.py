@@ -117,7 +117,12 @@ class UltimakerContainerFile(FileInterface):
 
         #Find a unique name.
         unique_id = 0
-        while self.relations_element.find("rel" + str(unique_id)):
+        while True:
+            for relationship in self.relations_element.iterfind("Relationship"):
+                if "Id" in relationship.attrib and relationship.attrib["Id"] == "rel" + str(unique_id):
+                    break
+            else: #Unique ID didn't exist yet! It's safe to use
+                break
             unique_id += 1
         unique_name = "rel" + str(unique_id)
 
