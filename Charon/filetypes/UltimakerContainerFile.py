@@ -129,6 +129,7 @@ class UltimakerContainerFile(FileInterface):
     #   This should be written at the end of writing an archive, when all
     #   relations are known.
     def _writeRels(self):
+        self._indent(self.relations_element)
         self.zipfile.writestr(self.rels_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.relations_element))
 
     ##  At the end of writing a file, write the content types to the archive.
@@ -136,6 +137,7 @@ class UltimakerContainerFile(FileInterface):
     #   This should be written at the end of writing an archive, when all
     #   content types are known.
     def _writeContentTypes(self):
+        self._indent(self.content_types_element)
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
 
     ##  At the end of writing a file, write the metadata to the archive.
@@ -196,6 +198,24 @@ class UltimakerContainerFile(FileInterface):
                 parent[path[-1]] = current_element[""] #Fold down the singleton dictionary.
 
         self.zipfile.writestr(file_name, json.dumps(document, sort_keys = True, indent = 4))
+
+    ##  Helper function for pretty-printing XML because ETree is stupid.
+    #
+    #   Source: https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python
+    def _indent(self, elem, level = 0):
+        i = "\n" + level * "  "
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "  "
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                self._indent(elem, level + 1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
 
 ##  Error to raise that something went wrong with reading/writing a UFP file.
 class UFPError(Exception):
