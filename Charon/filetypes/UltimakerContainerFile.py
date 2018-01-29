@@ -171,6 +171,11 @@ class UltimakerContainerFile(FileInterface):
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
                 self.addRelation(file_name + ".json", "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata")
+        if len(self.metadata) > 0: #If we've written any metadata at all, we must include the content type as well.
+            try:
+                self.addContentType(extension = "json", mime_type = "text/json")
+            except UFPError: #User may already have defined this content type himself.
+                pass
 
     ##  Writes one dictionary of metadata to a JSON file.
     #   \param metadata The metadata dictionary to write.
