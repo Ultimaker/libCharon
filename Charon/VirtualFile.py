@@ -22,7 +22,7 @@ class VirtualFile(FileInterface):
     def open(self, path, *args, **kwargs):
         _, extension = os.path.splitext(path)
         if extension not in extension_to_implementation:
-            raise IOError("Unknown extension {extension}.".format(extension = extension))
+            raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
         self._implementation = extension_to_implementation[extension]()
         return self._implementation.open(path, *args, **kwargs)
 
