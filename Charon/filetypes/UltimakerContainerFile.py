@@ -17,7 +17,7 @@ class UltimakerContainerFile(FileInterface):
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
     rels_file = "_rels/.rels" #Where the main relationships file is.
     content_types_file = "[Content_Types].xml" #Where the content types file is.
-    global_metadata_file = "metadata/metadata.json" #Where the global metadata file is.
+    global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
 
     def open(self, path: Optional[str] = None, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
@@ -158,7 +158,7 @@ class UltimakerContainerFile(FileInterface):
 
         global_metadata = {key:self.metadata[key] for key in keys_left}
         if len(global_metadata) > 0:
-            self._writeMetadataToFile(global_metadata, "/Metadata/UCF_Global.json")
+            self._writeMetadataToFile(global_metadata, self.global_metadata_file)
         for file_name, metadata in metadata_per_file.items():
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
