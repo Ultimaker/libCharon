@@ -7,6 +7,9 @@ from .FileInterface import FileInterface #The interface we're implementing.
 
 #The supported file types.
 from .filetypes.UltimakerContainerFile import UltimakerContainerFile
+extension_to_implementation = {
+    ".ufp": UltimakerContainerFile
+}
 
 ##  A facade for a file object.
 #
@@ -18,10 +21,10 @@ class VirtualFile(FileInterface):
 
     def open(self, path, *args, **kwargs):
         _, extension = os.path.splitext(path)
-        if extension == ".ufp": #TODO: Register file types dynamically.
-            self._implementation = UltimakerContainerFile()
-            return self._implementation.open(path, *args, **kwargs)
-        raise IOError("Unknown extension {extension}.".format(extension = extension))
+        if extension not in extension_to_implementation:
+            raise IOError("Unknown extension {extension}.".format(extension = extension))
+        self._implementation = extension_to_implementation[extension]()
+        return self._implementation.open(path, *args, **kwargs)
 
     def close(self, *args, **kwargs):
         if self._implementation is None:
