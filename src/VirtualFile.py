@@ -41,4 +41,5 @@ class VirtualFile(FileInterface):
 
     ##  When the object is deleted, close the file.
     def __del__(self):
-        self.close()
+        if self._implementation is not None:
+            self.close()
