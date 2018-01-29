@@ -96,9 +96,9 @@ class UltimakerContainerFile(FileInterface):
 
     ##  Adds a relation concerning a file type.
     #   \param virtual_path The target file that the relation is about.
-    #   \param file_type The type of the target file. Any reader of UFP should
+    #   \param relation_type The type of the relation. Any reader of UFP should
     #   be able to understand all types that are added via relations.
-    def addRelation(self, virtual_path, file_type):
+    def addRelation(self, virtual_path, relation_type):
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError(virtual_path)
 
@@ -114,7 +114,7 @@ class UltimakerContainerFile(FileInterface):
         unique_name = "rel" + str(unique_id)
 
         #Create the element itself.
-        ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = file_type, Id = unique_name)
+        ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
     ##  When an element is added to the relations_element, we should update the
     #   rels file in the archive.
