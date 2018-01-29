@@ -166,8 +166,7 @@ class UltimakerContainerFile(FileInterface):
         #Split the metadata into a hierarchical structure.
         document = {}
         for key, value in metadata.items():
-            if key.endswith("/"):
-                key = key[:-1] #TODO: Should paths ending in a slash give an error?
+            key = key.strip("/") #TODO: Should paths ending in a slash give an error?
             path = key.split("/")
             current_element = document
             for element in path:
@@ -179,8 +178,7 @@ class UltimakerContainerFile(FileInterface):
         #We've created some empty-string keys to allow values to occur next to subelements.
         #If this empty-string key is the only key inside a node, fold it in to be just the value.
         for key in metadata:
-            if key.endswith("/"):
-                key = key[:-1]
+            key = key.strip("/")
             path = key.split("/")
             current_element = document
             parent = document
