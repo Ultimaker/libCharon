@@ -56,9 +56,9 @@ class UltimakerContainerFile(FileInterface):
         self.zipfile.close()
 
     def flush(self):
-        self._updateMetadata() #Metadata must be updated first, because that adds rels and a content type.
-        self._updateContentTypes()
-        self._updateRels()
+        self._writeMetadata() #Metadata must be updated first, because that adds rels and a content type.
+        self._writeContentTypes()
+        self._writeRels()
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
         #Find all metadata that begins with the specified virtual path!
@@ -122,29 +122,27 @@ class UltimakerContainerFile(FileInterface):
         #Create the element itself.
         ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
-    ##  When an element is added to the relations_element, we should update the
-    #   rels file in the archive.
+    ##  At the end of writing a file, write the relations to the archive.
     #
-    #   Make sure that self.relations_element is up to date first, then call
-    #   this update function to actually update it in the file.
-    def _updateRels(self):
+    #   This should be written at the end of writing an archive, when all
+    #   relations are known.
+    def _writeRels(self):
         self.zipfile.writestr(self.rels_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.relations_element))
 
-    ##  When a content type is added to content_types_element, we should update
-    #   the content types file in the archive.
+    ##  At the end of writing a file, write the content types to the archive.
     #
-    #   Make sure that self.content_types_element is up to date first, then call
-    #   this update function to actually update it in the file.
-    def _updateContentTypes(self):
+    #   This should be written at the end of writing an archive, when all
+    #   content types are known.
+    def _writeContentTypes(self):
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
 
-    ##  At the end of writing a file, update the metadata in the archive.
+    ##  At the end of writing a file, write the metadata to the archive.
     #
-    #   Make sure that self.metadata is up to date first, then call this update
-    #   function to actually write it in the file.
+    #   This should be written at the end of writing an archive, when all
+    #   metadata is known.
     #
     #   ALWAYS WRITE METADATA BEFORE UPDATING RELS AND CONTENT TYPES.
-    def _updateMetadata(self):
+    def _writeMetadata(self):
         keys_left = set(self.metadata.keys()) #The keys that are not associated with a particular file (global metadata).
         metadata_per_file = {}
         for file_name in self.zipfile.namelist():
