@@ -2,7 +2,6 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 
 import json #The metadata format.
-import collections #For writing to JSON in order.
 from typing import Any, Dict, Optional
 import xml.etree.ElementTree as ET #For writing XML manifest files.
 import zipfile
@@ -165,15 +164,15 @@ class UltimakerContainerFile(FileInterface):
     #   \param file_name The virtual path of the JSON file to write to.
     def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str):
         #Split the metadata into a hierarchical structure.
-        document = collections.OrderedDict()
-        for key, value in sorted(metadata.items()):
+        document = {}
+        for key, value in metadata.items():
             if key.endswith("/"):
                 key = key[:-1] #TODO: Should paths ending in a slash give an error?
             path = key.split("/")
             current_element = document
             for element in path:
                 if element not in current_element:
-                    current_element[element] = collections.OrderedDict()
+                    current_element[element] = {}
                 current_element = current_element[element]
             current_element[""] = value
 
@@ -192,7 +191,7 @@ class UltimakerContainerFile(FileInterface):
                 assert "" in current_element
                 parent[path[-1]] = current_element[""] #Fold down the singleton dictionary.
 
-        self.zipfile.writestr(file_name, json.dumps(document))
+        self.zipfile.writestr(file_name, json.dumps(document, sort_keys = True))
 
 ##  Error to raise that something went wrong with reading/writing a UFP file.
 class UFPError(Exception):
