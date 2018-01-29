@@ -191,7 +191,7 @@ class UltimakerContainerFile(FileInterface):
                 assert "" in current_element
                 parent[path[-1]] = current_element[""] #Fold down the singleton dictionary.
 
-        self.zipfile.writestr(file_name, json.dumps(document, sort_keys = True))
+        self.zipfile.writestr(file_name, json.dumps(document, sort_keys = True, indent = 4))
 
 ##  Error to raise that something went wrong with reading/writing a UFP file.
 class UFPError(Exception):
