@@ -3,8 +3,8 @@ from typing import List
 
 import dbus
 
-from .Queue import Queue
-from .Job import Job
+import Queue
+import Job
 
 class FileService(dbus.service.Object):
     def __init__(self, dbus_bus: dbus.Bus):
@@ -13,7 +13,7 @@ class FileService(dbus.service.Object):
             object_path = "/nl/ultimaker/file"
         )
 
-        self.__queue = Queue(self)
+        self.__queue = Queue.Queue()
 
     ##  Start a request for data from a file.
     #
@@ -30,7 +30,7 @@ class FileService(dbus.service.Object):
     #           If this is 0 there was a problem starting the request.
     @dbus.decorators.method("nl.ultimaker.file", "sas", "i")
     def startRequest(self, file_path: str, virtual_paths: List[str]) -> int:
-        job = Job(file_path, virtual_paths)
+        job = Job.Job(self, file_path, virtual_paths)
         if not self.__queue.enqueue(job):
             return 0
 
