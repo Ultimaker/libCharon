@@ -155,7 +155,7 @@ class UltimakerContainerFile(FileInterface):
         #keys_left now contains only global metadata keys.
 
         global_metadata = {key:self.metadata[key] for key in keys_left}
-        self._writeMetadataToFile(global_metadata, "/metadata/ucf_global.json")
+        self._writeMetadataToFile(global_metadata, "/Metadata/UCF_Global.json")
         for file_name, metadata in metadata_per_file.items():
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
