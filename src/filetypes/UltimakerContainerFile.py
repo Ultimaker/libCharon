@@ -166,7 +166,7 @@ class UltimakerContainerFile(FileInterface):
     def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str):
         #Split the metadata into a hierarchical structure.
         document = collections.OrderedDict()
-        for key, value in metadata.items():
+        for key, value in sorted(metadata.items()):
             if key.endswith("/"):
                 key = key[:-1] #TODO: Should paths ending in a slash give an error?
             path = key.split("/")
