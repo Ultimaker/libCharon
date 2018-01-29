@@ -56,8 +56,8 @@ class UltimakerContainerFile(FileInterface):
         self.zipfile.close()
 
     def flush(self):
+        self._updateMetadata() #Metadata must be updated first, because that adds rels and a content type.
         self._updateContentTypes()
-        self._updateMetadata()
         self._updateRels()
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
@@ -142,6 +142,8 @@ class UltimakerContainerFile(FileInterface):
     #
     #   Make sure that self.metadata is up to date first, then call this update
     #   function to actually write it in the file.
+    #
+    #   ALWAYS WRITE METADATA BEFORE UPDATING RELS AND CONTENT TYPES.
     def _updateMetadata(self):
         keys_left = set(self.metadata.keys()) #The keys that are not associated with a particular file (global metadata).
         metadata_per_file = {}
