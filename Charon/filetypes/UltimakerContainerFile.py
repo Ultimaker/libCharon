@@ -159,9 +159,11 @@ class UltimakerContainerFile(FileInterface):
         global_metadata = {key:self.metadata[key] for key in keys_left}
         if len(global_metadata) > 0:
             self._writeMetadataToFile(global_metadata, self.global_metadata_file)
+            self.addRelation(self.global_metadata_file, "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata")
         for file_name, metadata in metadata_per_file.items():
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
+                self.addRelation(file_name + ".json", "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata")
 
     ##  Writes one dictionary of metadata to a JSON file.
     #   \param metadata The metadata dictionary to write.
