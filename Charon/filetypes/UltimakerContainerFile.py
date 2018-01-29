@@ -1,6 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
+from io import BufferedIOBase #For the type of input of open_stream.
 import json #The metadata format.
 from typing import Any, Dict, Optional
 import xml.etree.ElementTree as ET #For writing XML manifest files.
@@ -19,9 +20,9 @@ class UltimakerContainerFile(FileInterface):
     content_types_file = "[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
 
-    def open(self, path: Optional[str] = None, mode: OpenMode = OpenMode.ReadOnly):
+    def open_stream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
-        self.zipfile = zipfile.ZipFile(path, self.mode.value, compression = zipfile.ZIP_DEFLATED)
+        self.zipfile = zipfile.ZipFile(stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
         self.metadata = {}
 
         #Load or create the content types element.

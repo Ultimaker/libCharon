@@ -11,15 +11,27 @@ from .OpenMode import OpenMode
 #   This interface is designed to be able to access 3D-printing related files,
 #   and for container-type files to access the resources therein.
 class FileInterface:
-    ##  Opens a file for reading.
+    ##  Opens a file for reading or writing.
     #
     #   After opening the file, this instance will represent that file from then
     #   on, meaning that the metadata getters/setters and the streams will be
     #   functioning on that file.
     #   \param path The path to the file on local disk, relative or absolute.
     #   \param mode The mode with which to open the file (see OpenMode).
-    def open(self, path: Optional[str] = None, mode: OpenMode = OpenMode.ReadOnly):
+    def open(self, path: str, mode: OpenMode = OpenMode.ReadOnly):
         raise NotImplementedError("The open() function of " + self.__class__.__qualname__ + " is not implemented.")
+
+    ##  Opens a stream for reading or writing.
+    #
+    #   After opening the stream, this instance will represent that stream from
+    #   then on, meaning that the metadata getters/setters and the streams will
+    #   be functioning on that stream.
+    #   \param stream The stream to read from or write to.
+    #   \param mime The MIME type of the stream. This determines what
+    #   implementation is used to read/write it.
+    #   \param mode The mode with which to open the file (see OpenMode).
+    def open_stream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
+        raise NotImplementedError("The openstream() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Closes the opened file, releasing the resources in use for it.
     #

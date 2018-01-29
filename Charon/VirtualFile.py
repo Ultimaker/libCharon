@@ -4,11 +4,15 @@
 import os.path #To get the file extension from a path.
 
 from .FileInterface import FileInterface #The interface we're implementing.
+from .OpenMode import OpenMode #To open local files with the selected open mode.
 
 #The supported file types.
 from .filetypes.UltimakerContainerFile import UltimakerContainerFile
-extension_to_implementation = {
-    ".ufp": UltimakerContainerFile
+extension_to_mime = {
+    ".ufp": "application/x-ufp"
+}
+mime_to_implementation = {
+    "application/x-ufp": UltimakerContainerFile
 }
 
 ##  A facade for a file object.
@@ -19,12 +23,15 @@ class VirtualFile(FileInterface):
     def __init__(self):
         self._implementation = None
 
-    def open(self, path, *args, **kwargs):
+    def open(self, path, mode, *args, **kwargs):
         _, extension = os.path.splitext(path)
-        if extension not in extension_to_implementation:
+        if extension not in extension_to_mime:
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
-        self._implementation = extension_to_implementation[extension]()
-        return self._implementation.open(path, *args, **kwargs)
+        return self.open_stream(open(path, mode.value), extension_to_mime[extension], mode, *args, **kwargs)
+
+    def open_stream(self, stream, mime, mode, *args, **kwargs):
+        self._implementation = mime_to_implementation[mime]()
+        return self._implementation.open_stream(stream, mime, mode, *args, **kwargs)
 
     def close(self, *args, **kwargs):
         if self._implementation is None:
@@ -36,7 +43,7 @@ class VirtualFile(FileInterface):
     ##  Causes all calls to functions that aren't defined in this class to be
     #   passed through to the implementation.
     def __getattribute__(self, item):
-        if item == "open" or item == "close" or item == "__del__" or item == "_implementation": #Attributes that VirtualFile overwrites should be called normally.
+        if item == "open" or item == "open_stream" or item == "close" or item == "__del__" or item == "_implementation": #Attributes that VirtualFile overwrites should be called normally.
             return object.__getattribute__(self, item)
         if not object.__getattribute__(self, "_implementation"):
             raise IOError("Can't use '{attribute}' before a file is opened.".format(attribute = item))
