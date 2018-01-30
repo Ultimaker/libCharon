@@ -16,7 +16,7 @@ from ..ReadOnlyError import ReadOnlyError #To be thrown when trying to write whi
 class UltimakerContainerFile(FileInterface):
     #Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
-    rels_file = "_rels/.rels" #Where the main relationships file is.
+    global_rels_file = "_rels/.rels" #Where the global relationships file is.
     content_types_file = "[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
 
@@ -29,8 +29,8 @@ class UltimakerContainerFile(FileInterface):
         self.content_types_element = None
         self._readContentTypes()
 
-        #Load or create the relations element.
-        self.relations_element = None
+        #Load or create the relations.
+        self.relations = {} #For each virtual path, a relations XML element (which is left out if empty).
         self._readRels()
 
     def close(self):
@@ -88,19 +88,25 @@ class UltimakerContainerFile(FileInterface):
     #   \param virtual_path The target file that the relation is about.
     #   \param relation_type The type of the relation. Any reader of UFP should
     #   be able to understand all types that are added via relations.
-    def addRelation(self, virtual_path, relation_type):
+    #   \param origin The origin of the relation. If the relation concerns a
+    #   specific directory or specific file, then you should point to the
+    #   virtual path of that file here.
+    def addRelation(self, virtual_path: str, relation_type: str, origin: str = ""):
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError(virtual_path)
 
         #First check if it already exists.
-        for relationship in self.relations_element.iterfind("Relationship"):
-            if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
-                raise UFPError("Relation for virtual path {target} already exists.".format(target = virtual_path))
+        if origin not in self.relations:
+            self.relations[origin] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+        else:
+            for relationship in self.relations[origin].iterfind("Relationship"):
+                if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
+                    raise UFPError("Relation for virtual path {target} already exists.".format(target = virtual_path))
 
         #Find a unique name.
         unique_id = 0
         while True:
-            for relationship in self.relations_element.iterfind("Relationship"):
+            for relationship in self.relations[origin].iterfind("Relationship"):
                 if "Id" in relationship.attrib and relationship.attrib["Id"] == "rel" + str(unique_id):
                     break
             else: #Unique ID didn't exist yet! It's safe to use
@@ -109,27 +115,61 @@ class UltimakerContainerFile(FileInterface):
         unique_name = "rel" + str(unique_id)
 
         #Create the element itself.
-        ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
+        ET.SubElement(self.relations[origin], "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
     ##  When loading a file, load the relations from the archive.
     #
     #   If the relations are missing, empty elements are created.
     def _readRels(self):
-        if self.rels_file in self.zipfile.namelist():
-            relations_document = ET.fromstring(self.zipfile.open(self.rels_file).read())
-            relations_element = relations_document.find("Relationships")
-            if relations_element:
-                self.relations_element = relations_element
-        if not self.relations_element: #File didn't exist or didn't contain a Relationships element.
-            self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+        if self.global_rels_file not in self.zipfile.namelist(): #There must always be a global Relationships document.
+            self.relations[""] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+
+        #Below is some parsing of paths and extensions.
+        #Normally you'd use os.path for this. But this is platform-dependent.
+        #For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
+        #So instead we have custom implementations here. Sorry.
+
+        for virtual_path in self.zipfile.namelist():
+            if not virtual_path.endswith(".rels"): #We only want to read rels files.
+                continue
+            if "/" not in virtual_path: #No slash at all. It can't be in the "_rels" directory.
+                continue
+            directory = virtual_path[:virtual_path.rfind("/")] #Before the last slash.
+            if directory != "_rels" and not directory.endswith("/_rels"): #Rels files must be in a directory _rels.
+                continue
+
+            document = ET.fromstring(self.zipfile.open(virtual_path).read())
+            relations_element = document.find("Relationships")
+
+            #Find out what file or directory this relation is about.
+            origin_filename = virtual_path[virtual_path.rfind("/") + 1:-len(".rels")] #Just the filename (no path) and without .rels extension.
+            origin_directory = directory[:-len("/_rels")] #The parent path. We already know it's in the _rels directory.
+            origin = (origin_directory + "/" if (origin_directory != "") else "") + origin_filename
+
+            self.relations[origin] = relations_element
 
     ##  At the end of writing a file, write the relations to the archive.
     #
     #   This should be written at the end of writing an archive, when all
     #   relations are known.
     def _writeRels(self):
-        self._indent(self.relations_element)
-        self.zipfile.writestr(self.rels_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.relations_element))
+        #Below is some parsing of paths and extensions.
+        #Normally you'd use os.path for this. But this is platform-dependent.
+        #For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
+        #So instead we have custom implementations here. Sorry.
+
+        for origin, element in self.relations.items():
+            #Find out where to store the rels file.
+            if "/" not in origin: #Is in root.
+                origin_directory = ""
+                origin_filename = origin
+            else:
+                origin_directory = origin[:origin.rfind("/")]
+                origin_filename = origin[origin.rfind("/") + 1:]
+            relations_file = origin_directory + "/_rels/" + origin_filename + ".rels"
+
+            self._indent(element)
+            self.zipfile.writestr(relations_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(element))
 
     ##  When loading a file, load the content types from the archive.
     #
