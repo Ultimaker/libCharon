@@ -2,10 +2,12 @@
 
 package Service {
     class FileService << DBusService >> {
-        +requestMetadata(file: String, parameters: dict)
-        +cancelRequest(file: String)
+        +startRequest(file: String, paths: List[str]): int
+        +cancelRequest(requestId: int)
         ---
-        +signal requestFinished(file: String, data: dict)
+        +signal requestData(requestId: int, data: Dict[str, Any])
+        +signal requestFinished(requestId: int)
+        +signal requestError(requestId: int, error: str)
     }
 
     class Queue {
@@ -18,9 +20,9 @@ package Service {
         +run()
     }
 
-    abstract class Job {
-        {abstract} +execute()
-        +requestCount : int
+    class Job {
+        +execute()
+        +requestId: int
     }
 
     FileService *-- Queue
@@ -34,11 +36,12 @@ package Service {
 package Library {
 
     interface FileInterface {
-        +open(path : Optional[String] = None, mode : OpenMode = ReadOnly)
+        +open(path : str, mode : OpenMode = ReadOnly)
+        +openStream(stream: BufferedIOBase, mimetype: String)
         +close()
         +flush()
-        +getMetadata(virtual_path: String) : Dict[str, Any]
-        +setMetadata(metadata: Dict[str, Any])
+        +getData(virtual_path: String) : Dict[str, Any]
+        +setData(data: Dict[str, Any])
         +getStream(virtual_path : String) : BufferedIOBase
         +toByteArray(offset: int = 0, count: int = -1) : Bytes
     }
@@ -56,12 +59,24 @@ package Library {
     VirtualFile *-- FileImplementation
     note on link
         VirtualFile creates a FileImplementation
-        based on the path to the file it should
+        based on the mimetype of the file it should
         open.
     end note
 
     FileImplementation <|-- GCodeFile
     FileImplementation <|-- ContainerFile
+}
+
+class FileRequest {
+    +state: RequestState
+    +file_path: str
+    +virtual_paths: List[str]
+    +result: Dict[str, Any]
+    +start()
+    +waitUntilFinished()
+    ---
+    signal dataReceived(request: FileRequest, data: Dict[str, any])
+    signal finished(request: FileRequest)
 }
 
 @enduml

@@ -2,19 +2,19 @@
 
 hide footbox
 
-box "DBus"
-    participant Client
-    participant FileService
-end box
+== Synchronous ==
 
-Client -> FileService: requestMetadata
-FileService --> Client
+Client -> Request: Create
+activate Request
+Request --> Client
+
+Client -> Request: waitForFinished
+
+Request -> FileService: startRequest
+FileService --> Request: return requestId
 
 FileService -> Queue: enqueue
 Queue --> FileService
-
-Client -> FileService: requestMetadata
-FileService --> Client
 
 Worker -> Queue: takeNext
 Queue --> Worker: job
@@ -22,19 +22,46 @@ Queue --> Worker: job
 activate Worker
 Worker -> Worker: Process File
 
+Worker -> FileService: requestData(id, data)
+FileService -->>o Request: requestData(id, data)
+
+Worker -> FileService: requestFinished(id)
+FileService -->>o Request: requestFinished(id)
+deactivate Worker
+
+Request --> Client: data
+destroy Request
+
+== Asynchronous ==
+
+Client -> Request: Create
+activate Request
+Request --> Client
+
+Client -> Request: start
+Request --> Client
+
+Request -> FileService: startRequest
+FileService --> Request: return requestId
+
 FileService -> Queue: enqueue
 Queue --> FileService
 
-Client -> FileService: cancelRequest
-FileService --> Client
+Worker -> Queue: takeNext
+Queue --> Worker: job
 
-FileService -> Queue: dequeue
-Queue --> FileService
+activate Worker
+Worker -> Worker: Process File
 
-Worker -> FileService: requestFinished
-FileService --> Worker
+Worker -> FileService: requestData(id, data)
+FileService -->>o Request: requestData(id, data)
+Request -->>o Client: requestData(request, data)
+
+Worker -> FileService: requestFinished(id)
+FileService -->>o Request: requestFinished(id)
 deactivate Worker
+Request -->>o Client: requestFinished(request)
 
-FileService -> Client: requestFinished
+destroy Request
 
 @enduml
