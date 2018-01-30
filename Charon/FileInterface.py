@@ -35,7 +35,7 @@ class FileInterface:
     #   \param mime The MIME type of the stream. This determines what
     #   implementation is used to read/write it.
     #   \param mode The mode with which to open the file (see OpenMode).
-    def open_stream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
+    def openStream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
         raise NotImplementedError("The openstream() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Closes the opened file, releasing the resources in use for it.

@@ -1,7 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
-from io import BufferedIOBase #For the type of input of open_stream.
+from io import BufferedIOBase #For the type of input of openStream.
 import json #The metadata format.
 from typing import Any, Dict, List
 import xml.etree.ElementTree as ET #For writing XML manifest files.
@@ -22,7 +22,7 @@ class UltimakerContainerFile(FileInterface):
 
     is_binary = True #This file needs to be opened in binary mode.
 
-    def open_stream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
+    def openStream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
         self.zipfile = zipfile.ZipFile(stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
         self.metadata = {}

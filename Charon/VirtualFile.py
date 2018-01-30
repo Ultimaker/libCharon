@@ -29,11 +29,11 @@ class VirtualFile(FileInterface):
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
         mime = extension_to_mime[extension]
         implementation = mime_to_implementation[mime]
-        return self.open_stream(open(path, mode.value + ("b" if implementation.is_binary else "")), mime, mode, *args, **kwargs)
+        return self.openStream(open(path, mode.value + ("b" if implementation.is_binary else "")), mime, mode, *args, **kwargs)
 
-    def open_stream(self, stream, mime, mode, *args, **kwargs):
+    def openStream(self, stream, mime, mode, *args, **kwargs):
         self._implementation = mime_to_implementation[mime]()
-        return self._implementation.open_stream(stream, mime, mode, *args, **kwargs)
+        return self._implementation.openStream(stream, mime, mode, *args, **kwargs)
 
     def close(self, *args, **kwargs):
         if self._implementation is None:
@@ -45,7 +45,7 @@ class VirtualFile(FileInterface):
     ##  Causes all calls to functions that aren't defined in this class to be
     #   passed through to the implementation.
     def __getattribute__(self, item):
-        if item == "open" or item == "open_stream" or item == "close" or item == "__del__" or item == "_implementation": #Attributes that VirtualFile overwrites should be called normally.
+        if item == "open" or item == "openStream" or item == "close" or item == "__del__" or item == "_implementation": #Attributes that VirtualFile overwrites should be called normally.
             return object.__getattribute__(self, item)
         if not object.__getattribute__(self, "_implementation"):
             raise IOError("Can't use '{attribute}' before a file is opened.".format(attribute = item))
