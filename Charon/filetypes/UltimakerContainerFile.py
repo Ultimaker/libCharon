@@ -212,7 +212,7 @@ class UltimakerContainerFile(FileInterface):
                 if relationship.attrib["Type"] != self.ucf_metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
                     continue
                 metadata_file = relationship.attrib["Target"]
-                if metadata_file not in self.zipfile.filelist() and "/" + metadata_file not in self.zipfile.filelist() and not (metadata_file.startswith("/") and metadata_file[1:] in self.zipfile.filelist): #The metadata file is unknown to us.
+                if metadata_file not in self.zipfile.namelist() and "/" + metadata_file not in self.zipfile.namelist() and not (metadata_file.startswith("/") and metadata_file[1:] in self.zipfile.namelist()): #The metadata file is unknown to us.
                     continue
 
                 metadata = json.load(self.zipfile.open(metadata_file))
