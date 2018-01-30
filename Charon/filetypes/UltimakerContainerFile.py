@@ -3,7 +3,7 @@
 
 from io import BufferedIOBase #For the type of input of open_stream.
 import json #The metadata format.
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List
 import xml.etree.ElementTree as ET #For writing XML manifest files.
 import zipfile
 
@@ -18,6 +18,7 @@ class UltimakerContainerFile(FileInterface):
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
     content_types_file = "[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
+    ucf_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata" #Unique identifier of the relationship type that relates UCF metadata to files.
 
     def open_stream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
@@ -31,6 +32,9 @@ class UltimakerContainerFile(FileInterface):
         #Load or create the relations.
         self.relations = {} #For each virtual path, a relations XML element (which is left out if empty).
         self._readRels()
+
+        #Load the metadata, if any.
+        self._readMetadata()
 
     def close(self):
         self.flush()
@@ -196,6 +200,33 @@ class UltimakerContainerFile(FileInterface):
         self._indent(self.content_types_element)
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
 
+    ##  When loading a file, read its metadata from the archive.
+    #
+    #   This depends on the relations! Read the relations first!
+    def _readMetadata(self):
+        for origin, relations_element in self.relations.items():
+            for relationship in relations_element.iterfind("Relationship"):
+                if "Target" not in relationship.attrib or "Type" not in relationship.attrib: #These two are required, and we actually need them here. Better ignore this one.
+                    continue
+                if relationship.attrib["Type"] != self.ucf_metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
+                    continue
+                metadata_file = relationship.attrib["Target"]
+                if metadata_file not in self.zipfile.filelist() and "/" + metadata_file not in self.zipfile.filelist() and not (metadata_file.startswith("/") and metadata_file[1:] in self.zipfile.filelist): #The metadata file is unknown to us.
+                    continue
+
+                metadata = json.load(self.zipfile.open(metadata_file))
+                self._readMetadataElement(metadata, metadata_file)
+
+    ##  Reads a single node of metadata from a JSON document (recursively).
+    #   \param element The node in the JSON document to read.
+    #   \param current_path The path towards the current document.
+    def _readMetadataElement(self, element: Dict[str, Any], current_path: str):
+        for key, value in element.items():
+            if isinstance(value, dict): #json structures stuff in dicts if it is a subtree.
+                self._readMetadataElement(value, current_path + "/" + key)
+            else:
+                self.metadata[current_path + "/" + key] = value
+
     ##  At the end of writing a file, write the metadata to the archive.
     #
     #   This should be written at the end of writing an archive, when all
@@ -217,11 +248,11 @@ class UltimakerContainerFile(FileInterface):
         global_metadata = {key:self.metadata[key] for key in keys_left}
         if len(global_metadata) > 0:
             self._writeMetadataToFile(global_metadata, self.global_metadata_file)
-            self.addRelation(self.global_metadata_file, "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata")
+            self.addRelation(self.global_metadata_file, self.ucf_metadata_relationship_type)
         for file_name, metadata in metadata_per_file.items():
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
-                self.addRelation(file_name + ".json", "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata")
+                self.addRelation(file_name + ".json", self.ucf_metadata_relationship_type)
         if len(self.metadata) > 0: #If we've written any metadata at all, we must include the content type as well.
             try:
                 self.addContentType(extension = "json", mime_type = "text/json")
