@@ -16,7 +16,6 @@ from ..ReadOnlyError import ReadOnlyError #To be thrown when trying to write whi
 class UltimakerContainerFile(FileInterface):
     #Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
-    global_rels_file = "_rels/.rels" #Where the global relationships file is.
     content_types_file = "[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
 
@@ -121,8 +120,7 @@ class UltimakerContainerFile(FileInterface):
     #
     #   If the relations are missing, empty elements are created.
     def _readRels(self):
-        if self.global_rels_file not in self.zipfile.namelist(): #There must always be a global Relationships document.
-            self.relations[""] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+        self.relations[""] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships") #There must always be a global relationships document.
 
         #Below is some parsing of paths and extensions.
         #Normally you'd use os.path for this. But this is platform-dependent.
@@ -182,7 +180,7 @@ class UltimakerContainerFile(FileInterface):
                 self.content_types_element = content_types_element
         if not self.content_types_element:
             self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
-        #If there is no type for the Rels file, create it.
+        #If there is no type for the .rels file, create it.
         if self.mode != OpenMode.ReadOnly:
             for type_element in self.content_types_element.iterfind("Default"):
                 if "Extension" in type_element.attrib and type_element.attrib["Extension"] == "rels":
