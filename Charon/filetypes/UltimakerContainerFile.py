@@ -206,7 +206,7 @@ class UltimakerContainerFile(FileInterface):
     #   This depends on the relations! Read the relations first!
     def _readMetadata(self):
         for origin, relations_element in self.relations.items():
-            for relationship in relations_element.iterfind("Relationship"):
+            for relationship in relations_element.iterfind("{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"):
                 if "Target" not in relationship.attrib or "Type" not in relationship.attrib: #These two are required, and we actually need them here. Better ignore this one.
                     continue
                 if relationship.attrib["Type"] != self.ucf_metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
