@@ -43,6 +43,7 @@ package Library {
         +getData(virtual_path: String) : Dict[str, Any]
         +setData(data: Dict[str, Any])
         +getStream(virtual_path : String) : BufferedIOBase
+        +listPaths() : List[str]
         +toByteArray(offset: int = 0, count: int = -1) : Bytes
     }
 

@@ -29,7 +29,7 @@ The default set of metadata as referenced below, contains the required propertie
 Virtual Paths
 -------------
 
-The metadata and stream properties of the file are retrieved based on paths. These paths represent virtual locations in the file and can be mapped by the file implementation to different locations or files in the container file. The library provides a method to list all the available virtual paths of a file.
+The data of the file is retrieved based on paths. These paths represent virtual locations in the file and can be mapped by the file implementation to different locations or files in the container file. The library provides a method to list all the available virtual paths of a file.
 
 The following virtual paths are guaranteed to be available:
 
