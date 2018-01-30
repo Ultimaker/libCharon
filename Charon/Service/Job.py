@@ -4,6 +4,7 @@ from typing import List
 import dbus
 
 import Charon.VirtualFile
+import Charon.OpenMode
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class Job:
     def run(self):
         try:
             virtual_file = Charon.VirtualFile.VirtualFile()
-            virtual_file.open(self.__file_path)
+            virtual_file.open(self.__file_path, Charon.OpenMode.OpenMode.ReadOnly)
 
             for path in self.__virtual_paths:
                 data = {}
