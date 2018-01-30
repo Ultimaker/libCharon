@@ -27,30 +27,11 @@ class UltimakerContainerFile(FileInterface):
 
         #Load or create the content types element.
         self.content_types_element = None
-        if self.content_types_file in self.zipfile.namelist():
-            content_types_document = ET.fromstring(self.zipfile.open(self.content_types_file).read())
-            content_types_element = content_types_document.find("Types")
-            if content_types_element:
-                self.content_types_element = content_types_element
-        if not self.content_types_element:
-            self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
-        #If there is no type for the Rels file, create it.
-        if self.mode != OpenMode.ReadOnly:
-            for type_element in self.content_types_element.iterfind("Default"):
-                if "Extension" in type_element.attrib and type_element.attrib["Extension"] == "rels":
-                    break
-            else:
-                ET.SubElement(self.content_types_element, "Default", Extension = "rels", ContentType = "application/vnd.openxmlformats-package.relationships+xml")
+        self._readContentTypes()
 
         #Load or create the relations element.
         self.relations_element = None
-        if self.rels_file in self.zipfile.namelist():
-            relations_document = ET.fromstring(self.zipfile.open(self.rels_file).read())
-            relations_element = relations_document.find("Relationships")
-            if relations_element:
-                self.relations_element = relations_element
-        if not self.relations_element: #File didn't exist or didn't contain a Relationships element.
-            self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+        self._readRels()
 
     def close(self):
         self.flush()
@@ -130,6 +111,18 @@ class UltimakerContainerFile(FileInterface):
         #Create the element itself.
         ET.SubElement(self.relations_element, "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
+    ##  When loading a file, load the relations from the archive.
+    #
+    #   If the relations are missing, empty elements are created.
+    def _readRels(self):
+        if self.rels_file in self.zipfile.namelist():
+            relations_document = ET.fromstring(self.zipfile.open(self.rels_file).read())
+            relations_element = relations_document.find("Relationships")
+            if relations_element:
+                self.relations_element = relations_element
+        if not self.relations_element: #File didn't exist or didn't contain a Relationships element.
+            self.relations_element = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
+
     ##  At the end of writing a file, write the relations to the archive.
     #
     #   This should be written at the end of writing an archive, when all
@@ -137,6 +130,25 @@ class UltimakerContainerFile(FileInterface):
     def _writeRels(self):
         self._indent(self.relations_element)
         self.zipfile.writestr(self.rels_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.relations_element))
+
+    ##  When loading a file, load the content types from the archive.
+    #
+    #   If the content types are missing, an empty element is created.
+    def _readContentTypes(self):
+        if self.content_types_file in self.zipfile.namelist():
+            content_types_document = ET.fromstring(self.zipfile.open(self.content_types_file).read())
+            content_types_element = content_types_document.find("Types")
+            if content_types_element:
+                self.content_types_element = content_types_element
+        if not self.content_types_element:
+            self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
+        #If there is no type for the Rels file, create it.
+        if self.mode != OpenMode.ReadOnly:
+            for type_element in self.content_types_element.iterfind("Default"):
+                if "Extension" in type_element.attrib and type_element.attrib["Extension"] == "rels":
+                    break
+            else:
+                ET.SubElement(self.content_types_element, "Default", Extension = "rels", ContentType = "application/vnd.openxmlformats-package.relationships+xml")
 
     ##  At the end of writing a file, write the content types to the archive.
     #
