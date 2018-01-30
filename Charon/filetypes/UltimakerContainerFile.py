@@ -143,14 +143,13 @@ class UltimakerContainerFile(FileInterface):
                 continue
 
             document = ET.fromstring(self.zipfile.open(virtual_path).read())
-            relations_element = document.find("Relationships")
 
             #Find out what file or directory this relation is about.
             origin_filename = virtual_path[virtual_path.rfind("/") + 1:-len(".rels")] #Just the filename (no path) and without .rels extension.
             origin_directory = directory[:-len("/_rels")] #The parent path. We already know it's in the _rels directory.
             origin = (origin_directory + "/" if (origin_directory != "") else "") + origin_filename
 
-            self.relations[origin] = relations_element
+            self.relations[origin] = document
 
     ##  At the end of writing a file, write the relations to the archive.
     #
