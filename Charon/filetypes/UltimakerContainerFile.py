@@ -20,6 +20,8 @@ class UltimakerContainerFile(FileInterface):
     global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
     ucf_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata" #Unique identifier of the relationship type that relates UCF metadata to files.
 
+    is_binary = True #This file needs to be opened in binary mode.
+
     def open_stream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
         self.zipfile = zipfile.ZipFile(stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)

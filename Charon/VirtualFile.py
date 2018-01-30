@@ -27,7 +27,9 @@ class VirtualFile(FileInterface):
         _, extension = os.path.splitext(path)
         if extension not in extension_to_mime:
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
-        return self.open_stream(open(path, mode.value), extension_to_mime[extension], mode, *args, **kwargs)
+        mime = extension_to_mime[extension]
+        implementation = mime_to_implementation[mime]
+        return self.open_stream(open(path, mode.value + ("b" if implementation.is_binary else "")), mime, mode, *args, **kwargs)
 
     def open_stream(self, stream, mime, mode, *args, **kwargs):
         self._implementation = mime_to_implementation[mime]()

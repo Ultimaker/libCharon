@@ -11,6 +11,11 @@ from .OpenMode import OpenMode
 #   This interface is designed to be able to access 3D-printing related files,
 #   and for container-type files to access the resources therein.
 class FileInterface:
+    ##  Indicate if this type of file is binary.
+    #
+    #   This determines if the file should be opened in binary mode or not.
+    is_binary = False
+
     ##  Opens a file for reading or writing.
     #
     #   After opening the file, this instance will represent that file from then
