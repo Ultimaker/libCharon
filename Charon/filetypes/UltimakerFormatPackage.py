@@ -95,7 +95,7 @@ class UltimakerFormatPackage(FileInterface):
         self.metadata.update(metadata)
 
     def getStream(self, virtual_path):
-        if virtual_path in self.zipfile.namelist():
+        if virtual_path in self.zipfile.namelist() or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
             return self.zipfile.open(virtual_path, self.mode.value)
         else:
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
