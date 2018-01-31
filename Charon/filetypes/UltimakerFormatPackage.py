@@ -124,6 +124,7 @@ class UltimakerFormatPackage(FileInterface):
                 return self.zipfile.open(virtual_path, self.mode.value)
             except RuntimeError: #Python 3.5 and before couldn't open resources in the archive in write mode.
                 self._open_bytes_streams[virtual_path] = BytesIO()
+                return self._open_bytes_streams[virtual_path]
         else:
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
