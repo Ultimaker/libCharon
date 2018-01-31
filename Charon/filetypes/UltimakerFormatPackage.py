@@ -68,7 +68,7 @@ class UltimakerFormatPackage(FileInterface):
             raise WriteOnlyError(virtual_path)
         virtual_path = self._processAliases(virtual_path)
         result = self.getMetadata(virtual_path)
-        if virtual_path in [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]:
+        if virtual_path in self._resource_exists(virtual_path):
             result[virtual_path] = self.getStream(virtual_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
 
         return result
@@ -110,7 +110,7 @@ class UltimakerFormatPackage(FileInterface):
 
     def getStream(self, virtual_path):
         virtual_path = self._processAliases(virtual_path)
-        if virtual_path in [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()] or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
+        if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
             return self.zipfile.open(virtual_path, self.mode.value)
         else:
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
@@ -169,6 +169,22 @@ class UltimakerFormatPackage(FileInterface):
 
         #Create the element itself.
         ET.SubElement(self.relations[origin], "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
+
+    ##  Figures out if a resource exists in the archive.
+    #
+    #   This will not match on metadata, only on normal resources.
+    #   \param virtual_path: The path to test for.
+    #   \return ``True`` if it exists as a normal resource, or ``False`` if it
+    #   doesn't.
+    def _resource_exists(self, virtual_path: str):
+        for zip_name in self.zipfile.namelist():
+            zip_virtual_path = self._zipNameToVirtualPath(zip_name)
+            if virtual_path == zip_virtual_path:
+                return True
+            if zip_virtual_path.endswith(".png") and virtual_path.startswith(zip_virtual_path + "/"): #We can rescale PNG images if you want.
+                if re.match(r"^\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)\s*x\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)\s*$", virtual_path[len(zip_virtual_path) + 1:]): #Matches the form "(#,#,#)x(#,#,#)" with optional whitespace.
+                    return True
+        return False
 
     ##  Dereference the aliases for UFP files.
     #
