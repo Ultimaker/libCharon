@@ -1,7 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
-from io import BufferedIOBase #For the type of input of openStream.
+from io import BufferedIOBase, BytesIO #For the type of input of openStream and to create binary output streams for getting metadata.
 import json #The metadata format.
 from typing import Any, Dict, List
 import xml.etree.ElementTree as ET #For writing XML manifest files.
@@ -78,7 +78,7 @@ class UltimakerFormatPackage(FileInterface):
         if virtual_path in self.zipfile.namelist():
             return self.zipfile.open(virtual_path, self.mode.value)
         else:
-            return json.dumps(self.getMetadata(virtual_path)).encode("UTF-8")
+            return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
     def toByteArray(self, offset: int = 0, count: int = -1):
         with open(self.zipfile.filename, "b") as f:
