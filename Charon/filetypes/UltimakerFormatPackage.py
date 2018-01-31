@@ -131,6 +131,16 @@ class UltimakerFormatPackage(FileInterface):
             if self._last_open_stream is not None and self._last_open_path not in self._open_bytes_streams: #Don't close streams that we still need to flush.
                 self._last_open_stream.close()
 
+            #If we are requesting a stream of an image resized, resize the image and return that.
+            if self.mode == OpenMode.ReadOnly and ".png/" in virtual_path:
+                png_file = virtual_path[:virtual_path.find(".png/") + 4]
+                size_spec = virtual_path[virtual_path.find(".png/") + 5:]
+                if re.match(r"^\s*\d+\s*x\s*\d+\s*$", size_spec):
+                    dimensions = []
+                    for dimension in re.finditer(r"\d+", size_spec):
+                        dimensions.append(int(dimension.group()))
+                    return self._resizeImage(png_file, dimensions[0], dimensions[1])
+
             self._last_open_path = virtual_path
             try: #If it happens to match some existing PNG file, we have to rescale that file and return the result.
                 self._last_open_stream = self.zipfile.open(virtual_path, self.mode.value)
@@ -208,7 +218,7 @@ class UltimakerFormatPackage(FileInterface):
             if virtual_path == zip_virtual_path:
                 return True
             if zip_virtual_path.endswith(".png") and virtual_path.startswith(zip_virtual_path + "/"): #We can rescale PNG images if you want.
-                if re.match(r"^\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)\s*x\s*\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)\s*$", virtual_path[len(zip_virtual_path) + 1:]): #Matches the form "(#,#,#)x(#,#,#)" with optional whitespace.
+                if re.match(r"^\s*\d+\s*x\s*\d+\s*$", virtual_path[len(zip_virtual_path) + 1:]): #Matches the form "NxM" with optional whitespace.
                     return True
         return False
 
@@ -235,6 +245,33 @@ class UltimakerFormatPackage(FileInterface):
         if not zip_name.startswith("/"):
             return "/" + zip_name
         return zip_name
+
+    ##  Resize an image to the specified dimensions.
+    #
+    #   For now you may assume that the input image is PNG formatted.
+    #   \param virtual_path The virtual path pointing to an image in the
+    #   zipfile.
+    #   \param width The desired width of the image.
+    #   \param height The desired height of the image.
+    #   \return A bytes stream representing a new PNG image with the desired
+    #   width and height.
+    def _resizeImage(self, virtual_path: str, width: int, height: int) -> BufferedIOBase:
+        input = self.getStream(virtual_path)
+        try:
+            from PyQt5.QtGui import QImage
+            from PyQt5.QtCore import Qt, QBuffer
+
+            image = QImage()
+            image.loadFromData(input.read())
+            image = image.scaled(width, height, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+            output_buffer = QBuffer()
+            output_buffer.open(QBuffer.ReadWrite)
+            image.save(output_buffer, "PNG")
+            output_buffer.seek(0) #Reset that buffer so that the next guy can request it.
+            return BytesIO(output_buffer.readAll())
+        except ImportError:
+            #TODO: Try other image loaders.
+            raise #Raise import error again if we find no other image loaders.
 
     #### Below follow some methods to read/write components of the archive. ####
 
