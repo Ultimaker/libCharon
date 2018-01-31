@@ -64,7 +64,7 @@ class UltimakerFormatPackage(FileInterface):
         if self.mode == OpenMode.ReadOnly:
             return #No need to flush reading of zip archives as they are blocking calls.
 
-        if self._last_open_stream is not None and self._last_open_stream not in self._open_bytes_streams:
+        if self._last_open_stream is not None and self._last_open_path not in self._open_bytes_streams:
             self._last_open_stream.close()
 
         #If using old Python versions (<= 3.5), the write streams were kept in memory to be written all at once when flushing.
