@@ -23,7 +23,7 @@ class VirtualFile(FileInterface):
     def __init__(self):
         self._implementation = None
 
-    def open(self, path, mode, *args, **kwargs):
+    def open(self, path, mode = OpenMode.ReadOnly, *args, **kwargs):
         _, extension = os.path.splitext(path)
         if extension not in extension_to_mime:
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
@@ -31,7 +31,7 @@ class VirtualFile(FileInterface):
         implementation = mime_to_implementation[mime]
         return self.openStream(open(path, mode.value + ("b" if implementation.is_binary else "")), mime, mode, *args, **kwargs)
 
-    def openStream(self, stream, mime, mode, *args, **kwargs):
+    def openStream(self, stream, mime, mode = OpenMode.ReadOnly, *args, **kwargs):
         self._implementation = mime_to_implementation[mime]()
         return self._implementation.openStream(stream, mime, mode, *args, **kwargs)
 
