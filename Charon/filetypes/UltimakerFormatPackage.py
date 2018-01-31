@@ -1,8 +1,10 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
+from collections import OrderedDict #To specify the aliases in order.
 from io import BufferedIOBase, BytesIO #For the type of input of openStream and to create binary output streams for getting metadata.
 import json #The metadata format.
+import re #To find the path aliases.
 from typing import Any, Dict, List
 import xml.etree.ElementTree as ET #For writing XML manifest files.
 import zipfile
@@ -20,6 +22,14 @@ class UltimakerFormatPackage(FileInterface):
     content_types_file = "[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
     ucf_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata" #Unique identifier of the relationship type that relates UCF metadata to files.
+    aliases = OrderedDict([ #Virtual path aliases. Keys are regex. Order matters!
+        (r"^/preview/default", "/Metadata/thumbnail.png"),
+        (r"^/preview", "/Metadata/thumbnail.png"),
+        (r"^/metadata/default", "/Metadata"),
+        (r"^/metadata", "/Metadata"),
+        (r"^/toolpath/default", "/3D/model.gcode"),
+        (r"^/toolpath", "/3D/model.gcode")
+    ])
 
     is_binary = True #This file needs to be opened in binary mode.
 
@@ -51,13 +61,14 @@ class UltimakerFormatPackage(FileInterface):
         self._writeRels()
 
     def listPaths(self):
-        return list(self.metadata.keys()) + self.zipfile.namelist()
+        return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
 
     def getData(self, virtual_path) -> Dict[str, Any]:
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
+        virtual_path = self._processAliases(virtual_path)
         result = self.getMetadata(virtual_path)
-        if virtual_path in self.zipfile.namelist():
+        if virtual_path in [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]:
             result[virtual_path] = self.getStream(virtual_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
 
         return result
@@ -66,7 +77,8 @@ class UltimakerFormatPackage(FileInterface):
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
         for virtual_path, value in data.items():
-            if virtual_path.startswith("Metadata/"): #Detect metadata by virtue of being in the Metadata folder.
+            virtual_path = self._processAliases(virtual_path)
+            if virtual_path.startswith("/Metadata/"): #Detect metadata by virtue of being in the Metadata folder.
                 self.setMetadata({virtual_path: value})
             else: #Virtual file resources.
                 self.getStream(virtual_path).write(value)
@@ -74,6 +86,8 @@ class UltimakerFormatPackage(FileInterface):
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
+        virtual_path = self._processAliases(virtual_path)
+
         #Find all metadata that begins with the specified virtual path!
         result = {}
 
@@ -91,10 +105,12 @@ class UltimakerFormatPackage(FileInterface):
     def setMetadata(self, metadata: Dict[str, Any]):
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
+        metadata = {self._processAliases(virtual_path): metadata[virtual_path] for virtual_path in metadata}
         self.metadata.update(metadata)
 
     def getStream(self, virtual_path):
-        if virtual_path in self.zipfile.namelist() or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
+        virtual_path = self._processAliases(virtual_path)
+        if virtual_path in [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()] or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
             return self.zipfile.open(virtual_path, self.mode.value)
         else:
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
@@ -130,6 +146,7 @@ class UltimakerFormatPackage(FileInterface):
     def addRelation(self, virtual_path: str, relation_type: str, origin: str = ""):
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError(virtual_path)
+        virtual_path = self._processAliases(virtual_path)
 
         #First check if it already exists.
         if origin not in self.relations:
@@ -153,6 +170,29 @@ class UltimakerFormatPackage(FileInterface):
         #Create the element itself.
         ET.SubElement(self.relations[origin], "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
+    ##  Dereference the aliases for UFP files.
+    #
+    #   This also adds a slash in front of every virtual path if it has no slash
+    #   yet, to allow referencing virtual paths with or without the initial
+    #   slash.
+    def _processAliases(self, virtual_path: str) -> str:
+        if not virtual_path.startswith("/"):
+            virtual_path = "/" + virtual_path
+
+        #Replace all aliases.
+        for regex, replacement in self.aliases.items():
+            virtual_path = re.sub(regex, replacement, virtual_path)
+
+        return virtual_path
+
+    ##  Convert the resource name inside the zip to a virtual path as this
+    #   library specifies it should be.
+    #   \param zip_name The name in the zip file according to zipfile module.
+    #   \return The virtual path of that resource.
+    def _zipNameToVirtualPath(self, zip_name: str) -> str:
+        if not zip_name.startswith("/"):
+            return "/" + zip_name
+
     #### Below follow some methods to read/write components of the archive. ####
 
     ##  When loading a file, load the relations from the archive.
@@ -167,9 +207,8 @@ class UltimakerFormatPackage(FileInterface):
         #So instead we have custom implementations here. Sorry.
 
         for virtual_path in self.zipfile.namelist():
+            virtual_path = self._zipNameToVirtualPath(virtual_path)
             if not virtual_path.endswith(".rels"): #We only want to read rels files.
-                continue
-            if "/" not in virtual_path: #No slash at all. It can't be in the "_rels" directory.
                 continue
             directory = virtual_path[:virtual_path.rfind("/")] #Before the last slash.
             if directory != "_rels" and not directory.endswith("/_rels"): #Rels files must be in a directory _rels.
