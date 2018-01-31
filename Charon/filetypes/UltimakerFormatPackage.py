@@ -208,6 +208,7 @@ class UltimakerFormatPackage(FileInterface):
     def _zipNameToVirtualPath(self, zip_name: str) -> str:
         if not zip_name.startswith("/"):
             return "/" + zip_name
+        return zip_name
 
     #### Below follow some methods to read/write components of the archive. ####
 
