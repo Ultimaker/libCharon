@@ -10,6 +10,7 @@ import zipfile
 from ..FileInterface import FileInterface #The interface we're implementing.
 from ..OpenMode import OpenMode #To detect whether we want to read and/or write to the file.
 from ..ReadOnlyError import ReadOnlyError #To be thrown when trying to write while in read-only mode.
+from ..WriteOnlyError import WriteOnlyError #To be thrown when trying to read while in write-only mode.
 
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
@@ -50,6 +51,8 @@ class UltimakerFormatPackage(FileInterface):
         self._writeRels()
 
     def getData(self, virtual_path) -> Dict[str, Any]:
+        if self.mode == OpenMode.WriteOnly:
+            raise WriteOnlyError(virtual_path)
         result = self.getMetadata(virtual_path)
         if virtual_path in self.zipfile.namelist():
             result[virtual_path] = self.getStream(virtual_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
@@ -57,6 +60,8 @@ class UltimakerFormatPackage(FileInterface):
         return result
 
     def setData(self, data: Dict[str, Any]):
+        if self.mode == OpenMode.ReadOnly:
+            raise ReadOnlyError()
         for virtual_path, value in data.items():
             if virtual_path.startswith("Metadata/"): #Detect metadata by virtue of being in the Metadata folder.
                 self.setMetadata({virtual_path: value})
@@ -65,6 +70,8 @@ class UltimakerFormatPackage(FileInterface):
                 stream.write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
+        if self.mode == OpenMode.WriteOnly:
+            raise WriteOnlyError(virtual_path)
         #Find all metadata that begins with the specified virtual path!
         result = {}
 
@@ -80,6 +87,8 @@ class UltimakerFormatPackage(FileInterface):
         return result
 
     def setMetadata(self, metadata: Dict[str, Any]):
+        if self.mode == OpenMode.ReadOnly:
+            raise ReadOnlyError()
         self.metadata.update(metadata)
 
     def getStream(self, virtual_path):
@@ -89,6 +98,8 @@ class UltimakerFormatPackage(FileInterface):
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
     def toByteArray(self, offset: int = 0, count: int = -1):
+        if self.mode == OpenMode.WriteOnly:
+            raise WriteOnlyError()
         with open(self.zipfile.filename, "b") as f:
             if offset > 0:
                 f.seek(offset)
