@@ -69,8 +69,7 @@ class UltimakerFormatPackage(FileInterface):
             if virtual_path.startswith("Metadata/"): #Detect metadata by virtue of being in the Metadata folder.
                 self.setMetadata({virtual_path: value})
             else: #Virtual file resources.
-                stream = self.zipfile.open(virtual_path, self.mode.value)
-                stream.write(value)
+                self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
         if self.mode == OpenMode.WriteOnly:
