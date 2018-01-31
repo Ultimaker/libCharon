@@ -52,6 +52,10 @@ class UltimakerFormatPackage(FileInterface):
         #With old Python versions, the currently open BytesIO streams that need to be flushed, keyed by their virtual path.
         self._open_bytes_streams = {}
 
+        #The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
+        self._last_open_path = None
+        self._last_open_stream = None
+
     def close(self):
         self.flush()
         self.zipfile.close()
@@ -120,11 +124,17 @@ class UltimakerFormatPackage(FileInterface):
     def getStream(self, virtual_path: str) -> BufferedIOBase:
         virtual_path = self._processAliases(virtual_path)
         if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
-            try:
-                return self.zipfile.open(virtual_path, self.mode.value)
+            #The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
+            if self._last_open_stream is not None and self._last_open_path not in self._open_bytes_streams: #Don't close streams that we still need to flush.
+                self._last_open_stream.close()
+
+            self._last_open_path = virtual_path
+            try: #If it happens to match some existing PNG file, we have to rescale that file and return the result.
+                self._last_open_stream = self.zipfile.open(virtual_path, self.mode.value)
             except RuntimeError: #Python 3.5 and before couldn't open resources in the archive in write mode.
-                self._open_bytes_streams[virtual_path] = BytesIO()
-                return self._open_bytes_streams[virtual_path]
+                self._last_open_stream = BytesIO()
+                self._open_bytes_streams[virtual_path] = self._last_open_stream #Save this for flushing later.
+            return self._last_open_stream
         else:
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
