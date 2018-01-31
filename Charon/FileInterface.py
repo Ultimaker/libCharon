@@ -64,6 +64,13 @@ class FileInterface:
     def getData(self, virtual_path: str) -> Dict[str, Any]:
         raise NotImplementedError("The getData() function of " + self.__class__.__qualname__ + " is not implemented.")
 
+    ##  Sets the data of several virtual paths at once.
+    #
+    #   The ``data`` parameter provides a dictionary mapping virtual paths to
+    #   the new data that should be provided in the path.
+    def setData(self, data: Dict[str, Any]):
+        raise NotImplementedError("The setData() function of " + self.__class__.__qualname__ + " is not implemented.")
+
     ##  Gets metadata entries in the opened file.
     #
     #   The metadata is a dictionary, where the keys are virtual paths in the
