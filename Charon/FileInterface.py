@@ -93,7 +93,13 @@ class FileInterface:
     def setMetadata(self, metadata: Dict[str, Any]):
         raise NotImplementedError("The setMetadata() function of " + self.__class__.__qualname__ + " is not implemented.")
 
-    ##  Gets an I/O stream to the resource at the specified virtual path.
+    ##  Gets an I/O stream to the resource or metadata at the specified virtual
+    #   path.
+    #
+    #   This stream may be a normal resource or it may be metadata. If it is
+    #   metadata, a stream will be returned in the form of a JSON document
+    #   (encoded in UTF-8 for binary streams) containing all the metadata that
+    #   would be returned by the getMetadata method.
     #
     #   Whether the returned stream is an input or an output stream depends on
     #   the mode that was provided in the ``open`` method. This determines
