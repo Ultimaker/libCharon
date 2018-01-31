@@ -2,7 +2,7 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 
 from io import BufferedIOBase #To indicate that getStream must return a stream.
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List
 
 from .OpenMode import OpenMode
 
@@ -48,6 +48,10 @@ class FileInterface:
     ##  Ensures that no buffered data is still pending to be read or written.
     def flush(self):
         raise NotImplementedError("The flush() function of " + self.__class__.__qualname__ + " is not implemented.")
+
+    ##  Returns a list of all resources and metadata in the file.
+    def listPaths(self) -> List[str]:
+        raise NotImplementedError("The listPaths() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets the data stored at the specified virtual path and all its
     #   descendants.

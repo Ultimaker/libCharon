@@ -50,6 +50,9 @@ class UltimakerFormatPackage(FileInterface):
         self._writeContentTypes()
         self._writeRels()
 
+    def listPaths(self):
+        return list(self.metadata.keys()) + self.zipfile.namelist()
+
     def getData(self, virtual_path) -> Dict[str, Any]:
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
