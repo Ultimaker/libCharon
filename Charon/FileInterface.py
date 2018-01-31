@@ -49,6 +49,21 @@ class FileInterface:
     def flush(self):
         raise NotImplementedError("The flush() function of " + self.__class__.__qualname__ + " is not implemented.")
 
+    ##  Gets the data stored at the specified virtual path and all its
+    #   descendants.
+    #
+    #   The returned dictionary may contain normal resources as well as
+    #   metadata. If it is a normal resource, the value will contain the
+    #   serialised data (either ``bytes`` or ``str``, depending on whether the
+    #   file opens in binary mode or not). If it is metadata, all metadata keys
+    #   under the specified path are returned (all descendants in the tree). If
+    #   there is no metadata and no resource under the selected virtual path, an
+    #   empty dictionary is returned.
+    #   \param virtual_path The path inside the file to get the data from.
+    #   \return The data and metadata under the specified virtual path.
+    def getData(self, virtual_path: str) -> Dict[str, Any]:
+        raise NotImplementedError("The getData() function of " + self.__class__.__qualname__ + " is not implemented.")
+
     ##  Gets metadata entries in the opened file.
     #
     #   The metadata is a dictionary, where the keys are virtual paths in the

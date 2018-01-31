@@ -49,6 +49,13 @@ class UltimakerContainerFile(FileInterface):
         self._writeContentTypes()
         self._writeRels()
 
+    def getData(self, virtual_path) -> Dict[str, Any]:
+        result = self.getMetadata(virtual_path)
+        if virtual_path in self.zipfile.namelist():
+            result[virtual_path] = self.getStream(virtual_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
+
+        return result
+
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
         #Find all metadata that begins with the specified virtual path!
         result = {}
