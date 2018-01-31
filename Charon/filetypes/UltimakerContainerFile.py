@@ -122,6 +122,8 @@ class UltimakerContainerFile(FileInterface):
         #Create the element itself.
         ET.SubElement(self.relations[origin], "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
+    #### Below follow some methods to read/write components of the archive. ####
+
     ##  When loading a file, load the relations from the archive.
     #
     #   If the relations are missing, empty elements are created.
