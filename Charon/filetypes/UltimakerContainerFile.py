@@ -68,7 +68,10 @@ class UltimakerContainerFile(FileInterface):
         self.metadata.update(metadata)
 
     def getStream(self, virtual_path):
-        return self.zipfile.open(virtual_path, self.mode.value)
+        if virtual_path in self.zipfile.namelist():
+            return self.zipfile.open(virtual_path, self.mode.value)
+        else:
+            return json.dumps(self.getMetadata(virtual_path)).encode("UTF-8")
 
     def toByteArray(self, offset: int = 0, count: int = -1):
         with open(self.zipfile.filename, "b") as f:
