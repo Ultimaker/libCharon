@@ -49,6 +49,9 @@ class UltimakerFormatPackage(FileInterface):
         #Load the metadata, if any.
         self._readMetadata()
 
+        #With old Python versions, the currently open BytesIO streams that need to be flushed, keyed by their virtual path.
+        self._open_bytes_streams = {}
+
     def close(self):
         self.flush()
         self.zipfile.close()
@@ -56,6 +59,12 @@ class UltimakerFormatPackage(FileInterface):
     def flush(self):
         if self.mode == OpenMode.ReadOnly:
             return #No need to flush reading of zip archives as they are blocking calls.
+
+        #If using old Python versions (<= 3.5), the write streams were kept in memory to be written all at once when flushing.
+        for virtual_path, stream in self._open_bytes_streams.items():
+            stream.seek(0)
+            self.zipfile.writestr(virtual_path, stream.read())
+
         self._writeMetadata() #Metadata must be updated first, because that adds rels and a content type.
         self._writeContentTypes()
         self._writeRels()
@@ -108,10 +117,13 @@ class UltimakerFormatPackage(FileInterface):
         metadata = {self._processAliases(virtual_path): metadata[virtual_path] for virtual_path in metadata}
         self.metadata.update(metadata)
 
-    def getStream(self, virtual_path):
+    def getStream(self, virtual_path: str) -> BufferedIOBase:
         virtual_path = self._processAliases(virtual_path)
         if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
-            return self.zipfile.open(virtual_path, self.mode.value)
+            try:
+                return self.zipfile.open(virtual_path, self.mode.value)
+            except RuntimeError: #Python 3.5 and before couldn't open resources in the archive in write mode.
+                self._open_bytes_streams[virtual_path] = BytesIO()
         else:
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
