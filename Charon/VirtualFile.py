@@ -7,12 +7,12 @@ from .FileInterface import FileInterface #The interface we're implementing.
 from .OpenMode import OpenMode #To open local files with the selected open mode.
 
 #The supported file types.
-from .filetypes.UltimakerContainerFile import UltimakerContainerFile
+from .filetypes.UltimakerFormatPackage import UltimakerFormatPackage
 extension_to_mime = {
     ".ufp": "application/x-ufp"
 }
 mime_to_implementation = {
-    "application/x-ufp": UltimakerContainerFile
+    "application/x-ufp": UltimakerFormatPackage
 }
 
 ##  A facade for a file object.

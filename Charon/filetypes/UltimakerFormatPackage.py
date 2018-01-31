@@ -13,7 +13,7 @@ from ..ReadOnlyError import ReadOnlyError #To be thrown when trying to write whi
 
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
-class UltimakerContainerFile(FileInterface):
+class UltimakerFormatPackage(FileInterface):
     #Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
     content_types_file = "[Content_Types].xml" #Where the content types file is.
