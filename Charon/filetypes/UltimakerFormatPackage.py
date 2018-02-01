@@ -33,7 +33,7 @@ class UltimakerFormatPackage(FileInterface):
 
     is_binary = True #This file needs to be opened in binary mode.
 
-    def openStream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
+    def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
         self.zipfile = zipfile.ZipFile(stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
         self.metadata = {}
