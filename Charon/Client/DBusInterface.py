@@ -48,8 +48,14 @@ class DBusInterface:
             return True
 
     @classmethod
-    def disconnectSignal(cls):
-        pass
+    def disconnectSignal(cls, signal_name: str, callback: Callable[..., None], *, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> bool:
+        cls.__ensureDBusSetup()
+
+        if cls.__use_qt:
+            return cls.__signal_forwarder.removeConnection(service_path, object_path, interface, signal_name, callback)
+        else:
+            cls.__connection.remove_signal_receiver(callback, signal_name, interface, service_path, object_path)
+            return True
 
     @classmethod
     def __ensureDBusSetup(cls):
