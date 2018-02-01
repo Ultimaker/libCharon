@@ -344,8 +344,7 @@ class UltimakerFormatPackage(FileInterface):
     #   If the content types are missing, an empty element is created.
     def _readContentTypes(self):
         if self.content_types_file in self.zipfile.namelist():
-            content_types_document = ET.fromstring(self.zipfile.open(self.content_types_file).read())
-            content_types_element = content_types_document.find("Types")
+            content_types_element = ET.fromstring(self.zipfile.open(self.content_types_file).read())
             if content_types_element:
                 self.content_types_element = content_types_element
         if not self.content_types_element:
