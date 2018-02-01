@@ -378,6 +378,8 @@ class UltimakerFormatPackage(FileInterface):
                 metadata = json.load(self.zipfile.open(metadata_file))
                 if metadata_file == self.global_metadata_file: #Store globals as if coming from root.
                     metadata_file = ""
+                elif metadata_file.endswith(".json"): #Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
+                    metadata_file = metadata_file[:-len(".json")]
                 self._readMetadataElement(metadata, metadata_file)
 
     ##  Reads a single node of metadata from a JSON document (recursively).
