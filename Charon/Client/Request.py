@@ -26,6 +26,12 @@ class Request:
         self.__request_completed_callback = None
         self.__request_error_callback = None
 
+    def __del__(self):
+        if self.__state == self.State.Running:
+            DBusInterface.disconnectSignal("requestData", self.__onRequestData)
+            DBusInterface.disconnectSignal("requestCompleted", self.__onRequestCompleted)
+            DBusInterface.disconnectSignal("requestError", self.__onRequestError)
+
     @property
     def filePath(self):
         return self.__file_path
