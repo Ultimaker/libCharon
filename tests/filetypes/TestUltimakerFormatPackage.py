@@ -43,3 +43,23 @@ def test_listPathsEmpty(empty_read_ufp: UltimakerFormatPackage):
 def test_getWriteStream(empty_write_ufp: UltimakerFormatPackage, virtual_path: str):
     stream = empty_write_ufp.getStream(virtual_path)
     stream.write(b"The test is successful.")
+
+##  Tests writing data to an archive, then reading it back.
+@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "/Metadata"])
+def test_cycleSetDataGetData(virtual_path: str):
+    test_data = b"Let's see if we can read this data back."
+
+    stream = io.BytesIO()
+    package = UltimakerFormatPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.setData({virtual_path: test_data})
+    package.close()
+
+    stream.seek(0)
+    package = UltimakerFormatPackage()
+    package.openStream(stream)
+    result = package.getData(virtual_path)
+
+    assert len(result) == 1 #This data must be the only data we've found.
+    assert virtual_path in result #The path must be in the dictionary.
+    assert result[virtual_path] == test_data #The data itself is still correct.
