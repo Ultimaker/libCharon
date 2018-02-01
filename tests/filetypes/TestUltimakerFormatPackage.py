@@ -138,3 +138,18 @@ def test_toByteArray(single_resource_read_ufp):
 
     result = single_resource_read_ufp.toByteArray(count = 999999) #This is a small file, definitely smaller than 1MiB.
     assert len(result) == original_length #Should be limited to the actual file length.
+
+##  Tests toByteArray when loading from a stream.
+def test_toByteArrayStream():
+    stream = io.BytesIO()
+    package = UltimakerFormatPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.setData({"/hello.txt": b"Hello world!"}) #Add some arbitrary data so that the file size is not trivial regardless of what format is used.
+    package.close()
+
+    stream.seek(0)
+    package = UltimakerFormatPackage()
+    package.openStream(stream)
+    result = package.toByteArray()
+
+    assert len(result) > 0 #There must be some data in it.
