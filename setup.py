@@ -9,5 +9,5 @@ setup(name = "Charon",
     author = "Ultimaker",
     author_email = "r.dulek@ultimaker.com",
     url = "https://github.com/Ultimaker/libCharon",
-    packages = ["Charon"]
+    packages = ["Charon", "Charon.Client", "Charon.Service", "Charon.filetypes"]
 )
