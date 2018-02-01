@@ -116,6 +116,13 @@ class UltimakerFormatPackage(FileInterface):
             #start with the provided virtual path plus a slash.
             if entry_path.startswith(virtual_path + "/"):
                 result[entry_path] = value
+
+        #If requesting the size of a file.
+        if virtual_path.endswith("/size"):
+            requested_resource = virtual_path[:-len("/size")]
+            if self._resource_exists(requested_resource):
+                result[virtual_path] = self.zipfile.getinfo(requested_resource).file_size
+
         return result
 
     def setMetadata(self, metadata: Dict[str, Any]):
