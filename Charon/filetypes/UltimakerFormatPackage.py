@@ -352,7 +352,7 @@ class UltimakerFormatPackage(FileInterface):
             self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
         #If there is no type for the .rels file, create it.
         if self.mode != OpenMode.ReadOnly:
-            for type_element in self.content_types_element.iterfind("Default"):
+            for type_element in self.content_types_element.iterfind("{http://schemas.openxmlformats.org/package/2006/content-types}Default"):
                 if "Extension" in type_element.attrib and type_element.attrib["Extension"] == "rels":
                     break
             else:
