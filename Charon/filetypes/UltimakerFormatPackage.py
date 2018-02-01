@@ -162,7 +162,7 @@ class UltimakerFormatPackage(FileInterface):
     def toByteArray(self, offset: int = 0, count: int = -1):
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError()
-        with open(self.zipfile.filename, "b") as f:
+        with open(self.zipfile.filename, "rb") as f:
             if offset > 0:
                 f.seek(offset)
             return f.read(count)
