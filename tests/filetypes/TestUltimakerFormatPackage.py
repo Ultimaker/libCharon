@@ -100,6 +100,7 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
     stream = io.BytesIO()
     package = UltimakerFormatPackage()
     package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.setData({"/hello.txt": b"Hello world!"}) #Add a file to attach non-global metadata to.
     package.setMetadata({virtual_path: test_data})
     package.close()
 
