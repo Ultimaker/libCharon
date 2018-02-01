@@ -35,7 +35,8 @@ class UltimakerFormatPackage(FileInterface):
 
     def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly):
         self.mode = mode
-        self.zipfile = zipfile.ZipFile(stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
+        self.stream = stream #A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
+        self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
         self.metadata = {}
 
         #Load or create the content types element.
@@ -162,10 +163,14 @@ class UltimakerFormatPackage(FileInterface):
     def toByteArray(self, offset: int = 0, count: int = -1):
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError()
-        with open(self.zipfile.filename, "rb") as f:
-            if offset > 0:
-                f.seek(offset)
-            return f.read(count)
+
+        self.zipfile.close() #Close the zipfile first so that we won't be messing with the stream without its consent.
+
+        self.stream.seek(offset)
+        result = self.stream.read(count)
+
+        self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
+        return result
 
     ##  Adds a new content type to the archive.
     #   \param extension The file extension of the type
