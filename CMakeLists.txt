@@ -10,3 +10,26 @@ else()
 endif()
 
 include(CPackConfig.cmake)
+
+####################Loading the unit tests.###################
+enable_testing()
+
+include(CMakeParseArguments)
+
+if(NOT _PYTHONPATH)
+    set(_PYTHONPATH ${CMAKE_SOURCE_DIR})
+endif()
+if(WIN32)
+    string(REPLACE "|" "\\;" _PYTHONPATH ${_PYTHONPATH})
+    set(_PYTHONPATH "${_PYTHONPATH}\\;$ENV{PYTHONPATH}")
+else()
+    string(REPLACE "|" ":" _PYTHONPATH ${_PYTHONPATH})
+    set(_PYTHONPATH "${_PYTHONPATH}:$ENV{PYTHONPATH}")
+endif()
+
+add_test(
+    NAME pytest-main
+    COMMAND ${PYTHON_EXECUTABLE} -m pytest --junitxml=${CMAKE_BINARY_DIR}/junit-pytest-main.xml ${CMAKE_SOURCE_DIR}/tests
+)
+set_tests_properties(pytest-main PROPERTIES ENVIRONMENT LANG=C)
+set_tests_properties(pytest-main PROPERTIES ENVIRONMENT "PYTHONPATH=${_PYTHONPATH}")
