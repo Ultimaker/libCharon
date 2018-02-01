@@ -19,6 +19,16 @@ def empty_read_ufp() -> UltimakerFormatPackage:
     yield result
     result.close()
 
+##  Returns a package that has a single file in it.
+#
+#   The file is called "hello.txt" and contains the text "Hello world!" encoded
+#   in UTF-8.
+def single_resource_read_ufp() -> UltimakerFormatPackage:
+    result = UltimakerFormatPackage()
+    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.ufp"), "rb"))
+    yield result
+    result.close()
+
 ##  Returns an empty package that you can write to.
 #
 #   Note that you can't really test the output of the write since you don't have
@@ -82,3 +92,22 @@ def test_cycleStreamWriteRead(virtual_path: str):
     result = resource.read()
 
     assert result == test_data
+
+@pytest.mark.parametrize("virtual_path", ["/Metadata/some/global/setting", "/hello.txt/test", "/also/global/entry"])
+def test_cycleSetMetadataGetMetadata(virtual_path: str):
+    test_data = "Hasta la vista, baby."
+
+    stream = io.BytesIO()
+    package = UltimakerFormatPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.setMetadata({virtual_path: test_data})
+    package.close()
+
+    stream.seek(0)
+    package = UltimakerFormatPackage()
+    package.openStream(stream)
+    result = package.getMetadata(virtual_path)
+
+    assert len(result) == 1 #Only one metadata entry was set.
+    assert virtual_path in result #And it was the correct entry.
+    assert result[virtual_path] == test_data #With the correct value.
