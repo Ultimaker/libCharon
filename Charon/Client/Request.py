@@ -60,8 +60,10 @@ class Request:
         DBusInterface.connectSignal("requestError", self.__onRequestError)
 
         self.__request_id = DBusInterface.callMethod("startRequest", "sas", self.__file_path, self.__virtual_paths)
-        if self.__request_id is 0:
+        if not self.__request_id:
             raise RuntimeError("Did not receive a valid request ID for request {}".format(self))
+
+        self.__state = self.State.Running
 
     def stop(self):
         if self.__state != self.State.Running:
