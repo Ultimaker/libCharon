@@ -213,3 +213,11 @@ def test_addRelation():
         elif relation.attrib["Target"] == "/whoo.enforced.txt":
             assert relation.attrib["Type"] == "A greatly enhanced version of it."
     assert both_relations[0].attrib["Id"] != both_relations[1].attrib["Id"] #Id must be unique.
+
+##  Tests getting the size of a file.
+#
+#   This is implemented knowing the contents of single_resource_read_ufp.
+def test_getMetadataSize(single_resource_read_ufp):
+    metadata = single_resource_read_ufp.getMetadata("/hello.txt/size")
+    assert "/hello.txt/size" in metadata
+    assert metadata["/hello.txt/size"] == len("Hello world!\n".encode("UTF-8")) #Compare with the length of the file's contents as encoded in UTF-8.
