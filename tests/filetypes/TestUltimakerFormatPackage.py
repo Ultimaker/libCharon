@@ -16,7 +16,8 @@ from Charon.OpenMode import OpenMode #To open archives.
 def empty_read_ufp() -> UltimakerFormatPackage:
     result = UltimakerFormatPackage()
     result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.ufp"), "rb"))
-    return result
+    yield result
+    result.close()
 
 ##  Returns an empty package that you can write to.
 #
@@ -26,7 +27,8 @@ def empty_read_ufp() -> UltimakerFormatPackage:
 def empty_write_ufp() -> UltimakerFormatPackage:
     result = UltimakerFormatPackage()
     result.openStream(io.BytesIO(), "application/x-ufp", OpenMode.WriteOnly)
-    return result
+    yield result
+    result.close()
 
 #### Now follow the actual tests. ####
 
