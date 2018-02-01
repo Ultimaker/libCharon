@@ -123,7 +123,7 @@ class UltimakerFormatPackage(FileInterface):
         if virtual_path.endswith("/size"):
             requested_resource = virtual_path[:-len("/size")]
             if self._resource_exists(requested_resource):
-                result[virtual_path] = self.zipfile.getinfo(requested_resource).file_size
+                result[virtual_path] = self.zipfile.getinfo(requested_resource.strip("/")).file_size
 
         return result
 
