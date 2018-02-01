@@ -85,7 +85,7 @@ class UltimakerFormatPackage(FileInterface):
             raise WriteOnlyError(virtual_path)
         virtual_path = self._processAliases(virtual_path)
         result = self.getMetadata(virtual_path)
-        if virtual_path in self._resource_exists(virtual_path):
+        if self._resource_exists(virtual_path):
             result[virtual_path] = self.getStream(virtual_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
 
         return result
