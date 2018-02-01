@@ -23,6 +23,7 @@ def empty_read_ufp() -> UltimakerFormatPackage:
 #
 #   The file is called "hello.txt" and contains the text "Hello world!" encoded
 #   in UTF-8.
+@pytest.fixture()
 def single_resource_read_ufp() -> UltimakerFormatPackage:
     result = UltimakerFormatPackage()
     result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.ufp"), "rb"))
@@ -74,6 +75,8 @@ def test_cycleSetDataGetData(virtual_path: str):
     assert virtual_path in result #The path must be in the dictionary.
     assert result[virtual_path] == test_data #The data itself is still correct.
 
+##  Tests writing data via a stream to an archive, then reading it back via a
+#   stream.
 @pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "/Metadata"])
 def test_cycleStreamWriteRead(virtual_path: str):
     test_data = b"Softly does the river flow, flow, flow."
@@ -93,6 +96,7 @@ def test_cycleStreamWriteRead(virtual_path: str):
 
     assert result == test_data
 
+##  Tests setting metadata in an archive, then reading that metadata back.
 @pytest.mark.parametrize("virtual_path", ["/Metadata/some/global/setting", "/hello.txt/test", "/also/global/entry"])
 def test_cycleSetMetadataGetMetadata(virtual_path: str):
     test_data = "Hasta la vista, baby."
@@ -112,3 +116,25 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
     assert len(result) == 1 #Only one metadata entry was set.
     assert virtual_path in result #And it was the correct entry.
     assert result[virtual_path] == test_data #With the correct value.
+
+##  Tests toByteArray with its parameters.
+#
+#   This doesn't test if the bytes are correct, because that is the task of the
+#   zipfile module. We merely test that it gets some bytes array and that the
+#   offset and size parameters work.
+def test_toByteArray(single_resource_read_ufp):
+    original = single_resource_read_ufp.toByteArray()
+    original_length = len(original)
+
+    #Even empty zip archives are already 22 bytes, so offsets and sizes of less than that should be okay.
+    result = single_resource_read_ufp.toByteArray(offset = 10)
+    assert len(result) == original_length - 10 #The first 10 bytes have fallen off.
+
+    result = single_resource_read_ufp.toByteArray(count = 8)
+    assert len(result) == 8 #Limited to size 8.
+
+    result = single_resource_read_ufp.toByteArray(offset = 10, count = 8)
+    assert len(result) == 8 #Still limited by the size, even though there is an offset.
+
+    result = single_resource_read_ufp.toByteArray(count = 999999) #This is a small file, definitely smaller than 1MiB.
+    assert len(result) == original_length #Should be limited to the actual file length.
