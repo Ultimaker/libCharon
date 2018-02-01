@@ -1,6 +1,8 @@
 project(charon)
 cmake_minimum_required(VERSION 3.9.1) #Tested only with 3.9.1.
 
+find_package(PythonInterp 3.5.0 REQUIRED)
+
 if(EXISTS /etc/debian_version)
     install(DIRECTORY Charon DESTINATION lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}/dist-packages)
 else()
