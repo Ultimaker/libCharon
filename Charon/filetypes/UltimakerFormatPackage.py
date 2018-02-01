@@ -20,8 +20,8 @@ class UltimakerFormatPackage(FileInterface):
     #Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
     content_types_file = "/[Content_Types].xml" #Where the content types file is.
-    global_metadata_file = "/Metadata/UCF_Global.json" #Where the global metadata file is.
-    ucf_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata" #Unique identifier of the relationship type that relates UCF metadata to files.
+    global_metadata_file = "/Metadata/UFP_Global.json" #Where the global metadata file is.
+    ufp_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ufp_metadata" #Unique identifier of the relationship type that relates UFP metadata to files.
     aliases = OrderedDict([ #Virtual path aliases. Keys are regex. Order matters!
         (r"^/preview/default", "/Metadata/thumbnail.png"),
         (r"^/preview", "/Metadata/thumbnail.png"),
@@ -369,7 +369,7 @@ class UltimakerFormatPackage(FileInterface):
             for relationship in relations_element.iterfind("{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"):
                 if "Target" not in relationship.attrib or "Type" not in relationship.attrib: #These two are required, and we actually need them here. Better ignore this one.
                     continue
-                if relationship.attrib["Type"] != self.ucf_metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
+                if relationship.attrib["Type"] != self.ufp_metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
                     continue
                 metadata_file = relationship.attrib["Target"]
                 if metadata_file not in self.zipfile.namelist(): #The metadata file is unknown to us.
@@ -411,11 +411,11 @@ class UltimakerFormatPackage(FileInterface):
         global_metadata = {key:self.metadata[key] for key in keys_left}
         if len(global_metadata) > 0:
             self._writeMetadataToFile(global_metadata, self.global_metadata_file)
-            self.addRelation(self.global_metadata_file, self.ucf_metadata_relationship_type)
+            self.addRelation(self.global_metadata_file, self.ufp_metadata_relationship_type)
         for file_name, metadata in metadata_per_file.items():
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
-                self.addRelation(file_name + ".json", self.ucf_metadata_relationship_type)
+                self.addRelation(file_name + ".json", self.ufp_metadata_relationship_type)
         if len(self.metadata) > 0: #If we've written any metadata at all, we must include the content type as well.
             try:
                 self.addContentType(extension = "json", mime_type = "text/json")
