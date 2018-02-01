@@ -4,6 +4,8 @@
 import io #To create fake streams to write to and read from.
 import os.path #To find the resources with test packages.
 import pytest #This module contains unit tests.
+import zipfile #To inspect the contents of the zip archives.
+import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
 
 from Charon.filetypes.UltimakerFormatPackage import UltimakerFormatPackage #The class we're testing.
 from Charon.OpenMode import OpenMode #To open archives.
@@ -153,3 +155,30 @@ def test_toByteArrayStream():
     result = package.toByteArray()
 
     assert len(result) > 0 #There must be some data in it.
+
+##  Tests whether a content type gets added and that it gets added in the
+#   correct location.
+def test_addContentType():
+    stream = io.BytesIO()
+    package = UltimakerFormatPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.addContentType("lol", "audio/x-laughing")
+    package.close()
+
+    stream.seek(0)
+    #This time, open as .zip to just inspect the file contents.
+    archive = zipfile.ZipFile(stream)
+    assert "/[Content_Types].xml" in archive.namelist()
+    content_types = archive.open("/[Content_Types].xml").read()
+    content_types_element = ET.fromstring(content_types)
+
+    defaults = content_types_element.findall("{http://schemas.openxmlformats.org/package/2006/content-types}Default")
+    assert len(defaults) == 2 #We only added one content type, but there must also be the .rels content type.
+    for default in defaults:
+        assert "Extension" in default.attrib
+        assert "ContentType" in default.attrib
+        assert default.attrib["Extension"] == "lol" or default.attrib["Extension"] == "rels"
+        if default.attrib["Extension"] == "lol":
+            assert default.attrib["ContentType"] == "audio/x-laughing"
+        elif default.attrib["Extension"] == "rels":
+            assert default.attrib["ContentType"] == "application/vnd.openxmlformats-package.relationships+xml"
