@@ -19,8 +19,8 @@ from ..WriteOnlyError import WriteOnlyError #To be thrown when trying to read wh
 class UltimakerFormatPackage(FileInterface):
     #Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
-    content_types_file = "[Content_Types].xml" #Where the content types file is.
-    global_metadata_file = "Metadata/UCF_Global.json" #Where the global metadata file is.
+    content_types_file = "/[Content_Types].xml" #Where the content types file is.
+    global_metadata_file = "/Metadata/UCF_Global.json" #Where the global metadata file is.
     ucf_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ucf_metadata" #Unique identifier of the relationship type that relates UCF metadata to files.
     aliases = OrderedDict([ #Virtual path aliases. Keys are regex. Order matters!
         (r"^/preview/default", "/Metadata/thumbnail.png"),
@@ -372,7 +372,7 @@ class UltimakerFormatPackage(FileInterface):
                 if relationship.attrib["Type"] != self.ucf_metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
                     continue
                 metadata_file = relationship.attrib["Target"]
-                if metadata_file not in self.zipfile.namelist() and "/" + metadata_file not in self.zipfile.namelist() and not (metadata_file.startswith("/") and metadata_file[1:] in self.zipfile.namelist()): #The metadata file is unknown to us.
+                if metadata_file not in self.zipfile.namelist(): #The metadata file is unknown to us.
                     continue
 
                 metadata = json.load(self.zipfile.open(metadata_file))
