@@ -71,6 +71,7 @@ class UltimakerFormatPackage(FileInterface):
         for virtual_path, stream in self._open_bytes_streams.items():
             stream.seek(0)
             self.zipfile.writestr(virtual_path, stream.read())
+            stream.close()
 
         self._writeMetadata() #Metadata must be updated first, because that adds rels and a content type.
         self._writeContentTypes()
