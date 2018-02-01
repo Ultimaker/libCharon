@@ -46,6 +46,11 @@ class Request:
     def errorString(self):
         return self.__error_string
 
+    def setCallbacks(self, *, data = None, completed = None, error = None):
+        self.__request_data_callback = data
+        self.__request_completed_callback = completed
+        self.__request_error_callback = error
+
     def start(self):
         if self.__state != self.State.Initial:
             return
