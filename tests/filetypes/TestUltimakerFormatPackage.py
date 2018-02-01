@@ -182,3 +182,34 @@ def test_addContentType():
             assert default.attrib["ContentType"] == "audio/x-laughing"
         elif default.attrib["Extension"] == "rels":
             assert default.attrib["ContentType"] == "application/vnd.openxmlformats-package.relationships+xml"
+
+##  Tests whether a relation gets added and that it gets saved in the correct
+#   location.
+def test_addRelation():
+    stream = io.BytesIO()
+    package = UltimakerFormatPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.setData({"/whoo.txt": b"Boo", "/whoo.enhanced.txt": b"BOOOO!", "/whoo.enforced.txt": b"BOOOOOOOOOO!"}) #Need 3 files: One base and two that are related.
+    package.addRelation("whoo.enhanced.txt", "An enhanced version of it.", "whoo.txt")
+    package.addRelation("whoo.enforced.txt", "A greatly enhanced version of it.", "whoo.txt")
+    package.close()
+
+    stream.seek(0)
+    #This time, open as .zip to just inspect the file contents.
+    archive = zipfile.ZipFile(stream)
+    assert "/_rels/whoo.txt.rels" in archive.namelist() #It must create a file specifically for whoo.txt
+    relations = archive.open("/_rels/whoo.txt.rels").read()
+    relations_element = ET.fromstring(relations)
+
+    both_relations = relations_element.findall("{http://schemas.openxmlformats.org/package/2006/relationships}Relationship")
+    assert len(both_relations) == 2 #We added two relations.
+    for relation in both_relations:
+        assert "Id" in relation.attrib
+        assert "Target" in relation.attrib
+        assert "Type" in relation.attrib
+        assert relation.attrib["Target"] == "/whoo.enhanced.txt" or relation.attrib["Target"] == "/whoo.enforced.txt"
+        if relation.attrib["Target"] == "/whoo.enhanced.txt":
+            assert relation.attrib["Type"] == "An enhanced version of it."
+        elif relation.attrib["Target"] == "/whoo.enforced.txt":
+            assert relation.attrib["Type"] == "A greatly enhanced version of it."
+    assert both_relations[0].attrib["Id"] != both_relations[1].attrib["Id"] #Id must be unique.
