@@ -39,13 +39,13 @@ def test_listPathsEmpty(empty_read_ufp: UltimakerFormatPackage):
 ##  Tests getting write streams of various resources that may or may not exist.
 #
 #   Every test will write some arbitrary data to it to see that that also works.
-@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata", "/_rels/.rels"])
+@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata", "/_rels/.rels"]) #Some extra tests without initial slash to test robustness.
 def test_getWriteStream(empty_write_ufp: UltimakerFormatPackage, virtual_path: str):
     stream = empty_write_ufp.getStream(virtual_path)
     stream.write(b"The test is successful.")
 
 ##  Tests writing data to an archive, then reading it back.
-@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "/Metadata"])
+@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "/Metadata"]) #Don't try to read .rels back. That won't work.
 def test_cycleSetDataGetData(virtual_path: str):
     test_data = b"Let's see if we can read this data back."
 
@@ -63,3 +63,22 @@ def test_cycleSetDataGetData(virtual_path: str):
     assert len(result) == 1 #This data must be the only data we've found.
     assert virtual_path in result #The path must be in the dictionary.
     assert result[virtual_path] == test_data #The data itself is still correct.
+
+@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "/Metadata"])
+def test_cycleStreamWriteRead(virtual_path: str):
+    test_data = b"Softly does the river flow, flow, flow."
+
+    stream = io.BytesIO()
+    package = UltimakerFormatPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    resource = package.getStream(virtual_path)
+    resource.write(test_data)
+    package.close()
+
+    stream.seek(0)
+    package = UltimakerFormatPackage()
+    package.openStream(stream)
+    resource = package.getStream(virtual_path)
+    result = resource.read()
+
+    assert result == test_data
