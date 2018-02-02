@@ -33,29 +33,28 @@ class UltimakerFormatPackage(FileInterface):
 
     is_binary = True #This file needs to be opened in binary mode.
 
-    def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly):
-        self.mode = mode
-        self.stream = stream #A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
-        self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
-        self.metadata = {}
-
-        #Load or create the content types element.
-        self.content_types_element = None
-        self._readContentTypes()
-
-        #Load or create the relations.
-        self.relations = {} #For each virtual path, a relations XML element (which is left out if empty).
-        self._readRels()
-
-        #Load the metadata, if any.
-        self._readMetadata()
-
-        #With old Python versions, the currently open BytesIO streams that need to be flushed, keyed by their virtual path.
-        self._open_bytes_streams = {}
+    ##  Initialises the fields of this class.
+    def __init__(self):
+        self.mode = None #Whether we're in read or write mode.
+        self.stream = None #The currently open stream.
+        self.zipfile = None #The zip interface to the currently open stream.
+        self.metadata = {} #The metadata in the currently open file.
+        self.content_types_element = None #An XML element holding all the content types.
+        self.relations = {} #For each virtual path, a relations XML element (which is left out of the file if empty).
+        self._open_bytes_streams = {} #With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
 
         #The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
         self._last_open_path = None
         self._last_open_stream = None
+
+    def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly):
+        self.mode = mode
+        self.stream = stream #A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
+        self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
+
+        self._readContentTypes() #Load or create the content types element.
+        self._readRels() #Load or create the relations.
+        self._readMetadata() #Load the metadata, if any.
 
     def close(self):
         self.flush()
