@@ -57,10 +57,14 @@ class UltimakerFormatPackage(FileInterface):
         self._readMetadata() #Load the metadata, if any.
 
     def close(self):
+        if not self.stream:
+            raise ValueError("This file is already closed.")
         self.flush()
         self.zipfile.close()
 
     def flush(self):
+        if not self.stream:
+            raise ValueError("Can't flush a closed file.")
         if self.mode == OpenMode.ReadOnly:
             return #No need to flush reading of zip archives as they are blocking calls.
 
@@ -78,9 +82,13 @@ class UltimakerFormatPackage(FileInterface):
         self._writeRels()
 
     def listPaths(self):
+        if not self.stream:
+            raise ValueError("Can't list the paths in a closed file.")
         return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
 
     def getData(self, virtual_path) -> Dict[str, Any]:
+        if not self.stream:
+            raise ValueError("Can't get data from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
         virtual_path = self._processAliases(virtual_path)
@@ -91,6 +99,8 @@ class UltimakerFormatPackage(FileInterface):
         return result
 
     def setData(self, data: Dict[str, Any]):
+        if not self.stream:
+            raise ValueError("Can't change the data in a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
         for virtual_path, value in data.items():
@@ -101,6 +111,8 @@ class UltimakerFormatPackage(FileInterface):
                 self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
+        if not self.stream:
+            raise ValueError("Can't get metadata from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
         virtual_path = self._processAliases(virtual_path)
@@ -127,12 +139,16 @@ class UltimakerFormatPackage(FileInterface):
         return result
 
     def setMetadata(self, metadata: Dict[str, Any]):
+        if not self.stream:
+            raise ValueError("Can't change metadata in a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
         metadata = {self._processAliases(virtual_path): metadata[virtual_path] for virtual_path in metadata}
         self.metadata.update(metadata)
 
     def getStream(self, virtual_path: str) -> BufferedIOBase:
+        if not self.stream:
+            raise ValueError("Can't get a stream from a closed file.")
         virtual_path = self._processAliases(virtual_path)
         if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
             #The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
@@ -160,6 +176,8 @@ class UltimakerFormatPackage(FileInterface):
             return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
     def toByteArray(self, offset: int = 0, count: int = -1):
+        if not self.stream:
+            raise ValueError("Can't get the bytes from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError()
 
@@ -174,6 +192,8 @@ class UltimakerFormatPackage(FileInterface):
     ##  Adds a new content type to the archive.
     #   \param extension The file extension of the type
     def addContentType(self, extension, mime_type):
+        if not self.stream:
+            raise ValueError("Can't add a content type to a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
 
@@ -192,6 +212,8 @@ class UltimakerFormatPackage(FileInterface):
     #   specific directory or specific file, then you should point to the
     #   virtual path of that file here.
     def addRelation(self, virtual_path: str, relation_type: str, origin: str = ""):
+        if not self.stream:
+            raise ValueError("Can't add a relation to a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError(virtual_path)
         virtual_path = self._processAliases(virtual_path)
