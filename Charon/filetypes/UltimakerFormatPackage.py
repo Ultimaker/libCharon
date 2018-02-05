@@ -91,10 +91,10 @@ class UltimakerFormatPackage(FileInterface):
             raise ValueError("Can't get data from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
-        virtual_path = self._processAliases(virtual_path)
+        canonical_path = self._processAliases(virtual_path)
         result = self.getMetadata(virtual_path)
-        if self._resource_exists(virtual_path):
-            result[virtual_path] = self.getStream(virtual_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
+        if self._resource_exists(canonical_path):
+            result[virtual_path] = self.getStream(canonical_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
 
         return result
 
@@ -115,24 +115,25 @@ class UltimakerFormatPackage(FileInterface):
             raise ValueError("Can't get metadata from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
-        virtual_path = self._processAliases(virtual_path)
+        canonical_path = self._processAliases(virtual_path)
 
         #Find all metadata that begins with the specified virtual path!
         result = {}
 
-        if virtual_path in self.metadata: #The exact match.
-            result[virtual_path] = self.metadata[virtual_path]
+        if canonical_path in self.metadata: #The exact match.
+            result[virtual_path] = self.metadata[canonical_path]
         for entry_path, value in self.metadata.items():
             #We only want to match subdirectories of the provided virtual paths.
             #So if you provide "/foo" then we don't want to match on "/foobar"
             #but we do want to match on "/foo/zoo". This is why we check if they
             #start with the provided virtual path plus a slash.
-            if entry_path.startswith(virtual_path + "/"):
-                result[entry_path] = value
+            if entry_path.startswith(canonical_path + "/"):
+                #We need to return the originally requested alias, so replace the canonical path with the virtual path.
+                result[virtual_path + "/" + entry_path[:len(canonical_path) + 1]] = value
 
         #If requesting the size of a file.
-        if virtual_path.endswith("/size"):
-            requested_resource = virtual_path[:-len("/size")]
+        if canonical_path.endswith("/size"):
+            requested_resource = canonical_path[:-len("/size")]
             if self._resource_exists(requested_resource):
                 result[virtual_path] = self.zipfile.getinfo(requested_resource.strip("/")).file_size
 
