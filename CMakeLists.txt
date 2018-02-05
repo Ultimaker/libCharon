@@ -1,5 +1,5 @@
 project(charon)
-cmake_minimum_required(VERSION 3.9.1) #Tested only with 3.9.1.
+cmake_minimum_required(VERSION 3.6.1) #Tested only with 3.6.1 and 3.9.1.
 
 find_package(PythonInterp 3.5.0 REQUIRED)
 
