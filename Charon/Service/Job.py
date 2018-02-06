@@ -38,12 +38,13 @@ class Job:
             virtual_file.open(self.__file_path, Charon.OpenMode.OpenMode.ReadOnly)
 
             for path in self.__virtual_paths:
-                data = {}
-                if path.startswith("/metadata"):
-                    data.update(virtual_file.getMetadata(path))
-                else:
-                    file_data = dbus.ByteArray(virtual_file.getStream(path).read())
-                    data[path] = file_data
+                data = virtual_file.getData(path)
+
+                # Workaround dbus-python being stupid and not realizing that a bytes object
+                # should be sent as byte array, not as string.
+                for key, value in data.items():
+                    if isinstance(value, bytes):
+                        data[key] = dbus.ByteArray(value)
 
                 self.__file_service.requestData(self.__request_id, data)
 
