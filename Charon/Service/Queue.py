@@ -31,9 +31,10 @@ class Queue:
 
     def dequeue(self, job_id):
         if job_id not in self.__job_map:
-            return
+            return False
 
         self.__job_map[job_id].shouldRemove = True
+        return True
 
     def takeNext(self) -> Job.Job:
         job = self.__job_queue.get()

@@ -45,7 +45,8 @@ class FileService(dbus.service.Object):
     #   \param file_path The path to the file that data was requested from.
     @dbus.decorators.method("nl.ultimaker.file", "i", "")
     def cancelRequest(self, request_id: int) -> None:
-        self.__queue.remove(request_id)
+        if self.__queue.remove(request_id):
+            self.requestError(request_id, "Request cancelled")
 
     ##  Emitted whenever data for a request is available.
     #
