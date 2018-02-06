@@ -8,11 +8,15 @@ from .OpenMode import OpenMode #To open local files with the selected open mode.
 
 #The supported file types.
 from .filetypes.UltimakerFormatPackage import UltimakerFormatPackage
+from .filetypes.GCodeFile import GCodeFile
+
 extension_to_mime = {
-    ".ufp": "application/x-ufp"
+    ".ufp": "application/x-ufp",
+    ".gcode": "text/x-gcode",
 }
 mime_to_implementation = {
-    "application/x-ufp": UltimakerFormatPackage
+    "application/x-ufp": UltimakerFormatPackage,
+    "text/x-gcode": GCodeFile,
 }
 
 ##  A facade for a file object.
