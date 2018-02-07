@@ -23,6 +23,7 @@ endif()
 install(DIRECTORY Charon DESTINATION ${CHARON_INSTALL_PATH} ${_excludes})
 
 if(INSTALL_SERVICE)
+    install(FILES service/charon.service DESTINATION lib/systemd/system)
 endif()
 
 include(CPackConfig.cmake)
