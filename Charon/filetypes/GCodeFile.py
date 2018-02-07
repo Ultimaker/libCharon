@@ -42,6 +42,9 @@ class GCodeFile(FileInterface):
                     pass
                 metadata[key] = value
 
+        if stream.seekable():
+            stream.seek(0)
+
         flavor = metadata.get("flavor", "")
         if flavor == "Griffin":
             metadata["machine_type"] = metadata["target_machine.name"]
