@@ -118,3 +118,6 @@ class Request:
             self.__request_error_callback(self, error_string)
 
         self.__event.set()
+
+    def __repr__(self):
+        return "<Charon.Client.Request ({id}) file_path = {path} virtual_paths = {virtual} >".format(id = id(self), path = self.__file_path, virtual = self.__virtual_paths)
