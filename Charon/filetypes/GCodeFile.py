@@ -73,9 +73,11 @@ class GCodeFile(FileInterface):
 
     def getData(self, virtual_path):
         if virtual_path.startswith("/metadata"):
-            return self.__metadata
-        if virtual_path.startswith("/toolpath"):
-            return self.__stream.read()
+            result = {}
+            for key, value in self.__metadata.items():
+                if key.startswith(virtual_path):
+                    result[key] = value
+            return result
 
         return {}
 
