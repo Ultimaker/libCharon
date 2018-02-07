@@ -2,7 +2,7 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 
 from collections import OrderedDict #To specify the aliases in order.
-from io import BufferedIOBase, BytesIO #For the type of input of openStream and to create binary output streams for getting metadata.
+from io import BufferedIOBase, BytesIO, TextIOWrapper #For the type of input of openStream and to create binary output streams for getting metadata.
 import json #The metadata format.
 import re #To find the path aliases.
 from typing import Any, Dict, List
@@ -13,6 +13,8 @@ from ..FileInterface import FileInterface #The interface we're implementing.
 from ..OpenMode import OpenMode #To detect whether we want to read and/or write to the file.
 from ..ReadOnlyError import ReadOnlyError #To be thrown when trying to write while in read-only mode.
 from ..WriteOnlyError import WriteOnlyError #To be thrown when trying to read while in write-only mode.
+
+from .GCodeFile import GCodeFile #Required for fallback G-Code header parsing.
 
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
@@ -407,6 +409,11 @@ class UltimakerFormatPackage(FileInterface):
                 elif metadata_file.endswith(".json"): #Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
                     metadata_file = metadata_file[:-len(".json")]
                 self._readMetadataElement(metadata, metadata_file)
+
+        if not self.getMetadata("/3D/model.gcode"):
+            gcode_stream = TextIOWrapper(self.zipfile.open("/3D/model.gcode"))
+            header_data = GCodeFile.parseHeader(gcode_stream, prefix = "/3D/model.gcode/")
+            self.metadata.update(header_data)
 
     ##  Reads a single node of metadata from a JSON document (recursively).
     #   \param element The node in the JSON document to read.
