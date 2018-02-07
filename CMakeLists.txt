@@ -24,7 +24,7 @@ install(DIRECTORY Charon DESTINATION ${CHARON_INSTALL_PATH} ${_excludes})
 
 if(INSTALL_SERVICE)
     install(FILES service/charon.service DESTINATION lib/systemd/system)
-    install(FILES service/nl.ultimaker.charon.conf DESTINATION share/dbus-1/system-services)
+    install(FILES service/nl.ultimaker.charon.conf DESTINATION share/dbus-1/system.d)
 endif()
 
 include(CPackConfig.cmake)
