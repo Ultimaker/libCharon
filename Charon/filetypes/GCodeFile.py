@@ -6,7 +6,6 @@ from ..OpenMode import OpenMode
 class GCodeFile(FileInterface):
     is_binary = False
 
-    #MaximumHeaderStartLines = 50
     MaximumHeaderLength = 100
 
     def __init__(self):
@@ -19,14 +18,10 @@ class GCodeFile(FileInterface):
 
         self.__stream = stream
         self.__metadata = {}
-        metadata = self.parseHeader(self.__stream)
-        for key, value in metadata.items():
-            self.__metadata["/metadata/toolpath/default/" + key] = value
-
-        print(self.__metadata)
+        self.__metadata = self.parseHeader(self.__stream, prefix = "/metadata/toolpath/default/")
 
     @staticmethod
-    def parseHeader(stream):
+    def parseHeader(stream, *, prefix = ""):
         metadata = {}
         line_number = 0
         for line_number, line in enumerate(stream):
@@ -67,6 +62,12 @@ class GCodeFile(FileInterface):
             print_volume["height"] = metadata["print.size.max.z"] - metadata["print.size.min.z"]
             print_volume["depth"] = metadata["print.size.max.y"] - metadata["print.size.min.y"]
             metadata["print_size"] = print_volume
+
+        if prefix:
+            prefixed_metadata = {}
+            for key, value in metadata.items():
+                prefixed_metadata[prefix + key] = value
+            metadata = prefixed_metadata
 
         return metadata
 
