@@ -17,9 +17,9 @@ except ImportError:
         raise ImportError("Either QtDBus or dbus-python should be available!")
 
 class DBusInterface:
-    DefaultServicePath = "nl.ultimaker.file"
-    DefaultObjectPath = "/nl/ultimaker/file"
-    DefaultInterface = "nl.ultimaker.file"
+    DefaultServicePath = "nl.ultimaker.charon"
+    DefaultObjectPath = "/nl/ultimaker/charon"
+    DefaultInterface = "nl.ultimaker.charon"
 
     @classmethod
     def callMethod(cls, method_name: str, signature: str, *args, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> bool:
