@@ -7,7 +7,7 @@ set(CPACK_PACKAGE_VERSION_PATCH 0)
 set(CPACK_GENERATOR "DEB")
 
 set(DEB_DEPENDS
-    "python3 (>= 3.5.0)"
+    "python3 (>= 3.4.2)"
     "python3-dbus (>= 1.2.0)"
     "dbus (>= 1.8.0)"
 )
