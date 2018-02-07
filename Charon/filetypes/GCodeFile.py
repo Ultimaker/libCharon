@@ -82,10 +82,16 @@ class GCodeFile(FileInterface):
                     result[key] = value
             return result
 
+        if virtual_path == "/toolpath" or virtual_path == "/toolpath/default":
+            return { virtual_path: self.__stream.read() }
+
         return {}
 
     def getStream(self, virtual_path):
-        return self
+        if virtual_path != "/toolpath" and virtual_path != "/toolpath/default":
+            raise NotImplementedError("GCode files only support /toolpath as stream")
+
+        return self.__stream
 
     def close(self):
         self.__stream.close()
