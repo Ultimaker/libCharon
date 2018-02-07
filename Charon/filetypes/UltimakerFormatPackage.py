@@ -129,7 +129,7 @@ class UltimakerFormatPackage(FileInterface):
             #start with the provided virtual path plus a slash.
             if entry_path.startswith(canonical_path + "/"):
                 #We need to return the originally requested alias, so replace the canonical path with the virtual path.
-                result[virtual_path + "/" + entry_path[:len(canonical_path) + 1]] = value
+                result[virtual_path + "/" + entry_path[len(canonical_path) + 1:]] = value
 
         #If requesting the size of a file.
         if canonical_path.endswith("/size"):
