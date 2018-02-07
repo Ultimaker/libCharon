@@ -1,7 +1,7 @@
-project(charon)
-cmake_minimum_required(VERSION 3.6.1) #Tested only with 3.6.1 and 3.9.1.
+project(charon NONE)
+cmake_minimum_required(VERSION 3.0.2) #Tested only with 3.6.1 and 3.9.1.
 
-find_package(PythonInterp 3.5.0 REQUIRED)
+find_package(PythonInterp 3.4.2 REQUIRED)
 
 option(INSTALL_SERVICE "Install the Charon DBus-service" ON)
 option(INSTALL_CLIENT "Install the Charon Client library" ON)
