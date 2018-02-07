@@ -8,8 +8,6 @@ set(CPACK_GENERATOR "DEB")
 
 set(DEB_DEPENDS
     "python3 (>= 3.5.0)"
-    "python3-pyqt5 (>= 5.6.0)"
-    "python3-pyqt5.qtgui (>= 5.6.0)"
     "python3-dbus (>= 1.2.0)"
     "dbus (>= 1.8.0)"
 )
