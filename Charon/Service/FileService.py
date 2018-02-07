@@ -9,8 +9,8 @@ import Job
 class FileService(dbus.service.Object):
     def __init__(self, dbus_bus: dbus.Bus):
         super().__init__(
-            bus_name = dbus.service.BusName("nl.ultimaker.file", dbus_bus),
-            object_path = "/nl/ultimaker/file"
+            bus_name = dbus.service.BusName("nl.ultimaker.charon", dbus_bus),
+            object_path = "/nl/ultimaker/charon"
         )
 
         self.__queue = Queue.Queue()
@@ -28,7 +28,7 @@ class FileService(dbus.service.Object):
     #   \return An integer that can be used to identify the request. This will be used
     #           by signals such as requestData to report data for the request.
     #           If this is 0 there was a problem starting the request.
-    @dbus.decorators.method("nl.ultimaker.file", "sas", "i")
+    @dbus.decorators.method("nl.ultimaker.charon", "sas", "i")
     def startRequest(self, file_path: str, virtual_paths: List[str]) -> int:
         job = Job.Job(self, file_path, virtual_paths)
         if not self.__queue.enqueue(job):
@@ -43,7 +43,7 @@ class FileService(dbus.service.Object):
     #   cancelled.
     #
     #   \param file_path The path to the file that data was requested from.
-    @dbus.decorators.method("nl.ultimaker.file", "i", "")
+    @dbus.decorators.method("nl.ultimaker.charon", "i", "")
     def cancelRequest(self, request_id: int) -> None:
         if self.__queue.remove(request_id):
             self.requestError(request_id, "Request cancelled")
@@ -55,7 +55,7 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path to a file that data is available for.
     #   \param data A dictionary with virtual paths and data for those paths.
-    @dbus.decorators.signal("nl.ultimaker.file", "ia{sv}")
+    @dbus.decorators.signal("nl.ultimaker.charon", "ia{sv}")
     def requestData(self, request_id, data):
         pass
 
@@ -65,7 +65,7 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path of the file that completed.
     #   \param data A dictionary with virtual paths and data of those paths.
-    @dbus.decorators.signal("nl.ultimaker.file", "i")
+    @dbus.decorators.signal("nl.ultimaker.charon", "i")
     def requestCompleted(self, request_id):
         pass
 
@@ -73,6 +73,6 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path of the file that encountered an error.
     #   \param error_string A string describing the error.
-    @dbus.decorators.signal("nl.ultimaker.file", "is")
+    @dbus.decorators.signal("nl.ultimaker.charon", "is")
     def requestError(self, request_id, error_string):
         pass
