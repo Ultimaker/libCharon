@@ -3,10 +3,26 @@ cmake_minimum_required(VERSION 3.6.1) #Tested only with 3.6.1 and 3.9.1.
 
 find_package(PythonInterp 3.5.0 REQUIRED)
 
+option(INSTALL_SERVICE "Install the Charon DBus-service" ON)
+option(INSTALL_CLIENT "Install the Charon Client library" ON)
+
 if(EXISTS /etc/debian_version)
-    install(DIRECTORY Charon DESTINATION lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}/dist-packages)
+    set(CHARON_INSTALL_PATH lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}/dist-packages)
 else()
-    install(DIRECTORY Charon DESTINATION lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages)
+    set(CHARON_INSTALL_PATH lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages)
+endif()
+
+set(_excludes PATTERN __pycache__ EXCLUDE)
+if(NOT INSTALL_SERVICE)
+    set(_excludes ${_excludes} PATTERN "Service" EXCLUDE)
+endif()
+if(NOT INSTALL_CLIENT)
+    set(_excludes ${_excludes} PATTERN "Client" EXCLUDE)
+endif()
+
+install(DIRECTORY Charon DESTINATION ${CHARON_INSTALL_PATH} ${_excludes})
+
+if(INSTALL_SERVICE)
 endif()
 
 include(CPackConfig.cmake)
