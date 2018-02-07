@@ -29,7 +29,7 @@ class FileService(dbus.service.Object):
     #           by signals such as requestData to report data for the request.
     #           If this is 0 there was a problem starting the request.
     @dbus.decorators.method("nl.ultimaker.charon", "sas", "i")
-    def startRequest(self, file_path: str, virtual_paths: List[str]) -> int:
+    def startRequest(self, file_path, virtual_paths):
         job = Job.Job(self, file_path, virtual_paths)
         if not self.__queue.enqueue(job):
             return 0
@@ -44,7 +44,7 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path to the file that data was requested from.
     @dbus.decorators.method("nl.ultimaker.charon", "i", "")
-    def cancelRequest(self, request_id: int) -> None:
+    def cancelRequest(self, request_id):
         if self.__queue.remove(request_id):
             self.requestError(request_id, "Request cancelled")
 
