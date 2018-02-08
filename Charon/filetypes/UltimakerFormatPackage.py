@@ -24,13 +24,12 @@ class UltimakerFormatPackage(FileInterface):
     content_types_file = "/[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "/Metadata/UFP_Global.json" #Where the global metadata file is.
     ufp_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ufp_metadata" #Unique identifier of the relationship type that relates UFP metadata to files.
+    metadata_prefix = "/metadata"
     aliases = OrderedDict([ #Virtual path aliases. Keys are regex. Order matters!
         (r"^/preview/default", "/Metadata/thumbnail.png"),
         (r"^/preview", "/Metadata/thumbnail.png"),
-        (r"^/metadata/default", "/Metadata"),
-        (r"^/metadata", "/Metadata"),
         (r"^/toolpath/default", "/3D/model.gcode"),
-        (r"^/toolpath", "/3D/model.gcode")
+        (r"^/toolpath", "/3D/model.gcode"),
     ])
 
     is_binary = True #This file needs to be opened in binary mode.
@@ -93,10 +92,14 @@ class UltimakerFormatPackage(FileInterface):
             raise ValueError("Can't get data from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
-        canonical_path = self._processAliases(virtual_path)
-        result = self.getMetadata(virtual_path)
-        if self._resource_exists(canonical_path):
-            result[virtual_path] = self.getStream(canonical_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
+
+        result = {}
+        if virtual_path.startswith(self.metadata_prefix):
+            result = self.getMetadata(virtual_path[len(self.metadata_prefix):])
+        else:
+            canonical_path = self._processAliases(virtual_path)
+            if self._resource_exists(canonical_path):
+                result[virtual_path] = self.getStream(canonical_path).read() #In case of a name clash, the file wins. But that shouldn't be possible.
 
         return result
 
@@ -106,10 +109,10 @@ class UltimakerFormatPackage(FileInterface):
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
         for virtual_path, value in data.items():
-            virtual_path = self._processAliases(virtual_path)
-            if virtual_path.startswith("/Metadata/"): #Detect metadata by virtue of being in the Metadata folder.
-                self.setMetadata({virtual_path: value})
+            if virtual_path.startswith(self.metadata_prefix): #Detect metadata by virtue of being in the Metadata folder.
+                self.setMetadata({virtual_path: value[len(self.metadata_prefix):]})
             else: #Virtual file resources.
+                virtual_path = self._processAliases(virtual_path)
                 self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
@@ -152,6 +155,10 @@ class UltimakerFormatPackage(FileInterface):
     def getStream(self, virtual_path: str) -> BufferedIOBase:
         if not self.stream:
             raise ValueError("Can't get a stream from a closed file.")
+
+        if virtual_path.startswith(self.metadata_prefix):
+            return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
+
         virtual_path = self._processAliases(virtual_path)
         if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: #In write-only mode, create a new file instead of reading metadata.
             #The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
@@ -175,8 +182,6 @@ class UltimakerFormatPackage(FileInterface):
                 self._last_open_stream = BytesIO()
                 self._open_bytes_streams[virtual_path] = self._last_open_stream #Save this for flushing later.
             return self._last_open_stream
-        else:
-            return BytesIO(json.dumps(self.getMetadata(virtual_path)).encode("UTF-8"))
 
     def toByteArray(self, offset: int = 0, count: int = -1):
         if not self.stream:
