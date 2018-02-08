@@ -12,6 +12,8 @@ class Queue:
         self.__job_map = {}
         self.__workers = []
 
+        self.__lock = threading.Lock()
+
         for i in range(self.__worker_count):
             worker = _Worker(self)
             worker.start()
@@ -41,6 +43,12 @@ class Queue:
         del self.__job_map[job.requestId]
         return job
 
+    # Used to ensure worker threads do not execute jobs before the job's ID is
+    # communicated back.
+    @property
+    def lock(self):
+        return self.__lock
+
     __maximum_queue_size = 100
     __worker_count = 2
 
@@ -56,6 +64,14 @@ class _Worker(threading.Thread):
             job = self.__queue.takeNext()
             if job.shouldRemove:
                 continue
+
+            # Ensure we do not continue before the queue lock is released.
+            # The queue lock is used to signal that an operation to add something
+            # to the queue has completed and we can actually go and process
+            # the job. This prevents a race condition where startRequest would return
+            # after requestData was already emitted.
+            self.__queue.lock.acquire()
+            self.__queue.lock.release()
 
             try:
                 job.run()

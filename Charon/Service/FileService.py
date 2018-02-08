@@ -30,11 +30,14 @@ class FileService(dbus.service.Object):
     #           If this is 0 there was a problem starting the request.
     @dbus.decorators.method("nl.ultimaker.charon", "sas", "i")
     def startRequest(self, file_path, virtual_paths):
-        job = Job.Job(self, file_path, virtual_paths)
-        if not self.__queue.enqueue(job):
-            return 0
+        # Use a shared lock on the queue to ensure we are finished before the worker threads
+        # can actually execute the job.
+        with self.__queue.lock:
+            job = Job.Job(self, file_path, virtual_paths)
+            if not self.__queue.enqueue(job):
+                return 0
 
-        return job.requestId
+            return job.requestId
 
     ##  Cancel a pending request for data.
     #
