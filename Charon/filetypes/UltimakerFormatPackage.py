@@ -125,7 +125,7 @@ class UltimakerFormatPackage(FileInterface):
         result = {}
 
         if canonical_path in self.metadata: #The exact match.
-            result[virtual_path] = self.metadata[canonical_path]
+            result[self.metadata_prefix + virtual_path] = self.metadata[canonical_path]
         for entry_path, value in self.metadata.items():
             #We only want to match subdirectories of the provided virtual paths.
             #So if you provide "/foo" then we don't want to match on "/foobar"
@@ -133,13 +133,13 @@ class UltimakerFormatPackage(FileInterface):
             #start with the provided virtual path plus a slash.
             if entry_path.startswith(canonical_path + "/"):
                 #We need to return the originally requested alias, so replace the canonical path with the virtual path.
-                result[virtual_path + "/" + entry_path[len(canonical_path) + 1:]] = value
+                result[self.metadata_prefix + virtual_path + "/" + entry_path[len(canonical_path) + 1:]] = value
 
         #If requesting the size of a file.
         if canonical_path.endswith("/size"):
             requested_resource = canonical_path[:-len("/size")]
             if self._resource_exists(requested_resource):
-                result[virtual_path] = self.zipfile.getinfo(requested_resource.strip("/")).file_size
+                result[self.metadata_prefix + virtual_path] = self.zipfile.getinfo(requested_resource.strip("/")).file_size
 
         return result
 
