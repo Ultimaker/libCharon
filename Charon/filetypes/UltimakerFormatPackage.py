@@ -112,7 +112,6 @@ class UltimakerFormatPackage(FileInterface):
             if virtual_path.startswith(self.metadata_prefix): #Detect metadata by virtue of being in the Metadata folder.
                 self.setMetadata({virtual_path: value[len(self.metadata_prefix):]})
             else: #Virtual file resources.
-                virtual_path = self._processAliases(virtual_path)
                 self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
