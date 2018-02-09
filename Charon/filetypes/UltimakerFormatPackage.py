@@ -414,7 +414,7 @@ class UltimakerFormatPackage(FileInterface):
                     metadata_file = metadata_file[:-len(".json")]
                 self._readMetadataElement(metadata, metadata_file)
 
-        if not self.getMetadata("/3D/model.gcode"):
+        if self.mode != OpenMode.WriteOnly and not self.getMetadata("/3D/model.gcode"):
             gcode_stream = TextIOWrapper(self.zipfile.open("/3D/model.gcode"))
             header_data = GCodeFile.parseHeader(gcode_stream, prefix = "/3D/model.gcode/")
             self.metadata.update(header_data)
