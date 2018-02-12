@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+import time
+
 import dbus
 
 import Queue
@@ -22,22 +24,17 @@ class FileService(dbus.service.Object):
     #
     #   When the request has finished, `requestFinished` will be emitted.
     #
+    #   \param request_id A unique identifier to track this request with.
     #   \param file_path The path to a file to load.
     #   \param virtual_paths A list of virtual paths that define what set of data to retrieve.
     #
     #   \return An integer that can be used to identify the request. This will be used
     #           by signals such as requestData to report data for the request.
     #           If this is 0 there was a problem starting the request.
-    @dbus.decorators.method("nl.ultimaker.charon", "sas", "i")
-    def startRequest(self, file_path, virtual_paths):
-        # Use a shared lock on the queue to ensure we are finished before the worker threads
-        # can actually execute the job.
-        with self.__queue.lock:
-            job = Job.Job(self, file_path, virtual_paths)
-            if not self.__queue.enqueue(job):
-                return 0
-
-            return job.requestId
+    @dbus.decorators.method("nl.ultimaker.charon", "ssas", "b")
+    def startRequest(self, request_id, file_path, virtual_paths):
+        job = Job.Job(self, request_id, file_path, virtual_paths)
+        return self.__queue.enqueue(job)
 
     ##  Cancel a pending request for data.
     #
@@ -46,9 +43,9 @@ class FileService(dbus.service.Object):
     #   cancelled.
     #
     #   \param file_path The path to the file that data was requested from.
-    @dbus.decorators.method("nl.ultimaker.charon", "i", "")
+    @dbus.decorators.method("nl.ultimaker.charon", "s", "")
     def cancelRequest(self, request_id):
-        if self.__queue.remove(request_id):
+        if self.__queue.dequeue(request_id):
             self.requestError(request_id, "Request cancelled")
 
     ##  Emitted whenever data for a request is available.
@@ -58,7 +55,7 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path to a file that data is available for.
     #   \param data A dictionary with virtual paths and data for those paths.
-    @dbus.decorators.signal("nl.ultimaker.charon", "ia{sv}")
+    @dbus.decorators.signal("nl.ultimaker.charon", "sa{sv}")
     def requestData(self, request_id, data):
         pass
 
@@ -68,7 +65,7 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path of the file that completed.
     #   \param data A dictionary with virtual paths and data of those paths.
-    @dbus.decorators.signal("nl.ultimaker.charon", "i")
+    @dbus.decorators.signal("nl.ultimaker.charon", "s")
     def requestCompleted(self, request_id):
         pass
 
@@ -76,6 +73,6 @@ class FileService(dbus.service.Object):
     #
     #   \param file_path The path of the file that encountered an error.
     #   \param error_string A string describing the error.
-    @dbus.decorators.signal("nl.ultimaker.charon", "is")
+    @dbus.decorators.signal("nl.ultimaker.charon", "ss")
     def requestError(self, request_id, error_string):
         pass
