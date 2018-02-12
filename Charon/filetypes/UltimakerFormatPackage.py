@@ -16,10 +16,11 @@ from ..WriteOnlyError import WriteOnlyError #To be thrown when trying to read wh
 
 from .GCodeFile import GCodeFile #Required for fallback G-Code header parsing.
 
+
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
 class UltimakerFormatPackage(FileInterface):
-    #Some constants related to this format.
+    # Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"") #Header element being put atop every XML file.
     content_types_file = "/[Content_Types].xml" #Where the content types file is.
     global_metadata_file = "/Metadata/UFP_Global.json" #Where the global metadata file is.
@@ -32,7 +33,7 @@ class UltimakerFormatPackage(FileInterface):
         (r"^/toolpath", "/3D/model.gcode"),
     ])
 
-    is_binary = True #This file needs to be opened in binary mode.
+    is_binary = True   #This file needs to be opened in binary mode.
 
     ##  Initialises the fields of this class.
     def __init__(self):
@@ -44,26 +45,26 @@ class UltimakerFormatPackage(FileInterface):
         self.relations = {} #For each virtual path, a relations XML element (which is left out of the file if empty).
         self._open_bytes_streams = {} #With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
 
-        #The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
+        # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
         self._last_open_path = None
         self._last_open_stream = None
 
-    def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly):
+    def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly) -> None:
         self.mode = mode
         self.stream = stream #A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
         self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
 
-        self._readContentTypes() #Load or create the content types element.
-        self._readRels() #Load or create the relations.
-        self._readMetadata() #Load the metadata, if any.
+        self._readContentTypes()  # Load or create the content types element.
+        self._readRels()  # Load or create the relations.
+        self._readMetadata()  # Load the metadata, if any.
 
-    def close(self):
+    def close(self) -> None:
         if not self.stream:
             raise ValueError("This file is already closed.")
         self.flush()
         self.zipfile.close()
 
-    def flush(self):
+    def flush(self) -> None:
         if not self.stream:
             raise ValueError("Can't flush a closed file.")
         if self.mode == OpenMode.ReadOnly:
@@ -82,7 +83,7 @@ class UltimakerFormatPackage(FileInterface):
         self._writeContentTypes()
         self._writeRels()
 
-    def listPaths(self):
+    def listPaths(self) -> List[str]:
         if not self.stream:
             raise ValueError("Can't list the paths in a closed file.")
         return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
@@ -103,7 +104,7 @@ class UltimakerFormatPackage(FileInterface):
 
         return result
 
-    def setData(self, data: Dict[str, Any]):
+    def setData(self, data: Dict[str, Any]) -> None:
         if not self.stream:
             raise ValueError("Can't change the data in a closed file.")
         if self.mode == OpenMode.ReadOnly:
@@ -111,7 +112,7 @@ class UltimakerFormatPackage(FileInterface):
         for virtual_path, value in data.items():
             if virtual_path.startswith(self.metadata_prefix): #Detect metadata by virtue of being in the Metadata folder.
                 self.setMetadata({virtual_path: value[len(self.metadata_prefix):]})
-            else: #Virtual file resources.
+            else:  # Virtual file resources.
                 self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
@@ -127,15 +128,15 @@ class UltimakerFormatPackage(FileInterface):
         if canonical_path in self.metadata: #The exact match.
             result[self.metadata_prefix + virtual_path] = self.metadata[canonical_path]
         for entry_path, value in self.metadata.items():
-            #We only want to match subdirectories of the provided virtual paths.
-            #So if you provide "/foo" then we don't want to match on "/foobar"
-            #but we do want to match on "/foo/zoo". This is why we check if they
-            #start with the provided virtual path plus a slash.
+            # We only want to match subdirectories of the provided virtual paths.
+            # So if you provide "/foo" then we don't want to match on "/foobar"
+            # but we do want to match on "/foo/zoo". This is why we check if they
+            # start with the provided virtual path plus a slash.
             if entry_path.startswith(canonical_path + "/"):
                 #We need to return the originally requested alias, so replace the canonical path with the virtual path.
                 result[self.metadata_prefix + virtual_path + "/" + entry_path[len(canonical_path) + 1:]] = value
 
-        #If requesting the size of a file.
+        # If requesting the size of a file.
         if canonical_path.endswith("/size"):
             requested_resource = canonical_path[:-len("/size")]
             if self._resource_exists(requested_resource):
@@ -143,7 +144,7 @@ class UltimakerFormatPackage(FileInterface):
 
         return result
 
-    def setMetadata(self, metadata: Dict[str, Any]):
+    def setMetadata(self, metadata: Dict[str, Any]) -> None:
         if not self.stream:
             raise ValueError("Can't change metadata in a closed file.")
         if self.mode == OpenMode.ReadOnly:
@@ -182,7 +183,7 @@ class UltimakerFormatPackage(FileInterface):
                 self._open_bytes_streams[virtual_path] = self._last_open_stream #Save this for flushing later.
             return self._last_open_stream
 
-    def toByteArray(self, offset: int = 0, count: int = -1):
+    def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
         if not self.stream:
             raise ValueError("Can't get the bytes from a closed file.")
         if self.mode == OpenMode.WriteOnly:
@@ -198,7 +199,7 @@ class UltimakerFormatPackage(FileInterface):
 
     ##  Adds a new content type to the archive.
     #   \param extension The file extension of the type
-    def addContentType(self, extension, mime_type):
+    def addContentType(self, extension: str, mime_type: str) -> None:
         if not self.stream:
             raise ValueError("Can't add a content type to a closed file.")
         if self.mode == OpenMode.ReadOnly:
@@ -218,14 +219,14 @@ class UltimakerFormatPackage(FileInterface):
     #   \param origin The origin of the relation. If the relation concerns a
     #   specific directory or specific file, then you should point to the
     #   virtual path of that file here.
-    def addRelation(self, virtual_path: str, relation_type: str, origin: str = ""):
+    def addRelation(self, virtual_path: str, relation_type: str, origin: str = "") -> None:
         if not self.stream:
             raise ValueError("Can't add a relation to a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError(virtual_path)
         virtual_path = self._processAliases(virtual_path)
 
-        #First check if it already exists.
+        # First check if it already exists.
         if origin not in self.relations:
             self.relations[origin] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships")
         else:
@@ -233,7 +234,7 @@ class UltimakerFormatPackage(FileInterface):
                 if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
                     raise UFPError("Relation for virtual path {target} already exists.".format(target = virtual_path))
 
-        #Find a unique name.
+        # Find a unique name.
         unique_id = 0
         while True:
             for relationship in self.relations[origin].iterfind("Relationship"):
@@ -244,7 +245,7 @@ class UltimakerFormatPackage(FileInterface):
             unique_id += 1
         unique_name = "rel" + str(unique_id)
 
-        #Create the element itself.
+        # Create the element itself.
         ET.SubElement(self.relations[origin], "Relationship", Target = virtual_path, Type = relation_type, Id = unique_name)
 
     ##  Figures out if a resource exists in the archive.
@@ -253,7 +254,7 @@ class UltimakerFormatPackage(FileInterface):
     #   \param virtual_path: The path to test for.
     #   \return ``True`` if it exists as a normal resource, or ``False`` if it
     #   doesn't.
-    def _resource_exists(self, virtual_path: str):
+    def _resource_exists(self, virtual_path: str) -> bool:
         for zip_name in self.zipfile.namelist():
             zip_virtual_path = self._zipNameToVirtualPath(zip_name)
             if virtual_path == zip_virtual_path:
@@ -272,7 +273,7 @@ class UltimakerFormatPackage(FileInterface):
         if not virtual_path.startswith("/"):
             virtual_path = "/" + virtual_path
 
-        #Replace all aliases.
+        # Replace all aliases.
         for regex, replacement in self.aliases.items():
             virtual_path = re.sub(regex, replacement, virtual_path)
 
@@ -308,36 +309,36 @@ class UltimakerFormatPackage(FileInterface):
             output_buffer = QBuffer()
             output_buffer.open(QBuffer.ReadWrite)
             image.save(output_buffer, "PNG")
-            output_buffer.seek(0) #Reset that buffer so that the next guy can request it.
+            output_buffer.seek(0)  # Reset that buffer so that the next guy can request it.
             return BytesIO(output_buffer.readAll())
         except ImportError:
-            #TODO: Try other image loaders.
-            raise #Raise import error again if we find no other image loaders.
+            # TODO: Try other image loaders.
+            raise  # Raise import error again if we find no other image loaders.
 
     #### Below follow some methods to read/write components of the archive. ####
 
     ##  When loading a file, load the relations from the archive.
     #
     #   If the relations are missing, empty elements are created.
-    def _readRels(self):
+    def _readRels(self) -> None:
         self.relations[""] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships") #There must always be a global relationships document.
 
-        #Below is some parsing of paths and extensions.
-        #Normally you'd use os.path for this. But this is platform-dependent.
-        #For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
-        #So instead we have custom implementations here. Sorry.
+        # Below is some parsing of paths and extensions.
+        # Normally you'd use os.path for this. But this is platform-dependent.
+        # For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
+        # So instead we have custom implementations here. Sorry.
 
         for virtual_path in self.zipfile.namelist():
             virtual_path = self._zipNameToVirtualPath(virtual_path)
-            if not virtual_path.endswith(".rels"): #We only want to read rels files.
+            if not virtual_path.endswith(".rels"):  # We only want to read rels files.
                 continue
-            directory = virtual_path[:virtual_path.rfind("/")] #Before the last slash.
-            if directory != "_rels" and not directory.endswith("/_rels"): #Rels files must be in a directory _rels.
+            directory = virtual_path[:virtual_path.rfind("/")]  # Before the last slash.
+            if directory != "_rels" and not directory.endswith("/_rels"):  # Rels files must be in a directory _rels.
                 continue
 
             document = ET.fromstring(self.zipfile.open(virtual_path).read())
 
-            #Find out what file or directory this relation is about.
+            # Find out what file or directory this relation is about.
             origin_filename = virtual_path[virtual_path.rfind("/") + 1:-len(".rels")] #Just the filename (no path) and without .rels extension.
             origin_directory = directory[:-len("/_rels")] #The parent path. We already know it's in the _rels directory.
             origin = (origin_directory + "/" if (origin_directory != "") else "") + origin_filename
@@ -348,15 +349,15 @@ class UltimakerFormatPackage(FileInterface):
     #
     #   This should be written at the end of writing an archive, when all
     #   relations are known.
-    def _writeRels(self):
-        #Below is some parsing of paths and extensions.
-        #Normally you'd use os.path for this. But this is platform-dependent.
-        #For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
-        #So instead we have custom implementations here. Sorry.
+    def _writeRels(self) -> None:
+        # Below is some parsing of paths and extensions.
+        # Normally you'd use os.path for this. But this is platform-dependent.
+        # For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
+        # So instead we have custom implementations here. Sorry.
 
         for origin, element in self.relations.items():
-            #Find out where to store the rels file.
-            if "/" not in origin: #Is in root.
+            # Find out where to store the rels file.
+            if "/" not in origin:  # Is in root.
                 origin_directory = ""
                 origin_filename = origin
             else:
@@ -370,14 +371,14 @@ class UltimakerFormatPackage(FileInterface):
     ##  When loading a file, load the content types from the archive.
     #
     #   If the content types are missing, an empty element is created.
-    def _readContentTypes(self):
+    def _readContentTypes(self) -> None:
         if self.content_types_file in self.zipfile.namelist():
             content_types_element = ET.fromstring(self.zipfile.open(self.content_types_file).read())
             if content_types_element:
                 self.content_types_element = content_types_element
         if not self.content_types_element:
             self.content_types_element = ET.Element("Types", xmlns = "http://schemas.openxmlformats.org/package/2006/content-types")
-        #If there is no type for the .rels file, create it.
+        # If there is no type for the .rels file, create it.
         if self.mode != OpenMode.ReadOnly:
             for type_element in self.content_types_element.iterfind("{http://schemas.openxmlformats.org/package/2006/content-types}Default"):
                 if "Extension" in type_element.attrib and type_element.attrib["Extension"] == "rels":
@@ -389,14 +390,14 @@ class UltimakerFormatPackage(FileInterface):
     #
     #   This should be written at the end of writing an archive, when all
     #   content types are known.
-    def _writeContentTypes(self):
+    def _writeContentTypes(self) -> None:
         self._indent(self.content_types_element)
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
 
     ##  When loading a file, read its metadata from the archive.
     #
     #   This depends on the relations! Read the relations first!
-    def _readMetadata(self):
+    def _readMetadata(self) -> None:
         for origin, relations_element in self.relations.items():
             for relationship in relations_element.iterfind("{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"):
                 if "Target" not in relationship.attrib or "Type" not in relationship.attrib: #These two are required, and we actually need them here. Better ignore this one.
@@ -422,7 +423,7 @@ class UltimakerFormatPackage(FileInterface):
     ##  Reads a single node of metadata from a JSON document (recursively).
     #   \param element The node in the JSON document to read.
     #   \param current_path The path towards the current document.
-    def _readMetadataElement(self, element: Dict[str, Any], current_path: str):
+    def _readMetadataElement(self, element: Dict[str, Any], current_path: str) -> None:
         for key, value in element.items():
             if isinstance(value, dict): #json structures stuff in dicts if it is a subtree.
                 self._readMetadataElement(value, current_path + "/" + key)
@@ -435,17 +436,17 @@ class UltimakerFormatPackage(FileInterface):
     #   metadata is known.
     #
     #   ALWAYS WRITE METADATA BEFORE UPDATING RELS AND CONTENT TYPES.
-    def _writeMetadata(self):
+    def _writeMetadata(self) -> None:
         keys_left = set(self.metadata.keys()) #The keys that are not associated with a particular file (global metadata).
         metadata_per_file = {}
         for file_name in self.zipfile.namelist():
             metadata_per_file[file_name] = {}
             for metadata_key in self.metadata:
                 if metadata_key.startswith(file_name + "/"):
-                    #Strip the prefix: "/a/b/c.stl/print_time" becomes just "print_time" about the file "/a/b/c.stl".
+                    # Strip the prefix: "/a/b/c.stl/print_time" becomes just "print_time" about the file "/a/b/c.stl".
                     metadata_per_file[file_name][metadata_key[len(file_name) + 1:]] = self.metadata[metadata_key]
                     keys_left.remove(metadata_key)
-        #keys_left now contains only global metadata keys.
+        # keys_left now contains only global metadata keys.
 
         global_metadata = {key:self.metadata[key] for key in keys_left}
         if len(global_metadata) > 0:
@@ -455,17 +456,17 @@ class UltimakerFormatPackage(FileInterface):
             if len(metadata) > 0:
                 self._writeMetadataToFile(metadata, file_name + ".json")
                 self.addRelation(file_name + ".json", self.ufp_metadata_relationship_type)
-        if len(self.metadata) > 0: #If we've written any metadata at all, we must include the content type as well.
+        if len(self.metadata) > 0:  # If we've written any metadata at all, we must include the content type as well.
             try:
                 self.addContentType(extension = "json", mime_type = "text/json")
-            except UFPError: #User may already have defined this content type himself.
+            except UFPError:  # User may already have defined this content type himself.
                 pass
 
     ##  Writes one dictionary of metadata to a JSON file.
     #   \param metadata The metadata dictionary to write.
     #   \param file_name The virtual path of the JSON file to write to.
-    def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str):
-        #Split the metadata into a hierarchical structure.
+    def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str) -> None:
+        # Split the metadata into a hierarchical structure.
         document = {}
         for key, value in metadata.items():
             key = key.strip("/") #TODO: Should paths ending in a slash give an error?
@@ -477,8 +478,8 @@ class UltimakerFormatPackage(FileInterface):
                 current_element = current_element[element]
             current_element[""] = value
 
-        #We've created some empty-string keys to allow values to occur next to subelements.
-        #If this empty-string key is the only key inside a node, fold it in to be just the value.
+        # We've created some empty-string keys to allow values to occur next to subelements.
+        # If this empty-string key is the only key inside a node, fold it in to be just the value.
         for key in metadata:
             key = key.strip("/")
             path = key.split("/")
@@ -496,7 +497,7 @@ class UltimakerFormatPackage(FileInterface):
     ##  Helper function for pretty-printing XML because ETree is stupid.
     #
     #   Source: https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python
-    def _indent(self, elem, level = 0):
+    def _indent(self, elem, level = 0) -> None:
         i = "\n" + level * "  "
         if len(elem):
             if not elem.text or not elem.text.strip():
@@ -511,6 +512,7 @@ class UltimakerFormatPackage(FileInterface):
             if level and (not elem.tail or not elem.tail.strip()):
                 elem.tail = i
 
+
 ##  Error to raise that something went wrong with reading/writing a UFP file.
 class UFPError(Exception):
-    pass #This is just a marker class.
+    pass  # This is just a marker class.

@@ -3,6 +3,7 @@ import ast
 from ..FileInterface import FileInterface
 from ..OpenMode import OpenMode
 
+
 class GCodeFile(FileInterface):
     is_binary = False
 
