@@ -57,11 +57,11 @@ class GCodeFile(FileInterface):
             if "generator.build_date" not in metadata:
                 raise InvalidHeaderException("GENERATOR.BUILD_DATE must be set")
             if "build_plate.initial_temperature" not in metadata:
-                raise InvalidHeaderException("GENERATOR.INITIAL_TEMPERATURE must be set")
+                raise InvalidHeaderException("BUILD_PLATE.INITIAL_TEMPERATURE must be set")
             if "print.size.min.x" not in metadata or "print.size.min.y" not in metadata or "print.size.min.z" not in metadata:
-                raise InvalidHeaderException("GENERATOR.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
+                raise InvalidHeaderException("PRINT.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
             if "print.size.max.x" not in metadata or "print.size.max.y" not in metadata or "print.size.max.z" not in metadata:
-                raise InvalidHeaderException("GENERATOR.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
+                raise InvalidHeaderException("PRINT.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
 
             for index in range(0, 10):
                 extruder_key = "extruder_train.%s." % index
