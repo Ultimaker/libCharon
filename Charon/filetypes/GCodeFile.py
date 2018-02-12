@@ -46,19 +46,34 @@ class GCodeFile(FileInterface):
         if stream.seekable():
             stream.seek(0)
 
-        flavor = metadata.get("flavor", "")
+        flavor = metadata.get("flavor", None)
         if flavor == "Griffin":
             metadata["machine_type"] = metadata["target_machine.name"]
+
+            if "generator.name" not in metadata:
+                raise InvalidHeaderException("GENERATOR.NAME must be set")
+            if "generator.version" not in metadata:
+                raise InvalidHeaderException("GENERATOR.VERSION must be set")
+            if "generator.build_date" not in metadata:
+                raise InvalidHeaderException("GENERATOR.BUILD_DATE must be set")
+            if "build_plate.initial_temperature" not in metadata:
+                raise InvalidHeaderException("GENERATOR.INITIAL_TEMPERATURE must be set")
+            if "print.size.min.x" not in metadata or "print.size.min.y" not in metadata or "print.size.min.z" not in metadata:
+                raise InvalidHeaderException("GENERATOR.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
+            if "print.size.max.x" not in metadata or "print.size.max.y" not in metadata or "print.size.max.z" not in metadata:
+                raise InvalidHeaderException("GENERATOR.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
+
         elif flavor == "UltiGCode":
             metadata["machine_type"] = "ultimaker2"
         else:
-            metadata["machine_type"] = "other"
+            raise InvalidHeaderException("Flavor must be defined!")
 
         if "time" in metadata:
             metadata["print_time"] = metadata["time"]
-
-        if "print.time" in metadata:
+        elif "print.time" in metadata:
             metadata["print_time"] = metadata["print.time"]
+        else:
+            raise InvalidHeaderException("TIME or PRINT.TIME must be set")
 
         if "print.size.min.x" in metadata:
             print_volume = {}
@@ -96,3 +111,7 @@ class GCodeFile(FileInterface):
 
     def close(self):
         self.__stream.close()
+
+
+class InvalidHeaderException(Exception):
+    pass
