@@ -27,7 +27,9 @@ class Request:
         self.__request_error_callback = None
 
     def __del__(self):
-        if self.__state == self.State.Running:
+        if self.__state != self.State.Initial:
+            self.stop()
+
             DBusInterface.disconnectSignal("requestData", self.__onRequestData)
             DBusInterface.disconnectSignal("requestCompleted", self.__onRequestCompleted)
             DBusInterface.disconnectSignal("requestError", self.__onRequestError)
@@ -81,13 +83,13 @@ class Request:
         if self.__state == self.State.Initial:
             self.start()
 
-        if self.__state != self.State.Running:
-            return
-
         self.__event.clear()
         self.__event.wait()
 
     def __onRequestData(self, request_id: int, data: Dict[str, Any]):
+        if self.__state != self.State.Running:
+            return
+
         if self.__request_id != request_id:
             return
 
@@ -97,6 +99,9 @@ class Request:
             self.__request_data_callback(self, data)
 
     def __onRequestCompleted(self, request_id: int):
+        if self.__state != self.State.Running:
+            return
+
         if self.__request_id != request_id:
             return
 
