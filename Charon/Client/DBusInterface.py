@@ -1,10 +1,11 @@
 import os
+import logging
 from typing import Callable
 
 _has_qt = False
 try:
     from PyQt5.QtCore import QCoreApplication, QObject, pyqtSlot
-    from PyQt5.QtDBus import QDBusConnection, QDBusMessage, QDBusReply, QDBusInterface
+    from PyQt5.QtDBus import QDBusConnection, QDBusMessage, QDBusReply, QDBusInterface, QDBusPendingCallWatcher
     _has_qt = True
 except ImportError:
     pass
@@ -15,6 +16,8 @@ try:
 except ImportError:
     if not _has_qt:
         raise ImportError("Either QtDBus or dbus-python should be available!")
+
+log = logging.getLogger(__name__)
 
 class DBusInterface:
     DefaultServicePath = "nl.ultimaker.charon"
@@ -32,7 +35,9 @@ class DBusInterface:
             if result.isValid():
                 return result.value()
             else:
-                return 0
+                log.warning("Did not receive a valid reply for method call %s", method_name)
+                log.warning(result.error().message())
+                return None
 
         else:
             return cls.__connection.call_blocking(service_path, object_path, interface, method_name, signature, args)
