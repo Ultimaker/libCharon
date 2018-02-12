@@ -123,7 +123,20 @@ if _has_qt:
             self.__callbacks[connection].append(callback)
 
         def removeConnection(self, service_path, object_path, interface, signal_name, callback):
-            pass
+            connection = (object_path, interface, signal_name)
+            if connection not in self.__connected_signals:
+                return
+
+            self.__callbacks[connection].remove(callback)
+
+            # Essentially, we do reference counting of the signal here. If the list
+            # of connections for the specified signal becomes empty, also remove the
+            # signal handler. This prevents us from listening on signals that are
+            # not used.
+            if not self.__callbacks[connection]:
+                self.__connection.disconnect(service_path, object_path, interface, signal_name, self.handleSignal)
+                self.__connected_signals.remove(connection)
+                del self.__callbacks[connection]
 
         @pyqtSlot(QDBusMessage)
         def handleSignal(self, message):
