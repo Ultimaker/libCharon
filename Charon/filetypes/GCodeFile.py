@@ -63,6 +63,27 @@ class GCodeFile(FileInterface):
             if "print.size.max.x" not in metadata or "print.size.max.y" not in metadata or "print.size.max.z" not in metadata:
                 raise InvalidHeaderException("GENERATOR.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
 
+            for index in range(0, 10):
+                extruder_key = "extruder_train.%s." % index
+                extruder_used = False
+                for key in metadata:
+                    if extruder_key in key:
+                        extruder_used = True
+                        break
+
+                if not extruder_used:
+                    continue
+
+                # Extruder is used. Ensure that all properties that must be set are set.
+                if extruder_key + "nozzle.diameter" not in metadata:
+                    raise InvalidHeaderException(extruder_key + "nozzle.diameter must be defined")
+
+                if extruder_key + "material.volume_used" not in metadata:
+                    raise InvalidHeaderException(extruder_key + "material.volume_used must be defined")
+
+                if extruder_key + "initial_temperature" not in metadata:
+                    raise InvalidHeaderException(extruder_key + "initial_temperature must be defined")
+
         elif flavor == "UltiGCode":
             metadata["machine_type"] = "ultimaker2"
         else:
