@@ -23,13 +23,15 @@ class Job:
     def requestId(self) -> int:
         return self.__request_id
 
-    @property
-    def shouldRemove(self) -> bool:
+    def getShouldRemove(self) -> bool:
         return self.__should_remove
 
-    @shouldRemove.setter
     def setShouldRemove(self, remove: bool):
         self.__should_remove = remove
+
+    # Why are python's properties so broken?
+    # @propertyName.setter should mark a property as a setter but I never got it to work...
+    shouldRemove = property(fget = getShouldRemove, fset = setShouldRemove)
 
     def run(self):
         try:
