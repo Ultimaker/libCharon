@@ -49,6 +49,7 @@ class GCodeFile(FileInterface):
         flavor = metadata.get("flavor", None)
         if flavor == "Griffin":
             metadata["machine_type"] = metadata["target_machine.name"]
+            del metadata["target_machine.name"]
 
             if "generator.name" not in metadata:
                 raise InvalidHeaderException("GENERATOR.NAME must be set")
@@ -56,12 +57,59 @@ class GCodeFile(FileInterface):
                 raise InvalidHeaderException("GENERATOR.VERSION must be set")
             if "generator.build_date" not in metadata:
                 raise InvalidHeaderException("GENERATOR.BUILD_DATE must be set")
+
+            generator_metadata = {}
+            generator_metadata["name"] = metadata["generator.name"]
+            generator_metadata["version"] = metadata["generator.version"]
+            generator_metadata["build_date"] = metadata["generator.build_date"]
+            metadata["generator"] = generator_metadata
+            del metadata["generator.name"]
+            del metadata["generator.version"]
+            del metadata["generator.build_date"]
+
             if "build_plate.initial_temperature" not in metadata:
-                raise InvalidHeaderException("GENERATOR.INITIAL_TEMPERATURE must be set")
+                raise InvalidHeaderException("BUILD_PLATE.INITIAL_TEMPERATURE must be set")
+
+            metadata["build_plate"] ={}
+            metadata["build_plate"]["initial_temperature"] = metadata["build_plate.initial_temperature"]
+            del metadata["build_plate.initial_temperature"]
+
+            if "build_plate.type" in metadata:
+                metadata["build_plate"]["type"] = metadata["build_plate.type"]
+                del metadata["build_plate.type"]
+
             if "print.size.min.x" not in metadata or "print.size.min.y" not in metadata or "print.size.min.z" not in metadata:
-                raise InvalidHeaderException("GENERATOR.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
+                raise InvalidHeaderException("PRINT.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
             if "print.size.max.x" not in metadata or "print.size.max.y" not in metadata or "print.size.max.z" not in metadata:
-                raise InvalidHeaderException("GENERATOR.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
+                raise InvalidHeaderException("PRINT.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
+
+            metadata["print"] = {}
+
+            min_size = {}
+            min_size["x"] = metadata["print.size.min.x"]
+            min_size["y"] = metadata["print.size.min.y"]
+            min_size["z"] = metadata["print.size.min.z"]
+            metadata["print"]["min_size"] = min_size
+            del metadata["print.size.min.x"]
+            del metadata["print.size.min.y"]
+            del metadata["print.size.min.z"]
+
+            max_size = {}
+            max_size["x"] = metadata["print.size.max.x"]
+            max_size["y"] = metadata["print.size.max.y"]
+            max_size["z"] = metadata["print.size.max.z"]
+            metadata["print"]["max_size"] = max_size
+            del metadata["print.size.max.x"]
+            del metadata["print.size.max.y"]
+            del metadata["print.size.max.z"]
+
+            if "time" in metadata:
+                metadata["print"]["time"] = metadata["time"]
+            elif "print.time" in metadata:
+                metadata["print"]["time"] = metadata["print.time"]
+                del metadata["print.time"]
+            else:
+                raise InvalidHeaderException("TIME or PRINT.TIME must be set")
 
             for index in range(0, 10):
                 extruder_key = "extruder_train.%s." % index
@@ -74,34 +122,45 @@ class GCodeFile(FileInterface):
                 if not extruder_used:
                     continue
 
+                extruder_metadata = {}
+                nozzle_metadata = {}
+                material_metadata = {}
+
                 # Extruder is used. Ensure that all properties that must be set are set.
                 if extruder_key + "nozzle.diameter" not in metadata:
                     raise InvalidHeaderException(extruder_key + "nozzle.diameter must be defined")
+                nozzle_metadata["diameter"] = metadata[extruder_key + "nozzle.diameter"]
+                del metadata[extruder_key + "nozzle.diameter"]
+
+                if extruder_key + "nozzle.name" in metadata:
+                    nozzle_metadata["name"] = metadata[extruder_key + "nozzle.name"]
+                    del metadata[extruder_key + "nozzle.name"]
+
+                extruder_metadata["nozzle"] = nozzle_metadata
 
                 if extruder_key + "material.volume_used" not in metadata:
                     raise InvalidHeaderException(extruder_key + "material.volume_used must be defined")
+                material_metadata["volume_used"] = metadata[extruder_key + "material.volume_used"]
+                del metadata[extruder_key + "material.volume_used"]
+
+                if extruder_key + "material.guid" in metadata:
+                    material_metadata["guid"] = metadata[extruder_key + "material.guid"]
+                    del metadata[extruder_key + "material.guid"]
+
+                extruder_metadata["material"] = material_metadata
 
                 if extruder_key + "initial_temperature" not in metadata:
                     raise InvalidHeaderException(extruder_key + "initial_temperature must be defined")
+                extruder_metadata["initial_temperature"] = metadata[extruder_key + "initial_temperature"]
+                del metadata[extruder_key + "initial_temperature"]
 
+                if "extruders" not in metadata:
+                    metadata["extruders"] = {}
+                metadata["extruders"][str(index)] = extruder_metadata
         elif flavor == "UltiGCode":
             metadata["machine_type"] = "ultimaker2"
         else:
             raise InvalidHeaderException("Flavor must be defined!")
-
-        if "time" in metadata:
-            metadata["print_time"] = metadata["time"]
-        elif "print.time" in metadata:
-            metadata["print_time"] = metadata["print.time"]
-        else:
-            raise InvalidHeaderException("TIME or PRINT.TIME must be set")
-
-        if "print.size.min.x" in metadata:
-            print_volume = {}
-            print_volume["width"] = metadata["print.size.max.x"] - metadata["print.size.min.x"]
-            print_volume["height"] = metadata["print.size.max.z"] - metadata["print.size.min.z"]
-            print_volume["depth"] = metadata["print.size.max.y"] - metadata["print.size.min.y"]
-            metadata["print_size"] = print_volume
 
         if prefix:
             prefixed_metadata = {}
