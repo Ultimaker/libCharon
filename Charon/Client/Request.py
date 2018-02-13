@@ -1,17 +1,28 @@
 import enum
 import threading
 import uuid
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Callable
 
 from .DBusInterface import DBusInterface
 
+##  Wrapper around the Charon DBus service that hides the DBus details.
+#
+#   This class encapsulates all the data and information needed for
+#   retrieving some data from a file supported by the Charon file service.
+#
+#   It can be used to simplify dealing with the DBus service.
 class Request:
+    # The request state.
     class State(enum.IntEnum):
-        Initial = 0
-        Running = 1
-        Completed = 2
-        Error = 3
+        Initial = 0 # Request was created, but not started yet.
+        Running = 1 # Request was started.
+        Completed = 2 # Request completed successfully.
+        Error = 3 # Request encountered an error.
 
+    ##  Constructor.
+    #
+    #   \param file_path The path to a file to get data from.
+    #   \param virtual_paths A list of virtual paths with the data to retrieve.
     def __init__(self, file_path: str, virtual_paths: List[str]):
         self.__file_path = file_path
         self.__virtual_paths = virtual_paths
@@ -27,6 +38,7 @@ class Request:
         self.__request_completed_callback = None
         self.__request_error_callback = None
 
+    ##  Cleanup function.
     def __del__(self):
         if self.__state != self.State.Initial:
             self.stop()
@@ -35,31 +47,52 @@ class Request:
             DBusInterface.disconnectSignal("requestCompleted", self.__onRequestCompleted)
             DBusInterface.disconnectSignal("requestError", self.__onRequestError)
 
+    ##  The file path for this request.
     @property
-    def filePath(self):
+    def filePath(self) -> str:
         return self.__file_path
 
+    ##  The virtual paths for this request.
     @property
-    def virtualPaths(self):
+    def virtualPaths(self) -> List[str]:
         return self.__virtual_paths
 
+    ##  The state of this request.
     @property
-    def state(self):
+    def state(self) -> Request.State:
         return self.__state
 
+    ##  The data associated with this request.
+    #
+    #   Note that this will be an empty dictionary until the request
+    #   completed.
     @property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
         return self.__data
 
+    ##  A description of the error that was encountered during the request.
+    #
+    #   Note that this will be an empty string if there was no error.
     @property
-    def errorString(self):
+    def errorString(self) -> str:
         return self.__error_string
 
-    def setCallbacks(self, *, data = None, completed = None, error = None):
+    ##  Set the callbacks that should be called while the request is running.
+    #
+    #   Note: These parameters can only be passed as keyword arguments.
+    #   \param data The callback to call when data is received. Will be passed the request object and a dict with data.
+    #   \param completed The callback to call when the request has completed. Will be passed the request object.
+    #   \param error The callback to call when the request encountered an error. Will be passed the request object and a string describing the error.
+    #
+    def setCallbacks(self, *,
+            data: Callable[[Request, Dict[str, Any]], None] = None,
+            completed: Callable[[Request], None] = None,
+            error: Callable[[Request, str], None] = None) -> None:
         self.__request_data_callback = data
         self.__request_completed_callback = completed
         self.__request_error_callback = error
 
+    ##  Start the request.
     def start(self):
         if self.__state != self.State.Initial:
             return
@@ -74,12 +107,20 @@ class Request:
 
         DBusInterface.callAsync("startRequest", self.__startSuccess, self.__startError, "ssas", self.__request_id, self.__file_path, self.__virtual_paths)
 
+    ##  Stop the request.
+    #
+    #   Note that this may fail if the file service was already processing the request.
     def stop(self):
         if self.__state != self.State.Running:
             return
 
         DBusInterface.callAsync("cancelRequest", None, None, "s", self.__request_id)
 
+    ##  Wait until the request is finished.
+    #
+    #   Warning! This method will block the calling thread until it is finished. The DBus implementations
+    #   require a running event loop for signal delivery to work. This means that if you block the main
+    #   loop with this method, you will deadlock since the completed signal is never received.
     def waitForFinished(self):
         if self.__state == self.State.Initial:
             self.start()
