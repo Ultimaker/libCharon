@@ -185,7 +185,7 @@ class GCodeFile(FileInterface):
 
     def getStream(self, virtual_path):
         if virtual_path != "/toolpath" and virtual_path != "/toolpath/default":
-            raise NotImplementedError("GCode files only support /toolpath as stream")
+            raise NotImplementedError("G-code files only support /toolpath as stream")
 
         return self.__stream
 
