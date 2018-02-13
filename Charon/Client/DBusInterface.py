@@ -1,10 +1,11 @@
 import os
+import logging
 from typing import Callable
 
 _has_qt = False
 try:
     from PyQt5.QtCore import QCoreApplication, QObject, pyqtSlot
-    from PyQt5.QtDBus import QDBusConnection, QDBusMessage, QDBusReply, QDBusInterface
+    from PyQt5.QtDBus import QDBusConnection, QDBusMessage, QDBusReply, QDBusInterface, QDBusPendingCallWatcher
     _has_qt = True
 except ImportError:
     pass
@@ -15,6 +16,8 @@ try:
 except ImportError:
     if not _has_qt:
         raise ImportError("Either QtDBus or dbus-python should be available!")
+
+log = logging.getLogger(__name__)
 
 class DBusInterface:
     DefaultServicePath = "nl.ultimaker.charon"
@@ -32,10 +35,23 @@ class DBusInterface:
             if result.isValid():
                 return result.value()
             else:
-                return 0
+                log.warning("Did not receive a valid reply for method call %s", method_name)
+                log.warning(result.error().message())
+                return None
 
         else:
             return cls.__connection.call_blocking(service_path, object_path, interface, method_name, signature, args)
+
+    @classmethod
+    def callAsync(cls, method_name: str, success_callback: Callable[..., None], error_callback: Callable[..., None], signature: str, *args, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> bool:
+        cls.__ensureDBusSetup()
+
+        if cls.__use_qt:
+            message = QDBusMessage.createMethodCall(service_path, object_path, interface, method_name)
+            message.setArguments(args)
+            cls.__signal_forwarder.asyncCall(message, success_callback, error_callback)
+        else:
+            cls.__connection.call_async(service_path, object_path, interface, method_name, signature, args, success_callback, error_callback)
 
     @classmethod
     def connectSignal(cls, signal_name: str, callback: Callable[..., None], *, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> bool:
@@ -94,6 +110,8 @@ if _has_qt:
             self.__connected_signals = set()
             self.__callbacks = {}
 
+            self.__pending_async_calls = {}
+
         def addConnection(self, service_path, object_path, interface, signal_name,  callback):
             connection = (object_path, interface, signal_name)
             if connection not in self.__connected_signals:
@@ -105,7 +123,20 @@ if _has_qt:
             self.__callbacks[connection].append(callback)
 
         def removeConnection(self, service_path, object_path, interface, signal_name, callback):
-            pass
+            connection = (object_path, interface, signal_name)
+            if connection not in self.__connected_signals:
+                return
+
+            self.__callbacks[connection].remove(callback)
+
+            # Essentially, we do reference counting of the signal here. If the list
+            # of connections for the specified signal becomes empty, also remove the
+            # signal handler. This prevents us from listening on signals that are
+            # not used.
+            if not self.__callbacks[connection]:
+                self.__connection.disconnect(service_path, object_path, interface, signal_name, self.handleSignal)
+                self.__connected_signals.remove(connection)
+                del self.__callbacks[connection]
 
         @pyqtSlot(QDBusMessage)
         def handleSignal(self, message):
@@ -115,3 +146,24 @@ if _has_qt:
 
             for callback in self.__callbacks[connection]:
                 callback(*message.arguments())
+
+        def asyncCall(self, message, success_callback, error_callback):
+            watcher = QDBusPendingCallWatcher(self.__connection.asyncCall(message))
+            watcher.finished.connect(self.__onAsyncCallFinished)
+            self.__pending_async_calls[watcher] = (success_callback, error_callback)
+
+        @pyqtSlot(QDBusPendingCallWatcher)
+        def __onAsyncCallFinished(self, watcher):
+            assert watcher in self.__pending_async_calls
+
+            success_callback = self.__pending_async_calls[watcher][0]
+            error_callback = self.__pending_async_calls[watcher][1]
+            del self.__pending_async_calls[watcher]
+
+            reply = QDBusReply(watcher)
+            if reply.isValid():
+                if success_callback:
+                    success_callback(reply.value())
+            else:
+                if error_callback:
+                    error_callback(reply.error().message())

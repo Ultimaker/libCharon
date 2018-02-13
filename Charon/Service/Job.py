@@ -9,7 +9,7 @@ import Charon.OpenMode
 log = logging.getLogger(__name__)
 
 class Job:
-    def __init__(self, file_service, file_path: str, virtual_paths: List[str]):
+    def __init__(self, file_service, request_id: str, file_path: str, virtual_paths: List[str]):
         self.__file_service = file_service
 
         self.__file_path = file_path
@@ -17,20 +17,21 @@ class Job:
 
         self.__should_remove = False
 
-        Job.__id_counter += 1
-        self.__request_id = self.__id_counter ## TODO: Better way of doing request ids
+        self.__request_id = request_id
 
     @property
     def requestId(self) -> int:
         return self.__request_id
 
-    @property
-    def shouldRemove(self) -> bool:
+    def getShouldRemove(self) -> bool:
         return self.__should_remove
 
-    @shouldRemove.setter
     def setShouldRemove(self, remove: bool):
         self.__should_remove = remove
+
+    # Why are python's properties so broken?
+    # @propertyName.setter should mark a property as a setter but I never got it to work...
+    shouldRemove = property(fget = getShouldRemove, fset = setShouldRemove)
 
     def run(self):
         try:
@@ -53,5 +54,3 @@ class Job:
         except Exception as e:
             log.log(logging.ERROR, "", exc_info = 1)
             self.__file_service.requestError(self.__request_id, str(e))
-
-    __id_counter = 0

@@ -1,5 +1,6 @@
 import enum
 import threading
+import uuid
 from typing import List, Dict, Any
 
 from .DBusInterface import DBusInterface
@@ -27,7 +28,9 @@ class Request:
         self.__request_error_callback = None
 
     def __del__(self):
-        if self.__state == self.State.Running:
+        if self.__state != self.State.Initial:
+            self.stop()
+
             DBusInterface.disconnectSignal("requestData", self.__onRequestData)
             DBusInterface.disconnectSignal("requestCompleted", self.__onRequestCompleted)
             DBusInterface.disconnectSignal("requestError", self.__onRequestError)
@@ -61,33 +64,46 @@ class Request:
         if self.__state != self.State.Initial:
             return
 
+        self.__request_id = str(uuid.uuid4())
+
         DBusInterface.connectSignal("requestData", self.__onRequestData)
         DBusInterface.connectSignal("requestCompleted", self.__onRequestCompleted)
         DBusInterface.connectSignal("requestError", self.__onRequestError)
 
-        self.__request_id = DBusInterface.callMethod("startRequest", "sas", self.__file_path, self.__virtual_paths)
-        if not self.__request_id:
-            raise RuntimeError("Did not receive a valid request ID for request {}".format(self))
-
         self.__state = self.State.Running
+
+        DBusInterface.callAsync("startRequest", self.__startSuccess, self.__startError, "ssas", self.__request_id, self.__file_path, self.__virtual_paths)
 
     def stop(self):
         if self.__state != self.State.Running:
             return
 
-        DBusInterface.callMethod("cancelRequest", "i", self.__request_id)
+        DBusInterface.callAsync("cancelRequest", None, None, "s", self.__request_id)
 
     def waitForFinished(self):
         if self.__state == self.State.Initial:
             self.start()
 
-        if self.__state != self.State.Running:
-            return
-
         self.__event.clear()
         self.__event.wait()
 
-    def __onRequestData(self, request_id: int, data: Dict[str, Any]):
+    def __startSuccess(self, start_success: bool):
+        if not start_success:
+            self.__startError("Could not start the request")
+            return
+
+    def __startError(self, error: str):
+        self.__state = self.State.Error
+        self.__error_string = error
+        self.__event.set()
+
+        if self.__request_error_callback:
+            self.__request_error_callback(self, error)
+
+    def __onRequestData(self, request_id: str, data: Dict[str, Any]):
+        if self.__state != self.State.Running:
+            return
+
         if self.__request_id != request_id:
             return
 
@@ -96,7 +112,10 @@ class Request:
         if self.__request_data_callback:
             self.__request_data_callback(self, data)
 
-    def __onRequestCompleted(self, request_id: int):
+    def __onRequestCompleted(self, request_id: str):
+        if self.__state != self.State.Running:
+            return
+
         if self.__request_id != request_id:
             return
 
@@ -107,7 +126,7 @@ class Request:
 
         self.__event.set()
 
-    def __onRequestError(self, request_id: int, error_string: str):
+    def __onRequestError(self, request_id: str, error_string: str):
         if self.__request_id != request_id:
             return
 
