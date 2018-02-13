@@ -1,7 +1,9 @@
 import dbus
+import logging
 
-import Job
 import RequestQueue
+
+log = logging.getLogger(__name__)
 
 ##  The main interface for the Charon file service.
 #
@@ -22,6 +24,7 @@ class FileService(dbus.service.Object):
             object_path = "/nl/ultimaker/charon"
         )
 
+        log.debug("FileService initialized")
         self.__queue = RequestQueue.RequestQueue()
 
     ##  Start a request for data from a file.
@@ -38,6 +41,7 @@ class FileService(dbus.service.Object):
     #   \return A boolean indicating whether the request was successfully started.
     @dbus.decorators.method("nl.ultimaker.charon", "ssas", "b")
     def startRequest(self, request_id, file_path, virtual_paths):
+        log.debug("Received request {id} for {virtual} from {path}".format(id = request_id, virtual = virtual_paths, path = file_path))
         request = RequestQueue.Request(self, request_id, file_path, virtual_paths)
         return self.__queue.enqueue(request)
 
@@ -52,6 +56,7 @@ class FileService(dbus.service.Object):
     #   \param request_id The ID of the request to cancel.
     @dbus.decorators.method("nl.ultimaker.charon", "s", "")
     def cancelRequest(self, request_id):
+        log.debug("Cancel request {id}".format(request_id))
         if self.__queue.dequeue(request_id):
             self.requestError(request_id, "Request canceled")
 

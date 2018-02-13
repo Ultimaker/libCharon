@@ -95,6 +95,7 @@ class RequestQueue:
         try:
             self.__queue.put(request, block = False)
         except queue.Full:
+            log.debug("Tried to enqueue a request with ID {id} but the queue is full".format(id = request.request_id))
             return False
 
         self.__request_map[request.request_id] = request
