@@ -1,10 +1,66 @@
 import queue
 import threading
 import logging
+import dbus
+from typing import List
 
-import Job
+import FileService
+
+import Charon.VirtualFile
+import Charon.OpenMode
 
 log = logging.getLogger(__name__)
+
+##  A request for data that needs to be processed.
+#
+#   Each request will be processed by a worker thread to actually perform the data
+#   retrieval.
+class Request:
+    ##  Constructor.
+    #
+    #   \param file_service The main FileService object. Used to emit signals.
+    #   \param request_id The ID used to identify this request.
+    #   \param file_path A path to a file to retrieve data from.
+    #   \param virtual_paths The virtual paths to retrieve for this request.
+    def __init__(self, file_service: FileService.FileService, request_id: str, file_path: str, virtual_paths: List[str]):
+        self.file_service = file_service
+        self.file_path = file_path
+        self.virtual_paths = virtual_paths
+        self.request_id = request_id
+
+        # This is used a workaround for limitations of Python's Queue class.
+        # Queue does not implement a "remove arbitrary item" method. So instead,
+        # keep a removed request in the queue and set this flag to true, after
+        # which a worker thread can dispose of the object when it encounters
+        # the request.
+        self.should_remove = False
+
+    ##  Perform the actual data retrieval.
+    #
+    #   This is a potentially long-running operation that should be handled by a
+    #   thread.
+    def run(self):
+        try:
+            virtual_file = Charon.VirtualFile.VirtualFile()
+            virtual_file.open(self.file_path, Charon.OpenMode.OpenMode.ReadOnly)
+
+            for path in self.virtual_paths:
+                data = virtual_file.getData(path)
+
+                # Workaround dbus-python being stupid and not realizing that a bytes object
+                # should be sent as byte array, not as string.
+                for key, value in data.items():
+                    if isinstance(value, bytes):
+                        data[key] = dbus.ByteArray(value)
+
+                self.file_service.requestData(self.request_id, data)
+
+            virtual_file.close()
+            self.file_service.requestCompleted(self.request_id)
+        except Exception as e:
+            log.log(logging.ERROR, "", exc_info = 1)
+            self.file_service.requestError(self.request_id, str(e))
+
 
 ##  A queue of requests that need to be processed.
 #
