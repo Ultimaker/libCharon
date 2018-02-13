@@ -156,7 +156,7 @@ class GCodeFile(FileInterface):
 
                 if "extruders" not in metadata:
                     metadata["extruders"] = {}
-                metadata["extruders"][str(index)] = extruder_metadata
+                metadata["extruders"][index] = extruder_metadata
         elif flavor == "UltiGCode":
             metadata["machine_type"] = "ultimaker2"
         else:
