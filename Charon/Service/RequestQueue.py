@@ -78,7 +78,7 @@ class RequestQueue:
         self.__workers = []
 
         for i in range(self.__worker_count):
-            worker = _Worker(self)
+            worker = threading.Thread(target = self.__worker_thread_run, daemon = True)
             worker.start()
             self.__workers.append(worker)
 
@@ -113,28 +113,27 @@ class RequestQueue:
         self.__request_map[request_id].should_remove = True
         return True
 
-    def takeNext(self) -> Job.Job:
-        job = self.__job_queue.get()
-        del self.__job_map[job.requestId]
-        return job
+    ##  Take the next request off the queue.
+    #
+    #   Note that this method will block if there are no current requests on the queue.
+    #
+    #   \return The next request on the queue.
+    def takeNext(self) -> Request:
+        request = self.__queue.get()
+        del self.__request_map[request.request_id]
+        return request
 
-    __maximum_queue_size = 100
-    __worker_count = 2
-
-class _Worker(threading.Thread):
-    def __init__(self, queue: Queue):
-        super().__init__()
-
-        self.__queue = queue
-        self.daemon = True
-
-    def run(self):
+    # Implementation of the worker thread run method.
+    def __worker_thread_run(self):
         while True:
-            job = self.__queue.takeNext()
-            if job.shouldRemove:
+            request = self.takeNext()
+            if request.should_remove:
                 continue
 
             try:
-                job.run()
+                request.run()
             except Exception as e:
-                log.log(logging.WARNING, "Job caused an uncaught exception when running!", exc_info = 1)
+                log.log(logging.WARNING, "Request caused an uncaught exception when running!", exc_info = 1)
+
+    __maximum_queue_size = 100
+    __worker_count = 2
