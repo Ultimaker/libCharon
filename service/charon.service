@@ -5,6 +5,7 @@ After=rc-local.service
 
 [Service]
 Environment=CHARON_USE_SESSION_BUS=0
+Environment='PYTHONPATH=$PYTHONPATH:/opt/pyqt'
 ExecStart=/usr/bin/python3 /usr/lib/python3/dist-packages/Charon/Service/main.py
 BusName=nl.ultimaker.charon
 User=ultimaker
