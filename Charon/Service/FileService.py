@@ -3,6 +3,18 @@ import dbus
 import Job
 import RequestQueue
 
+##  The main interface for the Charon file service.
+#
+#   This contains the main interface definition for the Charon file service.
+#   It is exposed over DBus as the "nl.ultimaker.charon" service, with
+#   "/nl/ultimaker/charon" as its object path and all functions registered
+#   in the "nl.ultimaker.charon" interface name.
+#
+#   The file service maintains a queue of jobs that need to be processed.
+#   See RequestQueue for details on this process.
+#
+#   Note: This class does not currently use type hinting since type hints,
+#   dbus-python decorators and Python 3.4 do not mix well.
 class FileService(dbus.service.Object):
     def __init__(self, dbus_bus: dbus.Bus):
         super().__init__(
@@ -26,8 +38,8 @@ class FileService(dbus.service.Object):
     #   \return A boolean indicating whether the request was successfully started.
     @dbus.decorators.method("nl.ultimaker.charon", "ssas", "b")
     def startRequest(self, request_id, file_path, virtual_paths):
-        job = Job.Job(self, request_id, file_path, virtual_paths)
-        return self.__queue.enqueue(job)
+        request = RequestQueue.Request(self, request_id, file_path, virtual_paths)
+        return self.__queue.enqueue(request)
 
     ##  Cancel a pending request for data.
     #

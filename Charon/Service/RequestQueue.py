@@ -6,10 +6,17 @@ import Job
 
 log = logging.getLogger(__name__)
 
+##  A queue of requests that need to be processed.
+#
+#   This class will maintain a queue of requests to process along with the worker threads
+#   to process them. It processes the request in LIFO order.
 class RequestQueue:
     def __init__(self):
         self.__queue = queue.LifoQueue(self.__maximum_queue_size)
 
+        # This map is used to keep track of which requests we already received.
+        # This is mostly intended to be able to cancel requests that are
+        # in the queue.
         self.__request_map = {}
 
         self.__workers = []
@@ -19,23 +26,35 @@ class RequestQueue:
             worker.start()
             self.__workers.append(worker)
 
-    def enqueue(self, job):
-        if(job.requestId in self.__job_map):
+    ##  Add a new request to the queue.
+    #
+    #   \param request The request to add.
+    #
+    #   \return True if successful, False if the request could not be enqueued for some reason.
+    def enqueue(self, request: Request):
+        if(request.request_id in self.__request_map):
+            log.debug("Tried to enqueue a request with ID {id} which is already in the queue".format(id = request.request_id))
             return False
 
         try:
-            self.__job_queue.put(job, block = False)
+            self.__queue.put(request, block = False)
         except queue.Full:
             return False
 
-        self.__job_map[job.requestId] = job
+        self.__request_map[request.request_id] = request
         return True
 
-    def dequeue(self, job_id):
-        if job_id not in self.__job_map:
+    ##  Remove a request from the queue.
+    #
+    #   \param request_id The ID of the request to remove.
+    #
+    #   \return True if the request was successfully removed, False if the request was not in the queue.
+    def dequeue(self, request_id: str):
+        if request_id not in self.__request_map:
+            log.debug("Unable to remove request with ID {id} which is not in the queue".format(id = request_id))
             return False
 
-        self.__job_map[job_id].shouldRemove = True
+        self.__request_map[request_id].should_remove = True
         return True
 
     def takeNext(self) -> Job.Job:
