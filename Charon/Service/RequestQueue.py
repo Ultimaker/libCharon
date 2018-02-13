@@ -6,10 +6,12 @@ import Job
 
 log = logging.getLogger(__name__)
 
-class Queue:
+class RequestQueue:
     def __init__(self):
-        self.__job_queue = queue.LifoQueue(self.__maximum_queue_size)
-        self.__job_map = {}
+        self.__queue = queue.LifoQueue(self.__maximum_queue_size)
+
+        self.__request_map = {}
+
         self.__workers = []
 
         for i in range(self.__worker_count):

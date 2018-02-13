@@ -1,7 +1,7 @@
 import dbus
 
-import Queue
 import Job
+import RequestQueue
 
 class FileService(dbus.service.Object):
     def __init__(self, dbus_bus: dbus.Bus):
@@ -10,7 +10,7 @@ class FileService(dbus.service.Object):
             object_path = "/nl/ultimaker/charon"
         )
 
-        self.__queue = Queue.Queue()
+        self.__queue = RequestQueue.RequestQueue()
 
     ##  Start a request for data from a file.
     #
