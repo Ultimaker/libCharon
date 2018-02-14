@@ -2,7 +2,7 @@ import queue
 import threading
 import logging
 import dbus
-from typing import List
+from typing import List, Dict, Any
 
 import FileService
 
@@ -47,11 +47,14 @@ class Request:
             for path in self.virtual_paths:
                 data = virtual_file.getData(path)
 
-                # Workaround dbus-python being stupid and not realizing that a bytes object
-                # should be sent as byte array, not as string.
+
                 for key, value in data.items():
                     if isinstance(value, bytes):
                         data[key] = dbus.ByteArray(value)
+
+                # dbus-python is stupid and we need to convert the entire nested dictionary
+                # into something it understands.
+                data = self._convertDictionary(data)
 
                 self.file_service.requestData(self.request_id, data)
 
@@ -61,6 +64,25 @@ class Request:
             log.log(logging.ERROR, "", exc_info = 1)
             self.file_service.requestError(self.request_id, str(e))
 
+    # Helper for dbus-python to convert a nested dict to a nested dict.
+    #
+    # Yes, really, apparently dbus-python does some really stupid things with dictionaries
+    # making this necessary.
+    def _convertDictionary(self, dictionary: Dict[str, Any]) -> dbus.Dictionary:
+        result = dbus.Dictionary({}, signature = "sv")
+
+        for key, value in dictionary.items():
+            key = str(key) # Since we are sending a dict of str, Any, make sure the keys are strings.
+            if isinstance(value, bytes):
+                # Workaround dbus-python being stupid and not realizing that a bytes object
+                # should be sent as byte array, not as string.
+                result[key] = dbus.ByteArray(value)
+            elif isinstance(value, dict):
+                result[key] = self._convertDictionary(value)
+            else:
+                result[key] = value
+
+        return result
 
 ##  A queue of requests that need to be processed.
 #
