@@ -59,7 +59,7 @@ class Request:
 
     ##  The state of this request.
     @property
-    def state(self) -> Request.State:
+    def state(self) -> State:
         return self.__state
 
     ##  The data associated with this request.
@@ -85,9 +85,9 @@ class Request:
     #   \param error The callback to call when the request encountered an error. Will be passed the request object and a string describing the error.
     #
     def setCallbacks(self, *,
-            data: Callable[[Request, Dict[str, Any]], None] = None,
-            completed: Callable[[Request], None] = None,
-            error: Callable[[Request, str], None] = None) -> None:
+            data: Callable[["Request", Dict[str, Any]], None] = None,
+            completed: Callable[["Request"], None] = None,
+            error: Callable[["Request", str], None] = None) -> None:
         self.__request_data_callback = data
         self.__request_completed_callback = completed
         self.__request_error_callback = error
