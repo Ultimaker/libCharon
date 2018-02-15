@@ -117,6 +117,9 @@ class GCodeFile(FileInterface):
             else:
                 raise InvalidHeaderException("TIME or PRINT.TIME must be set")
 
+            if int(metadata["print"]["time"]) < 0:
+                raise InvalidHeaderException("Print Time should be a positive integer")
+
             for index in range(0, 10):
                 extruder_key = "extruder_train.%s." % index
                 extruder_used = False
@@ -163,6 +166,7 @@ class GCodeFile(FileInterface):
                 if "extruders" not in metadata:
                     metadata["extruders"] = {}
                 metadata["extruders"][index] = extruder_metadata
+
         elif flavor == "UltiGCode":
             metadata["machine_type"] = "ultimaker2"
         else:
