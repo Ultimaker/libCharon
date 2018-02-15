@@ -33,6 +33,9 @@ class GCodeFile(FileInterface):
                 continue
             elif line.startswith(";LAYER") or line.startswith(";END_OF_HEADER"):
                 break
+            elif line.startswith(";HEADER_VERSION"):
+                # Header version is a number but should not be parsed as number, so special case it.
+                metadata["header_version"] = line.split(":")[1]
             elif line.startswith(";") and ":" in line:
                 key, value = line[1:].split(":")
                 key = key.strip().lower()
@@ -48,6 +51,9 @@ class GCodeFile(FileInterface):
 
         flavor = metadata.get("flavor", None)
         if flavor == "Griffin":
+            if metadata["header_version"] != "0.1":
+                raise InvalidHeaderException("Unsupported Griffin header version: {version}".format(metadata["header_version"]))
+
             metadata["machine_type"] = metadata["target_machine.name"]
             del metadata["target_machine.name"]
 
