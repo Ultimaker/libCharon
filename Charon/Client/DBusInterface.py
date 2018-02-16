@@ -20,9 +20,13 @@ except ImportError:
 try:
     import dbus
     import dbus.mainloop.glib
+    from gi.repository import GLib
 except ImportError:
     if not _has_qt:
         raise ImportError("Either QtDBus or dbus-python should be available!")
+
+GLib.threads_init()
+dbus.mainloop.glib.threads_init()
 
 log = logging.getLogger(__name__)
 
@@ -155,10 +159,11 @@ class DBusInterface:
             cls.__use_qt = True
             return
 
-        if os.environ.get("CHARON_USE_SESSION_BUS", 1) == 1:
+        if os.environ.get("CHARON_USE_SESSION_BUS", 0) == 1:
             cls.__connection = dbus.Bus.get_session()
         else:
-            cls.__connection = dbus.Bus.get_system()
+            GLib.MainLoop().run()
+            cls.__connection = dbus.SystemBus(private=True, mainloop=dbus.mainloop.glib.DBusGMainLoop())
 
     __use_qt = False
     __connection = None

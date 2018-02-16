@@ -9,6 +9,8 @@ Environment='PYTHONPATH=$PYTHONPATH:/opt/pyqt'
 ExecStart=/usr/bin/python3 /usr/lib/python3/dist-packages/Charon/Service/main.py
 BusName=nl.ultimaker.charon
 User=ultimaker
+Type=simple
+Restart=always
 
 [Install]
 WantedBy=griffin.target
