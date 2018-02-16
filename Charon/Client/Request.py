@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Callable
 
 from .DBusInterface import DBusInterface
 
+
 ##  Wrapper around the Charon DBus service that hides the DBus details.
 #
 #   This class encapsulates all the data and information needed for
@@ -14,10 +15,10 @@ from .DBusInterface import DBusInterface
 class Request:
     # The request state.
     class State(enum.IntEnum):
-        Initial = 0 # Request was created, but not started yet.
-        Running = 1 # Request was started.
-        Completed = 2 # Request completed successfully.
-        Error = 3 # Request encountered an error.
+        Initial = 0  # Request was created, but not started yet.
+        Running = 1  # Request was started.
+        Completed = 2  # Request completed successfully.
+        Error = 3  # Request encountered an error.
 
     ##  Constructor.
     #
