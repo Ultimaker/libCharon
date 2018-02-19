@@ -61,7 +61,7 @@ class Request:
             virtual_file.close()
             self.file_service.requestCompleted(self.request_id)
         except Exception as e:
-            log.log(logging.ERROR, "", exc_info = 1)
+            log.log(logging.DEBUG, "", exc_info = 1)
             self.file_service.requestError(self.request_id, str(e))
 
     # Helper for dbus-python to convert a nested dict to a nested dict.
@@ -156,7 +156,7 @@ class RequestQueue:
             try:
                 request.run()
             except Exception as e:
-                log.log(logging.WARNING, "Request caused an uncaught exception when running!", exc_info = 1)
+                log.log(logging.DEBUG, "Request caused an uncaught exception when running!", exc_info = 1)
 
     __maximum_queue_size = 100
     __worker_count = 2
