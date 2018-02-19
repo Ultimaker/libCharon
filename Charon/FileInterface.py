@@ -16,6 +16,8 @@ class FileInterface:
     #   This determines if the file should be opened in binary mode or not.
     is_binary = False
 
+    stream_handler = open
+
     ##  Opens a file for reading or writing.
     #
     #   After opening the file, this instance will represent that file from then

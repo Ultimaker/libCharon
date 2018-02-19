@@ -9,15 +9,19 @@ from .OpenMode import OpenMode #To open local files with the selected open mode.
 #The supported file types.
 from .filetypes.UltimakerFormatPackage import UltimakerFormatPackage
 from .filetypes.GCodeFile import GCodeFile
+from .filetypes.GCodeGzFile import GCodeGzFile
 
 extension_to_mime = {
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
+    ".gz": "text/x-gcode-gz"
 }
 mime_to_implementation = {
     "application/x-ufp": UltimakerFormatPackage,
     "text/x-gcode": GCodeFile,
+    "text/x-gcode-gz": GCodeGzFile
 }
+
 
 ##  A facade for a file object.
 #
@@ -33,7 +37,7 @@ class VirtualFile(FileInterface):
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
         mime = extension_to_mime[extension]
         implementation = mime_to_implementation[mime]
-        return self.openStream(open(path, mode.value + ("b" if implementation.is_binary else "")), mime, mode, *args, **kwargs)
+        return self.openStream(implementation.stream_handler(path, mode.value + ("b" if implementation.is_binary else "t")), mime, mode, *args, **kwargs)
 
     def openStream(self, stream, mime, mode = OpenMode.ReadOnly, *args, **kwargs):
         self._implementation = mime_to_implementation[mime]()
