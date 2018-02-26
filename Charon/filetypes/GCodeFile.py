@@ -4,6 +4,15 @@ from ..FileInterface import FileInterface
 from ..OpenMode import OpenMode
 
 
+def isAPositiveNumber(a):
+    try:
+        number = float(repr(a))
+        return number >= 0
+    except:
+        bool_a = False
+
+    return bool_a
+
 class GCodeFile(FileInterface):
     is_binary = False
 
@@ -57,11 +66,11 @@ class GCodeFile(FileInterface):
             metadata["machine_type"] = metadata["target_machine.name"]
             del metadata["target_machine.name"]
 
-            if "generator.name" not in metadata:
+            if "generator.name" not in metadata or str(metadata["generator.name"]) == "":
                 raise InvalidHeaderException("GENERATOR.NAME must be set")
-            if "generator.version" not in metadata:
+            if "generator.version" not in metadata or str(metadata["generator.version"]) == "":
                 raise InvalidHeaderException("GENERATOR.VERSION must be set")
-            if "generator.build_date" not in metadata:
+            if "generator.build_date" not in metadata or str(metadata["generator.build_date"]) == "":
                 raise InvalidHeaderException("GENERATOR.BUILD_DATE must be set")
 
             generator_metadata = {}
@@ -73,8 +82,8 @@ class GCodeFile(FileInterface):
             del metadata["generator.version"]
             del metadata["generator.build_date"]
 
-            if "build_plate.initial_temperature" not in metadata:
-                raise InvalidHeaderException("BUILD_PLATE.INITIAL_TEMPERATURE must be set")
+            if "build_plate.initial_temperature" not in metadata or not isAPositiveNumber(metadata["build_plate.initial_temperature"]):
+                raise InvalidHeaderException("BUILD_PLATE.INITIAL_TEMPERATURE must be set and be a positive real")
 
             metadata["build_plate"] ={}
             metadata["build_plate"]["initial_temperature"] = metadata["build_plate.initial_temperature"]
@@ -136,8 +145,8 @@ class GCodeFile(FileInterface):
                 material_metadata = {}
 
                 # Extruder is used. Ensure that all properties that must be set are set.
-                if extruder_key + "nozzle.diameter" not in metadata:
-                    raise InvalidHeaderException(extruder_key + "nozzle.diameter must be defined")
+                if extruder_key + "nozzle.diameter" not in metadata or not isAPositiveNumber(metadata[extruder_key + "nozzle.diameter"]):
+                    raise InvalidHeaderException(extruder_key + "nozzle.diameter must be defined and be a positive real")
                 nozzle_metadata["diameter"] = metadata[extruder_key + "nozzle.diameter"]
                 del metadata[extruder_key + "nozzle.diameter"]
 
