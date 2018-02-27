@@ -156,8 +156,8 @@ class GCodeFile(FileInterface):
 
                 extruder_metadata["nozzle"] = nozzle_metadata
 
-                if extruder_key + "material.volume_used" not in metadata:
-                    raise InvalidHeaderException(extruder_key + "material.volume_used must be defined")
+                if extruder_key + "material.volume_used" not in metadata or not isAPositiveNumber(metadata[extruder_key + "material.volume_used"]):
+                    raise InvalidHeaderException(extruder_key + "material.volume_used must be defined and positive")
                 material_metadata["volume_used"] = metadata[extruder_key + "material.volume_used"]
                 del metadata[extruder_key + "material.volume_used"]
 
