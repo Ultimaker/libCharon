@@ -13,6 +13,7 @@ def isAPositiveNumber(a):
 
     return bool_a
 
+
 class GCodeFile(FileInterface):
     is_binary = False
 
@@ -31,7 +32,7 @@ class GCodeFile(FileInterface):
         self.__metadata = self.parseHeader(self.__stream, prefix = "/metadata/toolpath/default/")
 
     @staticmethod
-    def parseHeader(stream, *, prefix = ""):
+    def parseHeader(stream, *, prefix: str = ""):
         metadata = {}
         line_number = 0
         for line_number, line in enumerate(stream):
@@ -189,7 +190,7 @@ class GCodeFile(FileInterface):
 
         return metadata
 
-    def getData(self, virtual_path):
+    def getData(self, virtual_path: str):
         if virtual_path.startswith("/metadata"):
             result = {}
             for key, value in self.__metadata.items():
@@ -202,7 +203,7 @@ class GCodeFile(FileInterface):
 
         return {}
 
-    def getStream(self, virtual_path):
+    def getStream(self, virtual_path: str):
         if virtual_path != "/toolpath" and virtual_path != "/toolpath/default":
             raise NotImplementedError("G-code files only support /toolpath as stream")
 
