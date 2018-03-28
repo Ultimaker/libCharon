@@ -168,10 +168,11 @@ class GCodeFile(FileInterface):
 
                 extruder_metadata["material"] = material_metadata
 
-                if extruder_key + "initial_temperature" not in metadata:
-                    raise InvalidHeaderException(extruder_key + "initial_temperature must be defined")
-                extruder_metadata["initial_temperature"] = metadata[extruder_key + "initial_temperature"]
-                del metadata[extruder_key + "initial_temperature"]
+                initial_temp_key = extruder_key + "initial_temperature"
+                if initial_temp_key not in metadata or not isAPositiveNumber(metadata[initial_temp_key]):
+                    raise InvalidHeaderException(initial_temp_key + " must be defined and be a positive real ")
+                extruder_metadata["initial_temperature"] = metadata[initial_temp_key]
+                del metadata[initial_temp_key]
 
                 if "extruders" not in metadata:
                     metadata["extruders"] = {}
