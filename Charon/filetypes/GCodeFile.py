@@ -17,6 +17,8 @@ def isAPositiveNumber(a):
 class GCodeFile(FileInterface):
     is_binary = False
 
+    mime_type = "text/x-gcode"
+
     MaximumHeaderLength = 100
 
     def __init__(self):

@@ -18,6 +18,8 @@ class FileInterface:
 
     stream_handler = open
 
+    mime_type = ""
+
     ##  Opens a file for reading or writing.
     #
     #   After opening the file, this instance will represent that file from then

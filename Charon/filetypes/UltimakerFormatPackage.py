@@ -33,6 +33,8 @@ class UltimakerFormatPackage(FileInterface):
         (r"^/toolpath", "/3D/model.gcode"),
     ])
 
+    mime_type = "application/x-ufp"
+
     is_binary = True  # This file needs to be opened in binary mode.
 
     ##  Initialises the fields of this class.
