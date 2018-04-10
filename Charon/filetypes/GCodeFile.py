@@ -193,6 +193,8 @@ class GCodeFile(FileInterface):
                 metadata = prefixed_metadata
 
             return metadata
+        except UnicodeDecodeError as unicodeDecodeError:
+            raise IOError("Unable to UTF8 decode file; %s" % unicodeDecodeError)
         except Exception as e:
             raise InvalidHeaderException("Unable to parse the header. An exception occured; %s" % e)
 
