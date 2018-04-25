@@ -1,7 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
-from io import BufferedIOBase #To indicate that getStream must return a stream.
+from io import BufferedIOBase  # To indicate that getStream must return a stream.
 from typing import Any, Dict, List
 
 from .OpenMode import OpenMode

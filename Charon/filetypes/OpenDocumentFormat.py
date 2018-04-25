@@ -9,12 +9,10 @@ from typing import Any, Dict, List
 import xml.etree.ElementTree as ET  # For writing XML manifest files.
 import zipfile
 
-from ..FileInterface import FileInterface  # The interface we're implementing.
-from ..OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
-from ..ReadOnlyError import ReadOnlyError  # To be thrown when trying to write while in read-only mode.
-from ..WriteOnlyError import WriteOnlyError  # To be thrown when trying to read while in write-only mode.
-
-from .GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
+from Charon.FileInterface import FileInterface  # The interface we're implementing.
+from Charon.OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
+from Charon.ReadOnlyError import ReadOnlyError  # To be thrown when trying to write while in read-only mode.
+from Charon.WriteOnlyError import WriteOnlyError  # To be thrown when trying to read while in write-only mode.
 
 
 ##  A container file type that contains multiple related files that belong together.
@@ -396,18 +394,17 @@ class OpenDocumentFormat(FileInterface):
     def _readMetadata(self) -> None:
         for origin, relations_element in self.relations.items():
             for relationship in relations_element.iterfind("{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"):
-                if "Target" not in relationship.attrib or "Type" not in relationship.attrib: #These two are required, and we actually need them here. Better ignore this one.
+                if "Target" not in relationship.attrib or "Type" not in relationship.attrib:  # These two are required, and we actually need them here. Better ignore this one.
                     continue
-                if relationship.attrib["Type"] != self.metadata_relationship_type: #Not interested in this one. It's not metadata that we recognise.
+                if relationship.attrib["Type"] != self.metadata_relationship_type:  # Not interested in this one. It's not metadata that we recognise.
                     continue
                 metadata_file = relationship.attrib["Target"]
-                if metadata_file not in self.zipfile.namelist(): #The metadata file is unknown to us.
+                if metadata_file not in self.zipfile.namelist():  # The metadata file is unknown to us.
                     continue
-
                 metadata = json.load(self.zipfile.open(metadata_file))
-                if metadata_file == self.global_metadata_file: #Store globals as if coming from root.
+                if metadata_file == self.global_metadata_file:  # Store globals as if coming from root.
                     metadata_file = ""
-                elif metadata_file.endswith(".json"): #Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
+                elif metadata_file.endswith(".json"):  # Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
                     metadata_file = metadata_file[:-len(".json")]
                 self._readMetadataElement(metadata, metadata_file)
 
