@@ -114,12 +114,10 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
     package = UltimakerFormatPackage()
     package.openStream(stream)
     result = package.getMetadata(virtual_path)
-    
-    prefixed_virtual_path = "/metadata{}".format(virtual_path)
 
     assert len(result) == 1 #Only one metadata entry was set.
-    assert prefixed_virtual_path in result #And it was the correct entry.
-    assert result[prefixed_virtual_path] == test_data #With the correct value.
+    assert virtual_path in result #And it was the correct entry.
+    assert result[virtual_path] == test_data #With the correct value.
 
 ##  Tests toByteArray with its parameters.
 #
@@ -221,5 +219,5 @@ def test_addRelation():
 #   This is implemented knowing the contents of single_resource_read_ufp.
 def test_getMetadataSize(single_resource_read_ufp):
     metadata = single_resource_read_ufp.getMetadata("/hello.txt/size")
-    assert "/metadata/hello.txt/size" in metadata
-    assert metadata["/metadata/hello.txt/size"] == len("Hello world!\n".encode("UTF-8")) #Compare with the length of the file's contents as encoded in UTF-8.
+    assert "/hello.txt/size" in metadata
+    assert metadata["/hello.txt/size"] == len("Hello world!\n".encode("UTF-8")) #Compare with the length of the file's contents as encoded in UTF-8.
