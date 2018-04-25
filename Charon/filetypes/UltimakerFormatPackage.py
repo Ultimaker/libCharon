@@ -2,19 +2,11 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 
 from collections import OrderedDict  # To specify the aliases in order.
-from io import BufferedIOBase, BytesIO, TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
-import json  # The metadata format.
-import re  # To find the path aliases.
-from typing import Any, Dict, List
-import xml.etree.ElementTree as ET  # For writing XML manifest files.
-import zipfile
+from io import TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
 
-from Charon.filetypes.OpenDocumentFormat import OpenDocumentFormat, ODFError
-from ..OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
-from ..ReadOnlyError import ReadOnlyError  # To be thrown when trying to write while in read-only mode.
-from ..WriteOnlyError import WriteOnlyError  # To be thrown when trying to read while in write-only mode.
-
-from .GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
+from Charon.filetypes.OpenDocumentFormat import OpenDocumentFormat
+from Charon.OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
+from Charon.filetypes.GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
 
 
 ##  A container file type that contains multiple 3D-printing related files that
