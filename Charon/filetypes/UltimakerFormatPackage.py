@@ -12,6 +12,7 @@ from Charon.filetypes.GCodeFile import GCodeFile  # Required for fallback G-Code
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
 class UltimakerFormatPackage(OpenDocumentFormat):
+    
     # Some constants related to this format.
     global_metadata_file = "/Metadata/UFP_Global.json"  # Where the global metadata file is.
     metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ufp_metadata"  # Unique identifier of the relationship type that relates UFP metadata to files.
