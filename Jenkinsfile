@@ -5,6 +5,11 @@ def defaultNode = "docker"
 
 node(defaultNode)
 {
+    stage("Checkout")
+    {
+        checkout scm
+    }
+
     // Build the Docker image for this service in order to run the tests
     stage("Build")
     {
