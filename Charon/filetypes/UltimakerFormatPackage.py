@@ -418,10 +418,15 @@ class UltimakerFormatPackage(FileInterface):
                 self._readMetadataElement(metadata, metadata_file)
 
         if self.mode != OpenMode.WriteOnly and not self.getMetadata("/3D/model.gcode"):
-            if "/3D/model.gcode" in [member.filename for member in self.zipfile.infolist()]:
-                gcode_stream = TextIOWrapper(self.zipfile.open("/3D/model.gcode"))
-                header_data = GCodeFile.parseHeader(gcode_stream, prefix = "/3D/model.gcode/")
-                self.metadata.update(header_data)
+            try:
+                # Check if the G-code file actually exists in the package.
+                self.zipfile.getinfo("/3D/model.gcode")
+            except KeyError:
+                return
+
+            gcode_stream = TextIOWrapper(self.zipfile.open("/3D/model.gcode"))
+            header_data = GCodeFile.parseHeader(gcode_stream, prefix = "/3D/model.gcode/")
+            self.metadata.update(header_data)
 
     ##  Reads a single node of metadata from a JSON document (recursively).
     #   \param element The node in the JSON document to read.
