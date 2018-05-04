@@ -43,7 +43,7 @@ class OpenDocumentFormat(FileInterface):
         self._last_open_path = None
         self._last_open_stream = None
 
-    def openStream(self, stream: BufferedIOBase, mime: str = mime_type, mode: OpenMode = OpenMode.ReadOnly) -> None:
+    def openStream(self, stream: BytesIO, mime: str = mime_type, mode: OpenMode = OpenMode.ReadOnly) -> None:
         self.mode = mode
         self.stream = stream  # A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
         self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)

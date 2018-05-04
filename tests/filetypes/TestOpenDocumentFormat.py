@@ -167,7 +167,6 @@ def test_addContentType():
     package.addContentType("lol", "audio/x-laughing")
     package.close()
 
-    stream.seek(0)
     #This time, open as .zip to just inspect the file contents.
     archive = zipfile.ZipFile(stream)
     assert "/[Content_Types].xml" in archive.namelist()
@@ -179,7 +178,7 @@ def test_addContentType():
     for default in defaults:
         assert "Extension" in default.attrib
         assert "ContentType" in default.attrib
-        assert default.attrib["Extension"] == "lol" or default.attrib["Extension"] == "rels"
+        assert default.attrib["Extension"] in ["lol", "rels"]
         if default.attrib["Extension"] == "lol":
             assert default.attrib["ContentType"] == "audio/x-laughing"
         elif default.attrib["Extension"] == "rels":
@@ -196,7 +195,6 @@ def test_addRelation():
     package.addRelation("whoo.enforced.txt", "A greatly enhanced version of it.", "whoo.txt")
     package.close()
 
-    stream.seek(0)
     #This time, open as .zip to just inspect the file contents.
     archive = zipfile.ZipFile(stream)
     assert "/_rels/whoo.txt.rels" in archive.namelist() #It must create a file specifically for whoo.txt

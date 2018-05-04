@@ -1,4 +1,5 @@
 [
+  "tests/filetypes/TestCuraPackage.py::test_addMaterial",
   "tests/filetypes/TestOpenDocumentFormat.py::test_listPathsEmpty",
   "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/dir/file]",
   "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/file]",
