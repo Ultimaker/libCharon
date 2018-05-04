@@ -1,22 +1,32 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # Charon is released under the terms of the LGPLv3 or higher.
 import io
+import os
 import zipfile
 from xml.etree import ElementTree
+
+import pytest
 
 from Charon.OpenMode import OpenMode
 from Charon.filetypes.CuraPackage import CuraPackage
 
 
-def test_addMaterial():
+@pytest.mark.parametrize("filename", ["resources/materials/example_material.xml.fdm_material"])
+def test_addMaterial(filename: str):
     """
     This tests adding a material resource and relation to a .curapackage.
     """
     
+    # Create the package.
     stream = io.BytesIO()
     package = CuraPackage()
     package.openStream(stream, mode = OpenMode.WriteOnly)
-    package.addContentType("xml.fdm_material", "text/xml")
+
+    # Add the material content type and add an example material file.
+    package.addContentType(extension = "xml.fdm_material", mime_type = "text/xml")
+    original_material = open(os.path.join(os.path.dirname(__file__), filename), "rb").read()
+    packaged_material = package.getStream("/{}".format(filename))
+    packaged_material.write(original_material)
     package.close()
 
     # Open the file as ZIP and assert the contents are correct.
@@ -34,3 +44,7 @@ def test_addMaterial():
         assert default.attrib["Extension"] in ["xml.fdm_material", "rels"]
         if default.attrib["Extension"] == "lol":
             assert default.attrib["ContentType"] == "text/xml"
+
+    package_files = archive.namelist()
+    
+    assert "/{}".format(filename) in package_files

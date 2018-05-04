@@ -1,5 +1,5 @@
 [
-  "tests/filetypes/TestCuraPackage.py::test_addMaterial",
+  "tests/filetypes/TestCuraPackage.py::test_addMaterial[resources/materials/example_material.xml.fdm_material]",
   "tests/filetypes/TestOpenDocumentFormat.py::test_listPathsEmpty",
   "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/dir/file]",
   "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/file]",
