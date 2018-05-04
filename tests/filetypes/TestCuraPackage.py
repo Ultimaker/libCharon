@@ -33,4 +33,6 @@ def test_addMaterial(filename: str):
 
     read_package = CuraPackage()
     read_package.openStream(stream, mode = OpenMode.ReadOnly)
-    assert "/resources/materials/{}".format(filename) in read_package.listPaths("/resources/materials")
+    available_material_resources = read_package.listPaths("/resources/materials")
+    assert len(available_material_resources) == 1
+    assert "/resources/materials/{}".format(filename) in available_material_resources
