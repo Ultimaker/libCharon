@@ -5,7 +5,7 @@ from collections import OrderedDict  # To specify the aliases in order.
 from io import BufferedIOBase, BytesIO, TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
 import json  # The metadata format.
 import re  # To find the path aliases.
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import xml.etree.ElementTree as ET  # For writing XML manifest files.
 import zipfile
 
@@ -77,10 +77,12 @@ class OpenDocumentFormat(FileInterface):
         self._writeContentTypes()
         self._writeRels()
 
-    def listPaths(self) -> List[str]:
+    def listPaths(self, root_path: Optional[str] = "/") -> List[str]:
         if not self.stream:
             raise ValueError("Can't list the paths in a closed file.")
-        return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
+        paths = [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()
+                 if root_path in self._zipNameToVirtualPath(zip_name)]
+        return list(self.metadata.keys()) + paths
 
     def getData(self, virtual_path) -> Dict[str, Any]:
         if not self.stream:
