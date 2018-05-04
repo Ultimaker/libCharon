@@ -2,7 +2,6 @@
 # Charon is released under the terms of the LGPLv3 or higher.
 import io
 import os
-import zipfile
 
 import pytest
 
@@ -28,9 +27,7 @@ def test_addMaterial(filename: str):
     packaged_material.write(original_material)
     package.close()
 
-    archive = zipfile.ZipFile(stream)
-    assert "/[Content_Types].xml" in archive.namelist()
-
+    # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode = OpenMode.ReadOnly)
     available_material_resources = read_package.listPaths("/resources/materials")
