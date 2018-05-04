@@ -1,0 +1,23 @@
+[
+  "tests/filetypes/TestOpenDocumentFormat.py::test_listPathsEmpty",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/dir/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[dir/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/Metadata]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getWriteStream[/_rels/.rels]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleSetDataGetData[/dir/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleSetDataGetData[/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleSetDataGetData[/Metadata]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleStreamWriteRead[/dir/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleStreamWriteRead[/file]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleStreamWriteRead[/Metadata]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleSetMetadataGetMetadata[/Metadata/some/global/setting]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleSetMetadataGetMetadata[/hello.txt/test]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_cycleSetMetadataGetMetadata[/also/global/entry]",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_toByteArray",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_toByteArrayStream",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_addContentType",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_addRelation",
+  "tests/filetypes/TestOpenDocumentFormat.py::test_getMetadataSize"
+]

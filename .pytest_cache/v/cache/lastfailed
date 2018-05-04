@@ -1,0 +1,5 @@
+{
+  "tests/filetypes/TestUltimakerFormatPackage.py::test_cycleSetMetadataGetMetadata[/metadata/Metadata/some/global/setting]": true,
+  "tests/filetypes/TestUltimakerFormatPackage.py::test_cycleSetMetadataGetMetadata[/metadata/also/global/entry]": true,
+  "tests/filetypes/TestUltimakerFormatPackage.py::test_cycleSetMetadataGetMetadata[/metadata/hello.txt/test]": true
+}

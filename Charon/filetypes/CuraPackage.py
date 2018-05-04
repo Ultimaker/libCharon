@@ -18,4 +18,3 @@ class CuraPackage(OpenDocumentFormat):
     ##  Initialises the fields of this class.
     def __init__(self):
         super().__init__()
- 

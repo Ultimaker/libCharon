@@ -7,7 +7,7 @@ import pytest #This module contains unit tests.
 import zipfile #To inspect the contents of the zip archives.
 import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
 
-from Charon.filetypes.UltimakerFormatPackage import UltimakerFormatPackage #The class we're testing.
+from Charon.filetypes.OpenDocumentFormat import OpenDocumentFormat #The class we're testing.
 from Charon.OpenMode import OpenMode #To open archives.
 
 ##  Returns an empty package that you can read from.
@@ -15,9 +15,9 @@ from Charon.OpenMode import OpenMode #To open archives.
 #   The package has no resources at all, so reading from it will not find
 #   anything.
 @pytest.fixture()
-def empty_read_ufp() -> UltimakerFormatPackage:
-    result = UltimakerFormatPackage()
-    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.ufp"), "rb"))
+def empty_read_odf() -> OpenDocumentFormat:
+    result = OpenDocumentFormat()
+    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.odf"), "rb"))
     yield result
     result.close()
 
@@ -26,9 +26,9 @@ def empty_read_ufp() -> UltimakerFormatPackage:
 #   The file is called "hello.txt" and contains the text "Hello world!" encoded
 #   in UTF-8.
 @pytest.fixture()
-def single_resource_read_ufp() -> UltimakerFormatPackage:
-    result = UltimakerFormatPackage()
-    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.ufp"), "rb"))
+def single_resource_read_odf() -> OpenDocumentFormat:
+    result = OpenDocumentFormat()
+    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.odf"), "rb"))
     yield result
     result.close()
 
@@ -37,24 +37,24 @@ def single_resource_read_ufp() -> UltimakerFormatPackage:
 #   Note that you can't really test the output of the write since you don't have
 #   the stream it writes to.
 @pytest.fixture()
-def empty_write_ufp() -> UltimakerFormatPackage:
-    result = UltimakerFormatPackage()
-    result.openStream(io.BytesIO(), "application/x-ufp", OpenMode.WriteOnly)
+def empty_write_odf() -> OpenDocumentFormat:
+    result = OpenDocumentFormat()
+    result.openStream(io.BytesIO(), "application/x-odf", OpenMode.WriteOnly)
     yield result
     result.close()
 
 #### Now follow the actual tests. ####
 
 ##  Tests whether an empty file is recognised as empty.
-def test_listPathsEmpty(empty_read_ufp: UltimakerFormatPackage):
-    assert len(empty_read_ufp.listPaths()) == 0
+def test_listPathsEmpty(empty_read_odf: OpenDocumentFormat):
+    assert len(empty_read_odf.listPaths()) == 0
 
 ##  Tests getting write streams of various resources that may or may not exist.
 #
 #   Every test will write some arbitrary data to it to see that that also works.
 @pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata", "/_rels/.rels"]) #Some extra tests without initial slash to test robustness.
-def test_getWriteStream(empty_write_ufp: UltimakerFormatPackage, virtual_path: str):
-    stream = empty_write_ufp.getStream(virtual_path)
+def test_getWriteStream(empty_write_odf: OpenDocumentFormat, virtual_path: str):
+    stream = empty_write_odf.getStream(virtual_path)
     stream.write(b"The test is successful.")
 
 ##  Tests writing data to an archive, then reading it back.
@@ -63,13 +63,13 @@ def test_cycleSetDataGetData(virtual_path: str):
     test_data = b"Let's see if we can read this data back."
 
     stream = io.BytesIO()
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({virtual_path: test_data})
     package.close()
 
     stream.seek(0)
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream)
     result = package.getData(virtual_path)
 
@@ -84,14 +84,14 @@ def test_cycleStreamWriteRead(virtual_path: str):
     test_data = b"Softly does the river flow, flow, flow."
 
     stream = io.BytesIO()
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     resource = package.getStream(virtual_path)
     resource.write(test_data)
     package.close()
 
     stream.seek(0)
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream)
     resource = package.getStream(virtual_path)
     result = resource.read()
@@ -104,14 +104,14 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
     test_data = "Hasta la vista, baby."
 
     stream = io.BytesIO()
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({"/hello.txt": b"Hello world!"}) #Add a file to attach non-global metadata to.
     package.setMetadata({virtual_path: test_data})
     package.close()
 
     stream.seek(0)
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream)
     result = package.getMetadata(virtual_path)
     
@@ -126,33 +126,33 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
 #   This doesn't test if the bytes are correct, because that is the task of the
 #   zipfile module. We merely test that it gets some bytes array and that the
 #   offset and size parameters work.
-def test_toByteArray(single_resource_read_ufp):
-    original = single_resource_read_ufp.toByteArray()
+def test_toByteArray(single_resource_read_odf):
+    original = single_resource_read_odf.toByteArray()
     original_length = len(original)
 
     #Even empty zip archives are already 22 bytes, so offsets and sizes of less than that should be okay.
-    result = single_resource_read_ufp.toByteArray(offset = 10)
+    result = single_resource_read_odf.toByteArray(offset = 10)
     assert len(result) == original_length - 10 #The first 10 bytes have fallen off.
 
-    result = single_resource_read_ufp.toByteArray(count = 8)
+    result = single_resource_read_odf.toByteArray(count = 8)
     assert len(result) == 8 #Limited to size 8.
 
-    result = single_resource_read_ufp.toByteArray(offset = 10, count = 8)
+    result = single_resource_read_odf.toByteArray(offset = 10, count = 8)
     assert len(result) == 8 #Still limited by the size, even though there is an offset.
 
-    result = single_resource_read_ufp.toByteArray(count = 999999) #This is a small file, definitely smaller than 1MiB.
+    result = single_resource_read_odf.toByteArray(count = 999999) #This is a small file, definitely smaller than 1MiB.
     assert len(result) == original_length #Should be limited to the actual file length.
 
 ##  Tests toByteArray when loading from a stream.
 def test_toByteArrayStream():
     stream = io.BytesIO()
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({"/hello.txt": b"Hello world!"}) #Add some arbitrary data so that the file size is not trivial regardless of what format is used.
     package.close()
 
     stream.seek(0)
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream)
     result = package.toByteArray()
 
@@ -162,7 +162,7 @@ def test_toByteArrayStream():
 #   correct location.
 def test_addContentType():
     stream = io.BytesIO()
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.addContentType("lol", "audio/x-laughing")
     package.close()
@@ -189,7 +189,7 @@ def test_addContentType():
 #   location.
 def test_addRelation():
     stream = io.BytesIO()
-    package = UltimakerFormatPackage()
+    package = OpenDocumentFormat()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({"/whoo.txt": b"Boo", "/whoo.enhanced.txt": b"BOOOO!", "/whoo.enforced.txt": b"BOOOOOOOOOO!"}) #Need 3 files: One base and two that are related.
     package.addRelation("whoo.enhanced.txt", "An enhanced version of it.", "whoo.txt")
@@ -218,8 +218,8 @@ def test_addRelation():
 
 ##  Tests getting the size of a file.
 #
-#   This is implemented knowing the contents of single_resource_read_ufp.
-def test_getMetadataSize(single_resource_read_ufp):
-    metadata = single_resource_read_ufp.getMetadata("/hello.txt/size")
+#   This is implemented knowing the contents of single_resource_read_odf.
+def test_getMetadataSize(single_resource_read_odf):
+    metadata = single_resource_read_odf.getMetadata("/hello.txt/size")
     assert "/metadata/hello.txt/size" in metadata
     assert metadata["/metadata/hello.txt/size"] == len("Hello world!\n".encode("UTF-8")) #Compare with the length of the file's contents as encoded in UTF-8.
