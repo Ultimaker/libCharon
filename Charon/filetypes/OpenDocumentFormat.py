@@ -110,7 +110,7 @@ class OpenDocumentFormat(FileInterface):
             raise ReadOnlyError()
         for virtual_path, value in data.items():
             if virtual_path.startswith(self.metadata_prefix):  # Detect metadata by virtue of being in the Metadata folder.
-                self.setMetadata({virtual_path: value[len(self.metadata_prefix):]})
+                self.setMetadata({virtual_path.lstrip(self.metadata_prefix): value})
             else:  # Virtual file resources.
                 self.getStream(virtual_path).write(value)
 

@@ -10,6 +10,29 @@ from Charon.OpenMode import OpenMode
 from Charon.filetypes.CuraPackage import CuraPackage
 
 
+def test_addPackageJsonMetadata():
+    """
+    This tests adding meta data which will eventually end up in the package.json file.
+    """
+    
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    
+    # Add the metadata.
+    package.setMetadata({"/package_id": "CharonTestPackage"})
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
+
+    # Open the package as read-only for testing.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode = OpenMode.ReadOnly)
+
+    assert read_package.getData("/metadata/package_id").get("/metadata/package_id") == "CharonTestPackage"
+
+
 @pytest.mark.parametrize("filenames", [
     ["example_material.xml.fdm_material"],  # test a single material
     ["example_material.xml.fdm_material", "example_material_two.xml.fdm_material"],  # test multiple materials
