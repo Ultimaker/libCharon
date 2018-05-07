@@ -18,7 +18,7 @@ from Charon.WriteOnlyError import WriteOnlyError  # To be thrown when trying to 
 ##  A container file type that contains multiple related files that belong together.
 #   Details: http://opendocumentformat.org
 class OpenDocumentFormat(FileInterface):
-    
+
     # Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"")  # Header element being put atop every XML file.
     metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/odf_metadata"  # Unique identifier of the relationship type that relates ODF metadata to files.
@@ -52,6 +52,9 @@ class OpenDocumentFormat(FileInterface):
         self._readRels()  # Load or create the relations.
         self._readMetadata()  # Load the metadata, if any.
 
+    def open(self, path: str, mode: OpenMode = OpenMode.ReadOnly):
+        return NotImplemented("The Open method is not implemented for ODF files.")
+    
     def close(self) -> None:
         if not self.stream:
             raise ValueError("This file is already closed.")
