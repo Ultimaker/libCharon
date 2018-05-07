@@ -30,7 +30,15 @@ def test_addPackageJsonMetadata():
     read_package = CuraPackage()
     read_package.openStream(stream, mode = OpenMode.ReadOnly)
 
+    # Test two methods of retrieving the metadata.
     assert read_package.getData("/metadata/package_id").get("/metadata/package_id") == "CharonTestPackage"
+    assert read_package.getMetadata("/package_id").get("/metadata/package_id") == "CharonTestPackage"
+
+    # Test the Metadata paths.
+    available_package_metadata_files = read_package.listPaths("/Metadata")
+    assert len(available_package_metadata_files) == 2  # /package_id and /Metadata/package.json
+    assert "/Metadata/package.json" in available_package_metadata_files
+    assert "/package_id" in available_package_metadata_files
 
 
 @pytest.mark.parametrize("filenames", [
