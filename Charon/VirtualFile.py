@@ -14,7 +14,8 @@ from .filetypes.GCodeGzFile import GCodeGzFile
 extension_to_mime = {
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
-    ".gz": "text/x-gcode-gz"
+    ".gz": "text/x-gcode-gz",
+    ".gcode.gz": "text/x-gcode-gz"
 }
 mime_to_implementation = {
     "application/x-ufp": UltimakerFormatPackage,
