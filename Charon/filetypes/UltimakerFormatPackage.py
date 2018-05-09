@@ -418,6 +418,12 @@ class UltimakerFormatPackage(FileInterface):
                 self._readMetadataElement(metadata, metadata_file)
 
         if self.mode != OpenMode.WriteOnly and not self.getMetadata("/3D/model.gcode"):
+            try:
+                # Check if the G-code file actually exists in the package.
+                self.zipfile.getinfo("/3D/model.gcode")
+            except KeyError:
+                return
+
             gcode_stream = TextIOWrapper(self.zipfile.open("/3D/model.gcode"))
             header_data = GCodeFile.parseHeader(gcode_stream, prefix = "/3D/model.gcode/")
             self.metadata.update(header_data)
