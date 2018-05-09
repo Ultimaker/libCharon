@@ -16,16 +16,16 @@ from Charon.WriteOnlyError import WriteOnlyError  # To be thrown when trying to 
 
 
 ##  A container file type that contains multiple related files that belong together.
-#   Details: http://opendocumentformat.org
-class OpenDocumentFormat(FileInterface):
+#   Details: http://OpenPackagingConvention.org
+class OpenPackagingConvention(FileInterface):
 
     # Some constants related to this format.
     xml_header = ET.ProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"")  # Header element being put atop every XML file.
-    metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/odf_metadata"  # Unique identifier of the relationship type that relates ODF metadata to files.
+    metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/opc_metadata"  # Unique identifier of the relationship type that relates OPC metadata to files.
     content_types_file = "/[Content_Types].xml"  # Where the content types file is.
     global_metadata_file = "/Metadata/Global.json"  # Where the global metadata file is.
     aliases = OrderedDict([])  # Virtual path aliases. Keys are regex. Order matters!
-    mime_type = "application/x-odf"
+    mime_type = "application/x-opc"
     metadata_prefix = "/metadata"
     is_binary = True  # This file needs to be opened in binary mode.
 
@@ -53,7 +53,7 @@ class OpenDocumentFormat(FileInterface):
         self._readMetadata()  # Load the metadata, if any.
 
     def open(self, path: str, mode: OpenMode = OpenMode.ReadOnly):
-        return NotImplemented("The Open method is not implemented for ODF files.")
+        return NotImplemented("The Open method is not implemented for OPC files.")
     
     def close(self) -> None:
         if not self.stream:
@@ -207,13 +207,13 @@ class OpenDocumentFormat(FileInterface):
         # First check if it already exists.
         for content_type in self.content_types_element.iterfind("Default"):
             if "Extension" in content_type.attrib and content_type.attrib["Extension"] == extension:
-                raise ODFError("Content type for extension {extension} already exists.".format(extension = extension))
+                raise OPCError("Content type for extension {extension} already exists.".format(extension = extension))
 
         ET.SubElement(self.content_types_element, "Default", Extension = extension, ContentType = mime_type)
 
     ##  Adds a relation concerning a file type.
     #   \param virtual_path The target file that the relation is about.
-    #   \param relation_type The type of the relation. Any reader of ODF should
+    #   \param relation_type The type of the relation. Any reader of OPC should
     #   be able to understand all types that are added via relations.
     #   \param origin The origin of the relation. If the relation concerns a
     #   specific directory or specific file, then you should point to the
@@ -231,7 +231,7 @@ class OpenDocumentFormat(FileInterface):
         else:
             for relationship in self.relations[origin].iterfind("Relationship"):
                 if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
-                    raise ODFError("Relation for virtual path {target} already exists.".format(target = virtual_path))
+                    raise OPCError("Relation for virtual path {target} already exists.".format(target = virtual_path))
 
         # Find a unique name.
         unique_id = 0
@@ -263,7 +263,7 @@ class OpenDocumentFormat(FileInterface):
                     return True
         return False
 
-    ##  Dereference the aliases for ODF files.
+    ##  Dereference the aliases for OPC files.
     #
     #   This also adds a slash in front of every virtual path if it has no slash
     #   yet, to allow referencing virtual paths with or without the initial
@@ -452,7 +452,7 @@ class OpenDocumentFormat(FileInterface):
         if len(self.metadata) > 0:  # If we've written any metadata at all, we must include the content type as well.
             try:
                 self.addContentType(extension = "json", mime_type = "text/json")
-            except ODFError:  # User may already have defined this content type himself.
+            except OPCError:  # User may already have defined this content type himself.
                 pass
 
     ##  Writes one dictionary of metadata to a JSON file.
@@ -506,6 +506,6 @@ class OpenDocumentFormat(FileInterface):
                 elem.tail = i
 
 
-##  Error to raise that something went wrong with reading/writing an ODF file.
-class ODFError(Exception):
+##  Error to raise that something went wrong with reading/writing an OPC file.
+class OPCError(Exception):
     pass  # This is just a marker class.

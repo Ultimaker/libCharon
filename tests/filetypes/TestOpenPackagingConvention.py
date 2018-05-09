@@ -7,7 +7,7 @@ import pytest #This module contains unit tests.
 import zipfile #To inspect the contents of the zip archives.
 import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
 
-from Charon.filetypes.OpenDocumentFormat import OpenDocumentFormat #The class we're testing.
+from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention #The class we're testing.
 from Charon.OpenMode import OpenMode #To open archives.
 
 ##  Returns an empty package that you can read from.
@@ -15,8 +15,8 @@ from Charon.OpenMode import OpenMode #To open archives.
 #   The package has no resources at all, so reading from it will not find
 #   anything.
 @pytest.fixture()
-def empty_read_odf() -> OpenDocumentFormat:
-    result = OpenDocumentFormat()
+def empty_read_odf() -> OpenPackagingConvention:
+    result = OpenPackagingConvention()
     result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.odf"), "rb"))
     yield result
     result.close()
@@ -26,8 +26,8 @@ def empty_read_odf() -> OpenDocumentFormat:
 #   The file is called "hello.txt" and contains the text "Hello world!" encoded
 #   in UTF-8.
 @pytest.fixture()
-def single_resource_read_odf() -> OpenDocumentFormat:
-    result = OpenDocumentFormat()
+def single_resource_read_odf() -> OpenPackagingConvention:
+    result = OpenPackagingConvention()
     result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.odf"), "rb"))
     yield result
     result.close()
@@ -37,8 +37,8 @@ def single_resource_read_odf() -> OpenDocumentFormat:
 #   Note that you can't really test the output of the write since you don't have
 #   the stream it writes to.
 @pytest.fixture()
-def empty_write_odf() -> OpenDocumentFormat:
-    result = OpenDocumentFormat()
+def empty_write_odf() -> OpenPackagingConvention:
+    result = OpenPackagingConvention()
     result.openStream(io.BytesIO(), "application/x-odf", OpenMode.WriteOnly)
     yield result
     result.close()
@@ -46,14 +46,14 @@ def empty_write_odf() -> OpenDocumentFormat:
 #### Now follow the actual tests. ####
 
 ##  Tests whether an empty file is recognised as empty.
-def test_listPathsEmpty(empty_read_odf: OpenDocumentFormat):
+def test_listPathsEmpty(empty_read_odf: OpenPackagingConvention):
     assert len(empty_read_odf.listPaths()) == 0
 
 ##  Tests getting write streams of various resources that may or may not exist.
 #
 #   Every test will write some arbitrary data to it to see that that also works.
 @pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata", "/_rels/.rels"]) #Some extra tests without initial slash to test robustness.
-def test_getWriteStream(empty_write_odf: OpenDocumentFormat, virtual_path: str):
+def test_getWriteStream(empty_write_odf: OpenPackagingConvention, virtual_path: str):
     stream = empty_write_odf.getStream(virtual_path)
     stream.write(b"The test is successful.")
 
@@ -63,13 +63,13 @@ def test_cycleSetDataGetData(virtual_path: str):
     test_data = b"Let's see if we can read this data back."
 
     stream = io.BytesIO()
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({virtual_path: test_data})
     package.close()
 
     stream.seek(0)
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream)
     result = package.getData(virtual_path)
 
@@ -84,14 +84,14 @@ def test_cycleStreamWriteRead(virtual_path: str):
     test_data = b"Softly does the river flow, flow, flow."
 
     stream = io.BytesIO()
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     resource = package.getStream(virtual_path)
     resource.write(test_data)
     package.close()
 
     stream.seek(0)
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream)
     resource = package.getStream(virtual_path)
     result = resource.read()
@@ -104,14 +104,14 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
     test_data = "Hasta la vista, baby."
 
     stream = io.BytesIO()
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({"/hello.txt": b"Hello world!"}) #Add a file to attach non-global metadata to.
     package.setMetadata({virtual_path: test_data})
     package.close()
 
     stream.seek(0)
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream)
     result = package.getMetadata(virtual_path)
     
@@ -146,13 +146,13 @@ def test_toByteArray(single_resource_read_odf):
 ##  Tests toByteArray when loading from a stream.
 def test_toByteArrayStream():
     stream = io.BytesIO()
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({"/hello.txt": b"Hello world!"}) #Add some arbitrary data so that the file size is not trivial regardless of what format is used.
     package.close()
 
     stream.seek(0)
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream)
     result = package.toByteArray()
 
@@ -162,7 +162,7 @@ def test_toByteArrayStream():
 #   correct location.
 def test_addContentType():
     stream = io.BytesIO()
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.addContentType("lol", "audio/x-laughing")
     package.close()
@@ -188,7 +188,7 @@ def test_addContentType():
 #   location.
 def test_addRelation():
     stream = io.BytesIO()
-    package = OpenDocumentFormat()
+    package = OpenPackagingConvention()
     package.openStream(stream, mode = OpenMode.WriteOnly)
     package.setData({"/whoo.txt": b"Boo", "/whoo.enhanced.txt": b"BOOOO!", "/whoo.enforced.txt": b"BOOOOOOOOOO!"}) #Need 3 files: One base and two that are related.
     package.addRelation("whoo.enhanced.txt", "An enhanced version of it.", "whoo.txt")

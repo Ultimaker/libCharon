@@ -2,10 +2,10 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 from collections import OrderedDict
 
-from Charon.filetypes.OpenDocumentFormat import OpenDocumentFormat
+from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 
 
-class CuraPackage(OpenDocumentFormat):
+class CuraPackage(OpenPackagingConvention):
     """
     A container file that contains Cura resources that belong together.
     For example a machine definition with several materials and quality profiles.

@@ -4,14 +4,14 @@
 from collections import OrderedDict  # To specify the aliases in order.
 from io import TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
 
-from Charon.filetypes.OpenDocumentFormat import OpenDocumentFormat
+from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 from Charon.OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
 from Charon.filetypes.GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
 
 
 ##  A container file type that contains multiple 3D-printing related files that
 #   belong together.
-class UltimakerFormatPackage(OpenDocumentFormat):
+class UltimakerFormatPackage(OpenPackagingConvention):
     
     # Some constants related to this format.
     global_metadata_file = "/Metadata/UFP_Global.json"  # Where the global metadata file is.
