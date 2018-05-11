@@ -19,7 +19,7 @@ material_files = package.getMaterials()
 ```
 
 This returns a list of full file paths relative to the package root.
-You can then get the contents of any of the materials using the `read` method.
+You can then get the contents of any of the materials using the `getStream` method.
 
 ```python
 for material_file_path in material_files:
