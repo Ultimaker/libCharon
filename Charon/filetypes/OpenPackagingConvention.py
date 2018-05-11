@@ -155,8 +155,11 @@ class OpenPackagingConvention(FileInterface):
         if not self.stream:
             raise ValueError("Can't get a stream from a closed file.")
 
+        if virtual_path.startswith("/_rels"):
+            raise OPCError("Writing directly to a relationship file is forbidden.")
+
         if virtual_path.startswith(self.metadata_prefix):
-            return BufferedIOBase(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
+            return BufferedIOBase(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode())
 
         virtual_path = self._processAliases(virtual_path)
         if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: # In write-only mode, create a new file instead of reading metadata.
