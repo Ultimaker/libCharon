@@ -1,6 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 from collections import OrderedDict
+from typing import List
 
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 
@@ -20,3 +21,10 @@ class CuraPackage(OpenPackagingConvention):
     aliases = OrderedDict([
         (r"/materials", "/files/resources/materials")
     ])
+
+    def getMaterials(self) -> List[str]:
+        """
+        Get all material files.
+        :return: A list of paths of materials.
+        """
+        return self.listPaths("/materials")

@@ -72,7 +72,7 @@ def test_addMaterials(filenames: List[str]):
     # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode = OpenMode.ReadOnly)
-    available_material_resources = read_package.listPaths(material_path_alias)
+    available_material_resources = read_package.getMaterials()
     assert len(available_material_resources) == len(filenames)
     
     path_alias = read_package.aliases.get(material_path_alias)
