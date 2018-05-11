@@ -74,7 +74,8 @@ def test_addMaterials(filenames: List[str]):
     read_package.openStream(stream, mode = OpenMode.ReadOnly)
     available_material_resources = read_package.getMaterials()
     assert len(available_material_resources) == len(filenames)
-    
+
+    # Test if the full paths are there.
     path_alias = read_package.aliases.get(material_path_alias)
     for filename in filenames:
         assert "{}/{}".format(path_alias, filename) in available_material_resources
