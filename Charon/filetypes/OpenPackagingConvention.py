@@ -36,7 +36,7 @@ class OpenPackagingConvention(FileInterface):
         self.zipfile = None  # The zip interface to the currently open stream.
         self.metadata = {}  # The metadata in the currently open file.
         self.content_types_element = None  # An XML element holding all the content types.
-        self.relations = {}  # For each virtual path, a relations XML element (which is left out of the file if empty).
+        self.relations = {}  # type: Dict[str, ET.Element]
         self._open_bytes_streams = {}  # With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
 
         # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
