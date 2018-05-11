@@ -15,9 +15,9 @@ from Charon.OpenMode import OpenMode #To open archives.
 #   The package has no resources at all, so reading from it will not find
 #   anything.
 @pytest.fixture()
-def empty_read_odf() -> OpenPackagingConvention:
+def empty_read_opc() -> OpenPackagingConvention:
     result = OpenPackagingConvention()
-    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.odf"), "rb"))
+    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.opc"), "rb"))
     yield result
     result.close()
 
@@ -26,9 +26,9 @@ def empty_read_odf() -> OpenPackagingConvention:
 #   The file is called "hello.txt" and contains the text "Hello world!" encoded
 #   in UTF-8.
 @pytest.fixture()
-def single_resource_read_odf() -> OpenPackagingConvention:
+def single_resource_read_opc() -> OpenPackagingConvention:
     result = OpenPackagingConvention()
-    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.odf"), "rb"))
+    result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.opc"), "rb"))
     yield result
     result.close()
 
@@ -37,24 +37,24 @@ def single_resource_read_odf() -> OpenPackagingConvention:
 #   Note that you can't really test the output of the write since you don't have
 #   the stream it writes to.
 @pytest.fixture()
-def empty_write_odf() -> OpenPackagingConvention:
+def empty_write_opc() -> OpenPackagingConvention:
     result = OpenPackagingConvention()
-    result.openStream(io.BytesIO(), "application/x-odf", OpenMode.WriteOnly)
+    result.openStream(io.BytesIO(), "application/x-opc", OpenMode.WriteOnly)
     yield result
     result.close()
 
 #### Now follow the actual tests. ####
 
 ##  Tests whether an empty file is recognised as empty.
-def test_listPathsEmpty(empty_read_odf: OpenPackagingConvention):
-    assert len(empty_read_odf.listPaths()) == 0
+def test_listPathsEmpty(empty_read_opc: OpenPackagingConvention):
+    assert len(empty_read_opc.listPaths()) == 0
 
 ##  Tests getting write streams of various resources that may or may not exist.
 #
 #   Every test will write some arbitrary data to it to see that that also works.
 @pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata", "/_rels/.rels"]) #Some extra tests without initial slash to test robustness.
-def test_getWriteStream(empty_write_odf: OpenPackagingConvention, virtual_path: str):
-    stream = empty_write_odf.getStream(virtual_path)
+def test_getWriteStream(empty_write_opc: OpenPackagingConvention, virtual_path: str):
+    stream = empty_write_opc.getStream(virtual_path)
     stream.write(b"The test is successful.")
 
 ##  Tests writing data to an archive, then reading it back.
@@ -126,21 +126,21 @@ def test_cycleSetMetadataGetMetadata(virtual_path: str):
 #   This doesn't test if the bytes are correct, because that is the task of the
 #   zipfile module. We merely test that it gets some bytes array and that the
 #   offset and size parameters work.
-def test_toByteArray(single_resource_read_odf):
-    original = single_resource_read_odf.toByteArray()
+def test_toByteArray(single_resource_read_opc):
+    original = single_resource_read_opc.toByteArray()
     original_length = len(original)
 
     #Even empty zip archives are already 22 bytes, so offsets and sizes of less than that should be okay.
-    result = single_resource_read_odf.toByteArray(offset = 10)
+    result = single_resource_read_opc.toByteArray(offset = 10)
     assert len(result) == original_length - 10 #The first 10 bytes have fallen off.
 
-    result = single_resource_read_odf.toByteArray(count = 8)
+    result = single_resource_read_opc.toByteArray(count = 8)
     assert len(result) == 8 #Limited to size 8.
 
-    result = single_resource_read_odf.toByteArray(offset = 10, count = 8)
+    result = single_resource_read_opc.toByteArray(offset = 10, count = 8)
     assert len(result) == 8 #Still limited by the size, even though there is an offset.
 
-    result = single_resource_read_odf.toByteArray(count = 999999) #This is a small file, definitely smaller than 1MiB.
+    result = single_resource_read_opc.toByteArray(count = 999999) #This is a small file, definitely smaller than 1MiB.
     assert len(result) == original_length #Should be limited to the actual file length.
 
 ##  Tests toByteArray when loading from a stream.
@@ -216,8 +216,8 @@ def test_addRelation():
 
 ##  Tests getting the size of a file.
 #
-#   This is implemented knowing the contents of single_resource_read_odf.
-def test_getMetadataSize(single_resource_read_odf):
-    metadata = single_resource_read_odf.getMetadata("/hello.txt/size")
+#   This is implemented knowing the contents of single_resource_read_opc.
+def test_getMetadataSize(single_resource_read_opc):
+    metadata = single_resource_read_opc.getMetadata("/hello.txt/size")
     assert "/metadata/hello.txt/size" in metadata
     assert metadata["/metadata/hello.txt/size"] == len("Hello world!\n".encode("UTF-8")) #Compare with the length of the file's contents as encoded in UTF-8.
