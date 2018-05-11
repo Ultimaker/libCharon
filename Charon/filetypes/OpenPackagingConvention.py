@@ -1,6 +1,6 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
-
+import logging
 from collections import OrderedDict  # To specify the aliases in order.
 from io import BufferedIOBase, BytesIO, TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
 import json  # The metadata format.
@@ -406,7 +406,11 @@ class OpenPackagingConvention(FileInterface):
                 metadata_file = relationship.attrib["Target"]
                 if metadata_file not in self.zipfile.namelist():  # The metadata file is unknown to us.
                     continue
-                metadata = json.load(self.zipfile.open(metadata_file))
+                try:
+                    metadata = json.loads(self.zipfile.read(metadata_file).decode())
+                except ValueError as error:
+                    logging.error("Could not parse metadata JSON file: {}".format(error))
+                    continue
                 if metadata_file == self.global_metadata_file:  # Store globals as if coming from root.
                     metadata_file = ""
                 elif metadata_file.endswith(".json"):  # Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
