@@ -151,7 +151,7 @@ class OpenPackagingConvention(FileInterface):
         metadata = {self._processAliases(virtual_path): metadata[virtual_path] for virtual_path in metadata}
         self.metadata.update(metadata)
 
-    def getStream(self, virtual_path: str) -> BufferedIOBase:
+    def getStream(self, virtual_path: str) -> BytesIO:
         if not self.stream:
             raise ValueError("Can't get a stream from a closed file.")
 
@@ -159,7 +159,7 @@ class OpenPackagingConvention(FileInterface):
             raise OPCError("Writing directly to a relationship file is forbidden.")
 
         if virtual_path.startswith(self.metadata_prefix):
-            return BufferedIOBase(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode())
+            return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode())
 
         virtual_path = self._processAliases(virtual_path)
         if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: # In write-only mode, create a new file instead of reading metadata.
