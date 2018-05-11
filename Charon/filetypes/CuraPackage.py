@@ -28,3 +28,10 @@ class CuraPackage(OpenPackagingConvention):
         :return: A list of paths of materials.
         """
         return self.listPaths("/materials")
+
+    def getQualities(self) -> List[str]:
+        """
+        Get all quality files.
+        :return: A list of paths of qualities.
+        """
+        return self.listPaths("/qualities")
