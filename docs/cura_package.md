@@ -7,7 +7,7 @@ First, create a new package instance that we can write data to.
 ```python
 stream = io.BytesIO()
 package = CuraPackage()
-package.openStream(stream, mode = OpenMode.WriteOnly)
+package.openStream(stream, mode=OpenMode.WriteOnly)
 ```
 
 After adding your data (see details below), don't forget to close the package.
@@ -21,8 +21,8 @@ To add a material, you can use the `addMaterial` convinience method.
 This will take care of the relationships, path alias and other implementation details of OPC.
 
 ```python
-material_file = open(os.path.join("my_material.xml.fdm_material", "rb").read()
-package.addMaterial(original_material, filename)
+material_data = open(os.path.join("my_material.xml.fdm_material", "rb").read()
+package.addMaterial(material_data=material_data, package_filename="my_material.xml.fdm_material")
 ```
 
 ### package.json
