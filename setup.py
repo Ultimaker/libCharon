@@ -3,7 +3,8 @@
 
 from distutils.core import setup
 
-setup(name = "Charon",
+setup(
+    name = "Charon",
     version = "1.0",
     description = "Library to read and write file packages.",
     author = "Ultimaker",

@@ -1,8 +1,8 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
-from io import BufferedIOBase #To indicate that getStream must return a stream.
-from typing import Any, Dict, List
+from io import BufferedIOBase  # To indicate that getStream must return a stream.
+from typing import Any, Dict, List, Optional
 
 from .OpenMode import OpenMode
 
@@ -54,7 +54,7 @@ class FileInterface:
         raise NotImplementedError("The flush() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Returns a list of all resources and metadata in the file.
-    def listPaths(self) -> List[str]:
+    def listPaths(self, root_path: Optional[str]) -> List[str]:
         raise NotImplementedError("The listPaths() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets the data stored at the specified virtual path and all its
