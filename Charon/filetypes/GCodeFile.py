@@ -1,5 +1,7 @@
 import ast
 
+from typing import Any, Dict
+
 from ..FileInterface import FileInterface
 from ..OpenMode import OpenMode
 
@@ -34,7 +36,7 @@ class GCodeFile(FileInterface):
         self.__metadata = self.parseHeader(self.__stream, prefix = "/metadata/toolpath/default/")
 
     @staticmethod
-    def parseHeader(stream, *, prefix: str = ""):
+    def parseHeader(stream, *, prefix: str = "") -> Dict[str, Any]:
         try:
             metadata = {}
             line_number = 0

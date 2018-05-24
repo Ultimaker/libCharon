@@ -2,10 +2,10 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 
 from collections import OrderedDict  # To specify the aliases in order.
-from io import BufferedIOBase, BytesIO, TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
+from io import BytesIO, TextIOWrapper  # For the type of input of openStream and to create binary output streams for getting metadata.
 import json  # The metadata format.
 import re  # To find the path aliases.
-from typing import Any, Dict, List
+from typing import Any, Dict, List, IO, Optional
 import xml.etree.ElementTree as ET  # For writing XML manifest files.
 import zipfile
 
@@ -38,20 +38,20 @@ class UltimakerFormatPackage(FileInterface):
     is_binary = True  # This file needs to be opened in binary mode.
 
     ##  Initialises the fields of this class.
-    def __init__(self):
-        self.mode = None  # Whether we're in read or write mode.
-        self.stream = None  # The currently open stream.
-        self.zipfile = None  # The zip interface to the currently open stream.
-        self.metadata = {}  # The metadata in the currently open file.
-        self.content_types_element = None  # An XML element holding all the content types.
-        self.relations = {}  # For each virtual path, a relations XML element (which is left out of the file if empty).
-        self._open_bytes_streams = {}  # With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
+    def __init__(self) -> None:
+        self.mode = None    # type: Optional[OpenMode]        # Whether we're in read or write mode.
+        self.stream = None  # type: Optional[IO[bytes]]       # The currently open stream.
+        self.zipfile = None # type: Optional[zipfile.ZipFile] # The zip interface to the currently open stream.
+        self.metadata = {}  # type: Dict[str, Any]            # The metadata in the currently open file.
+        self.content_types_element = None  # type: Optional[ET.Element] # An XML element holding all the content types.
+        self.relations = {} # type: Dict[str, ET.Element]     # For each virtual path, a relations XML element (which is left out of the file if empty).
+        self._open_bytes_streams = {} # type: Dict[str, IO[bytes]] # With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
 
         # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
-        self._last_open_path = None
-        self._last_open_stream = None
+        self._last_open_path = None # type: Optional[str]
+        self._last_open_stream = None # type: Optional[IO[bytes]]
 
-    def openStream(self, stream: BufferedIOBase, mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly) -> None:
+    def openStream(self, stream: IO[bytes], mime: str = "application/x-ufp", mode: OpenMode = OpenMode.ReadOnly) -> None:
         self.mode = mode
         self.stream = stream #A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
         self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
@@ -61,13 +61,13 @@ class UltimakerFormatPackage(FileInterface):
         self._readMetadata()  # Load the metadata, if any.
 
     def close(self) -> None:
-        if not self.stream:
+        if not self.stream or not self.zipfile:
             raise ValueError("This file is already closed.")
         self.flush()
         self.zipfile.close()
 
     def flush(self) -> None:
-        if not self.stream:
+        if not self.stream or not self.zipfile:
             raise ValueError("Can't flush a closed file.")
         if self.mode == OpenMode.ReadOnly:
             return  # No need to flush reading of zip archives as they are blocking calls.
@@ -86,7 +86,7 @@ class UltimakerFormatPackage(FileInterface):
         self._writeRels()
 
     def listPaths(self) -> List[str]:
-        if not self.stream:
+        if not self.stream or self.zipfile is None:
             raise ValueError("Can't list the paths in a closed file.")
         return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
 
@@ -96,7 +96,7 @@ class UltimakerFormatPackage(FileInterface):
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
 
-        result = {}
+        result = {} # type: Dict[str, Any]
         if virtual_path.startswith(self.metadata_prefix):
             result = self.getMetadata(virtual_path[len(self.metadata_prefix):])
         else:
@@ -118,7 +118,7 @@ class UltimakerFormatPackage(FileInterface):
                 self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
-        if not self.stream:
+        if not self.stream or self.zipfile is None:
             raise ValueError("Can't get metadata from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
@@ -154,39 +154,41 @@ class UltimakerFormatPackage(FileInterface):
         metadata = {self._processAliases(virtual_path): metadata[virtual_path] for virtual_path in metadata}
         self.metadata.update(metadata)
 
-    def getStream(self, virtual_path: str) -> BufferedIOBase:
-        if not self.stream:
+    def getStream(self, virtual_path: str) -> IO[bytes]:
+        if not self.stream or self.zipfile is None or self.mode is None:
             raise ValueError("Can't get a stream from a closed file.")
 
         if virtual_path.startswith(self.metadata_prefix):
             return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
 
         virtual_path = self._processAliases(virtual_path)
-        if self._resource_exists(virtual_path) or self.mode == OpenMode.WriteOnly: # In write-only mode, create a new file instead of reading metadata.
-            # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
-            if self._last_open_stream is not None and self._last_open_path not in self._open_bytes_streams: # Don't close streams that we still need to flush.
-                self._last_open_stream.close()
+        if not self._resource_exists(virtual_path) and self.mode != OpenMode.WriteOnly: # In write-only mode, create a new file instead of reading metadata.
+            raise FileNotFoundError(virtual_path)
 
-            # If we are requesting a stream of an image resized, resize the image and return that.
-            if self.mode == OpenMode.ReadOnly and ".png/" in virtual_path:
-                png_file = virtual_path[:virtual_path.find(".png/") + 4]
-                size_spec = virtual_path[virtual_path.find(".png/") + 5:]
-                if re.match(r"^\s*\d+\s*x\s*\d+\s*$", size_spec):
-                    dimensions = []
-                    for dimension in re.finditer(r"\d+", size_spec):
-                        dimensions.append(int(dimension.group()))
-                    return self._resizeImage(png_file, dimensions[0], dimensions[1])
+        # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
+        if self._last_open_stream is not None and self._last_open_path not in self._open_bytes_streams: # Don't close streams that we still need to flush.
+            self._last_open_stream.close()
 
-            self._last_open_path = virtual_path
-            try: # If it happens to match some existing PNG file, we have to rescale that file and return the result.
-                self._last_open_stream = self.zipfile.open(virtual_path, self.mode.value)
-            except RuntimeError:  # Python 3.5 and before couldn't open resources in the archive in write mode.
-                self._last_open_stream = BytesIO()
-                self._open_bytes_streams[virtual_path] = self._last_open_stream  # Save this for flushing later.
-            return self._last_open_stream
+        # If we are requesting a stream of an image resized, resize the image and return that.
+        if self.mode == OpenMode.ReadOnly and ".png/" in virtual_path:
+            png_file = virtual_path[:virtual_path.find(".png/") + 4]
+            size_spec = virtual_path[virtual_path.find(".png/") + 5:]
+            if re.match(r"^\s*\d+\s*x\s*\d+\s*$", size_spec):
+                dimensions = []
+                for dimension in re.finditer(r"\d+", size_spec):
+                    dimensions.append(int(dimension.group()))
+                return self._resizeImage(png_file, dimensions[0], dimensions[1])
+
+        self._last_open_path = virtual_path
+        try: # If it happens to match some existing PNG file, we have to rescale that file and return the result.
+            self._last_open_stream = self.zipfile.open(virtual_path, self.mode.value)
+        except RuntimeError:  # Python 3.5 and before couldn't open resources in the archive in write mode.
+            self._last_open_stream = BytesIO()
+            self._open_bytes_streams[virtual_path] = self._last_open_stream  # Save this for flushing later.
+        return self._last_open_stream
 
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
-        if not self.stream:
+        if not self.stream or self.zipfile is None or self.mode is None:
             raise ValueError("Can't get the bytes from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError()
@@ -202,7 +204,7 @@ class UltimakerFormatPackage(FileInterface):
     ##  Adds a new content type to the archive.
     #   \param extension The file extension of the type
     def addContentType(self, extension: str, mime_type: str) -> None:
-        if not self.stream:
+        if not self.stream or self.content_types_element is None:
             raise ValueError("Can't add a content type to a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
@@ -257,6 +259,8 @@ class UltimakerFormatPackage(FileInterface):
     #   \return ``True`` if it exists as a normal resource, or ``False`` if it
     #   doesn't.
     def _resource_exists(self, virtual_path: str) -> bool:
+        if self.zipfile is None:
+            return False
         for zip_name in self.zipfile.namelist():
             zip_virtual_path = self._zipNameToVirtualPath(zip_name)
             if virtual_path == zip_virtual_path:
@@ -299,7 +303,7 @@ class UltimakerFormatPackage(FileInterface):
     #   \param height The desired height of the image.
     #   \return A bytes stream representing a new PNG image with the desired
     #   width and height.
-    def _resizeImage(self, virtual_path: str, width: int, height: int) -> BufferedIOBase:
+    def _resizeImage(self, virtual_path: str, width: int, height: int) -> IO[bytes]:
         input = self.getStream(virtual_path)
         try:
             from PyQt5.QtGui import QImage
@@ -323,6 +327,8 @@ class UltimakerFormatPackage(FileInterface):
     #
     #   If the relations are missing, empty elements are created.
     def _readRels(self) -> None:
+        assert self.zipfile is not None
+
         self.relations[""] = ET.Element("Relationships", xmlns = "http://schemas.openxmlformats.org/package/2006/relationships") #There must always be a global relationships document.
 
         # Below is some parsing of paths and extensions.
@@ -352,6 +358,7 @@ class UltimakerFormatPackage(FileInterface):
     #   This should be written at the end of writing an archive, when all
     #   relations are known.
     def _writeRels(self) -> None:
+        assert self.zipfile is not None
         # Below is some parsing of paths and extensions.
         # Normally you'd use os.path for this. But this is platform-dependent.
         # For instance, the path separator in Windows is a backslash, but zipfile still uses a slash on Windows.
@@ -374,6 +381,8 @@ class UltimakerFormatPackage(FileInterface):
     #
     #   If the content types are missing, an empty element is created.
     def _readContentTypes(self) -> None:
+        assert self.zipfile is not None
+        
         if self.content_types_file in self.zipfile.namelist():
             content_types_element = ET.fromstring(self.zipfile.open(self.content_types_file).read())
             if content_types_element:
@@ -393,6 +402,9 @@ class UltimakerFormatPackage(FileInterface):
     #   This should be written at the end of writing an archive, when all
     #   content types are known.
     def _writeContentTypes(self) -> None:
+        assert self.zipfile is not None
+        assert self.content_types_element is not None
+        
         self._indent(self.content_types_element)
         self.zipfile.writestr(self.content_types_file, ET.tostring(self.xml_header) + b"\n" + ET.tostring(self.content_types_element))
 
@@ -400,6 +412,8 @@ class UltimakerFormatPackage(FileInterface):
     #
     #   This depends on the relations! Read the relations first!
     def _readMetadata(self) -> None:
+        assert self.zipfile is not None
+        
         for origin, relations_element in self.relations.items():
             for relationship in relations_element.iterfind("{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"):
                 if "Target" not in relationship.attrib or "Type" not in relationship.attrib: #These two are required, and we actually need them here. Better ignore this one.
@@ -410,7 +424,7 @@ class UltimakerFormatPackage(FileInterface):
                 if metadata_file not in self.zipfile.namelist(): #The metadata file is unknown to us.
                     continue
 
-                metadata = json.load(self.zipfile.open(metadata_file))
+                metadata = json.loads(self.zipfile.open(metadata_file).read().decode('utf-8'))
                 if metadata_file == self.global_metadata_file: #Store globals as if coming from root.
                     metadata_file = ""
                 elif metadata_file.endswith(".json"): #Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
@@ -445,8 +459,10 @@ class UltimakerFormatPackage(FileInterface):
     #
     #   ALWAYS WRITE METADATA BEFORE UPDATING RELS AND CONTENT TYPES.
     def _writeMetadata(self) -> None:
+        assert self.zipfile is not None
+        
         keys_left = set(self.metadata.keys()) #The keys that are not associated with a particular file (global metadata).
-        metadata_per_file = {}
+        metadata_per_file = {} # type: Dict[str, Dict[str, Any]]
         for file_name in self.zipfile.namelist():
             metadata_per_file[file_name] = {}
             for metadata_key in self.metadata:
@@ -474,8 +490,10 @@ class UltimakerFormatPackage(FileInterface):
     #   \param metadata The metadata dictionary to write.
     #   \param file_name The virtual path of the JSON file to write to.
     def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str) -> None:
+        assert self.zipfile is not None
+        
         # Split the metadata into a hierarchical structure.
-        document = {}
+        document = {} # type: Dict[str, Any]
         for key, value in metadata.items():
             key = key.strip("/") #TODO: Should paths ending in a slash give an error?
             path = key.split("/")
