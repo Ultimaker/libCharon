@@ -1,5 +1,5 @@
 # Install pytest python library as well as add all files in current directory
-FROM python:alpine AS base
+FROM python:3.4-alpine AS base
 WORKDIR /usr/src/app
 RUN apk add --no-cache git
 RUN pip install --upgrade pip==9.0.*
