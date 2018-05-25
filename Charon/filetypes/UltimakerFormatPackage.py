@@ -61,14 +61,18 @@ class UltimakerFormatPackage(FileInterface):
         self._readMetadata()  # Load the metadata, if any.
 
     def close(self) -> None:
-        if not self.stream or not self.zipfile:
+        if not self.stream:
             raise ValueError("This file is already closed.")
+        assert self.zipfile is not None
+        
         self.flush()
         self.zipfile.close()
 
     def flush(self) -> None:
-        if not self.stream or not self.zipfile:
+        if not self.stream:
             raise ValueError("Can't flush a closed file.")
+        assert self.zipfile is not None
+        
         if self.mode == OpenMode.ReadOnly:
             return  # No need to flush reading of zip archives as they are blocking calls.
 
@@ -86,13 +90,17 @@ class UltimakerFormatPackage(FileInterface):
         self._writeRels()
 
     def listPaths(self) -> List[str]:
-        if not self.stream or self.zipfile is None:
+        if not self.stream:
             raise ValueError("Can't list the paths in a closed file.")
+        assert self.zipfile is not None
+        
         return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
 
     def getData(self, virtual_path) -> Dict[str, Any]:
         if not self.stream:
             raise ValueError("Can't get data from a closed file.")
+        assert self.zipfile is not None
+        
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
 
@@ -101,7 +109,7 @@ class UltimakerFormatPackage(FileInterface):
             result = self.getMetadata(virtual_path[len(self.metadata_prefix):])
         else:
             canonical_path = self._processAliases(virtual_path)
-            if self._resource_exists(canonical_path):
+            if self._resourceExists(canonical_path):
                 result[virtual_path] = self.getStream(canonical_path).read()  # In case of a name clash, the file wins. But that shouldn't be possible.
 
         return result
@@ -118,8 +126,10 @@ class UltimakerFormatPackage(FileInterface):
                 self.getStream(virtual_path).write(value)
 
     def getMetadata(self, virtual_path: str) -> Dict[str, Any]:
-        if not self.stream or self.zipfile is None:
+        if not self.stream:
             raise ValueError("Can't get metadata from a closed file.")
+        assert self.zipfile is not None
+        
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
         canonical_path = self._processAliases(virtual_path)
@@ -141,7 +151,7 @@ class UltimakerFormatPackage(FileInterface):
         # If requesting the size of a file.
         if canonical_path.endswith("/size"):
             requested_resource = canonical_path[:-len("/size")]
-            if self._resource_exists(requested_resource):
+            if self._resourceExists(requested_resource):
                 result[self.metadata_prefix + virtual_path] = self.zipfile.getinfo(requested_resource.strip("/")).file_size
 
         return result
@@ -155,14 +165,16 @@ class UltimakerFormatPackage(FileInterface):
         self.metadata.update(metadata)
 
     def getStream(self, virtual_path: str) -> IO[bytes]:
-        if not self.stream or self.zipfile is None or self.mode is None:
+        if not self.stream:
             raise ValueError("Can't get a stream from a closed file.")
+        assert self.zipfile is not None
+        assert self.mode is not None
 
         if virtual_path.startswith(self.metadata_prefix):
             return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
 
         virtual_path = self._processAliases(virtual_path)
-        if not self._resource_exists(virtual_path) and self.mode != OpenMode.WriteOnly: # In write-only mode, create a new file instead of reading metadata.
+        if not self._resourceExists(virtual_path) and self.mode != OpenMode.WriteOnly: # In write-only mode, create a new file instead of reading metadata.
             raise FileNotFoundError(virtual_path)
 
         # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
@@ -188,10 +200,12 @@ class UltimakerFormatPackage(FileInterface):
         return self._last_open_stream
 
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
-        if not self.stream or self.zipfile is None or self.mode is None:
+        if not self.stream:
             raise ValueError("Can't get the bytes from a closed file.")
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError()
+        assert self.zipfile is not None
+        assert self.mode is not None
 
         self.zipfile.close()  # Close the zipfile first so that we won't be messing with the stream without its consent.
 
@@ -204,10 +218,11 @@ class UltimakerFormatPackage(FileInterface):
     ##  Adds a new content type to the archive.
     #   \param extension The file extension of the type
     def addContentType(self, extension: str, mime_type: str) -> None:
-        if not self.stream or self.content_types_element is None:
+        if not self.stream:
             raise ValueError("Can't add a content type to a closed file.")
         if self.mode == OpenMode.ReadOnly:
             raise ReadOnlyError()
+        assert self.content_types_element is not None
 
         # First check if it already exists.
         for content_type in self.content_types_element.iterfind("Default"):
@@ -258,9 +273,9 @@ class UltimakerFormatPackage(FileInterface):
     #   \param virtual_path: The path to test for.
     #   \return ``True`` if it exists as a normal resource, or ``False`` if it
     #   doesn't.
-    def _resource_exists(self, virtual_path: str) -> bool:
-        if self.zipfile is None:
-            return False
+    def _resourceExists(self, virtual_path: str) -> bool:
+        assert self.zipfile is not None
+        
         for zip_name in self.zipfile.namelist():
             zip_virtual_path = self._zipNameToVirtualPath(zip_name)
             if virtual_path == zip_virtual_path:
@@ -424,7 +439,7 @@ class UltimakerFormatPackage(FileInterface):
                 if metadata_file not in self.zipfile.namelist(): #The metadata file is unknown to us.
                     continue
 
-                metadata = json.loads(self.zipfile.open(metadata_file).read().decode('utf-8'))
+                metadata = json.loads(self.zipfile.open(metadata_file).read().decode("utf-8"))
                 if metadata_file == self.global_metadata_file: #Store globals as if coming from root.
                     metadata_file = ""
                 elif metadata_file.endswith(".json"): #Metadata files should be named <filename.ext>.json, meaning that they are metadata about <filename.ext>.
