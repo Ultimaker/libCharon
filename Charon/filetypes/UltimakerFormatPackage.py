@@ -35,8 +35,6 @@ class UltimakerFormatPackage(FileInterface):
 
     mime_type = "application/x-ufp"
 
-    is_binary = True  # This file needs to be opened in binary mode.
-
     ##  Initialises the fields of this class.
     def __init__(self) -> None:
         self.mode = None    # type: Optional[OpenMode]        # Whether we're in read or write mode.
@@ -96,7 +94,7 @@ class UltimakerFormatPackage(FileInterface):
         
         return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
 
-    def getData(self, virtual_path) -> Dict[str, Any]:
+    def getData(self, virtual_path: str) -> Dict[str, Any]:
         if not self.stream:
             raise ValueError("Can't get data from a closed file.")
         assert self.zipfile is not None
@@ -453,7 +451,7 @@ class UltimakerFormatPackage(FileInterface):
             except KeyError:
                 return
 
-            gcode_stream = TextIOWrapper(self.zipfile.open("/3D/model.gcode"))
+            gcode_stream = self.zipfile.open("/3D/model.gcode")
             header_data = GCodeFile.parseHeader(gcode_stream, prefix = "/3D/model.gcode/")
             self.metadata.update(header_data)
 
@@ -538,7 +536,7 @@ class UltimakerFormatPackage(FileInterface):
     ##  Helper function for pretty-printing XML because ETree is stupid.
     #
     #   Source: https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python
-    def _indent(self, elem, level = 0) -> None:
+    def _indent(self, elem: ET.Element, level: int = 0) -> None:
         i = "\n" + level * "  "
         if len(elem):
             if not elem.text or not elem.text.strip():

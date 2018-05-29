@@ -22,7 +22,7 @@ class Request:
     #   \param request_id The ID used to identify this request.
     #   \param file_path A path to a file to retrieve data from.
     #   \param virtual_paths The virtual paths to retrieve for this request.
-    def __init__(self, file_service: FileService.FileService, request_id: str, file_path: str, virtual_paths: List[str]):
+    def __init__(self, file_service: FileService.FileService, request_id: str, file_path: str, virtual_paths: List[str]) -> None:
         self.file_service = file_service
         self.file_path = file_path
         self.virtual_paths = virtual_paths

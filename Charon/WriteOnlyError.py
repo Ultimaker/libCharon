@@ -17,5 +17,5 @@ class WriteOnlyError(PermissionError):
         self.virtual_path = virtual_path
 
     ##  Provides a human-readable version of this error for in the stack trace.
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "WriteOnlyError({resource})".format(resource = self.virtual_path)

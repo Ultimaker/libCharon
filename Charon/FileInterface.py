@@ -11,11 +11,6 @@ from .OpenMode import OpenMode
 #   This interface is designed to be able to access 3D-printing related files,
 #   and for container-type files to access the resources therein.
 class FileInterface:
-    ##  Indicate if this type of file is binary.
-    #
-    #   This determines if the file should be opened in binary mode or not.
-    is_binary = False
-
     stream_handler = open # type: Callable[[str, str], IO[bytes]]
 
     mime_type = ""
@@ -120,7 +115,7 @@ class FileInterface:
     #   \param metadata A dictionary of metadata entries to change.
     #   \raises ReadOnlyError A metadata entry cannot be changed (such as the
     #   file size of a resource).
-    def setMetadata(self, metadata: Dict[str, Any]):
+    def setMetadata(self, metadata: Dict[str, Any]) -> None:
         raise NotImplementedError("The setMetadata() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets an I/O stream to the resource or metadata at the specified virtual
@@ -140,7 +135,7 @@ class FileInterface:
     #   read or write.
     #   \raises ReadOnlyError The resource doesn't exist and there are no write
     #   permissions to create it.
-    def getStream(self, virtual_path) -> IO[bytes]:
+    def getStream(self, virtual_path: str) -> IO[bytes]:
         raise NotImplementedError("The getStream() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets a bytes representation of the file.
