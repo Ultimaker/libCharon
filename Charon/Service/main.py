@@ -4,6 +4,7 @@ import logging
 
 import dbus.service
 import dbus.mainloop.glib
+from typing import Dict, Any
 from gi.repository import GLib
 
 import Charon.Service
@@ -13,7 +14,7 @@ import Charon.Service
 GLib.threads_init()
 dbus.mainloop.glib.threads_init()
 
-config = {}
+config = {} # type: Dict[str, Any]
 if os.environ.get("CHARON_DEBUG", "0") == "1":
     config["level"] = logging.DEBUG
 else:

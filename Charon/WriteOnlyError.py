@@ -13,9 +13,9 @@ class WriteOnlyError(PermissionError):
     #   \param virtual_path The resource that could not be read from. If not
     #   provided, an empty string is used which indicates that the entire file
     #   could not be read from.
-    def __init__(self, virtual_path: str = ""):
+    def __init__(self, virtual_path: str = "") -> None:
         self.virtual_path = virtual_path
 
     ##  Provides a human-readable version of this error for in the stack trace.
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "WriteOnlyError({resource})".format(resource = self.virtual_path)

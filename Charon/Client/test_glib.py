@@ -17,7 +17,7 @@ loop = GLib.MainLoop()
 dbus.set_default_main_loop(dbus.mainloop.glib.DBusGMainLoop())
 
 request = Charon.Client.Request(sys.argv[1], ["/Metadata/thumbnail.png"])
-request.setCallbacks(None, lambda request: loop.quit(), None)
+request.setCallbacks(completed=lambda request: loop.quit())
 
 request.start()
 

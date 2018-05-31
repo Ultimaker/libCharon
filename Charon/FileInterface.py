@@ -2,7 +2,7 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 
 from io import BufferedIOBase #To indicate that getStream must return a stream.
-from typing import Any, Dict, List
+from typing import Any, Dict, List, IO, Optional, Callable
 
 from .OpenMode import OpenMode
 
@@ -11,12 +11,7 @@ from .OpenMode import OpenMode
 #   This interface is designed to be able to access 3D-printing related files,
 #   and for container-type files to access the resources therein.
 class FileInterface:
-    ##  Indicate if this type of file is binary.
-    #
-    #   This determines if the file should be opened in binary mode or not.
-    is_binary = False
-
-    stream_handler = open
+    stream_handler = open # type: Callable[[str, str], IO[bytes]]
 
     mime_type = ""
 
@@ -27,7 +22,7 @@ class FileInterface:
     #   functioning on that file.
     #   \param path The path to the file on local disk, relative or absolute.
     #   \param mode The mode with which to open the file (see OpenMode).
-    def open(self, path: str, mode: OpenMode = OpenMode.ReadOnly):
+    def open(self, path: str, mode: OpenMode = OpenMode.ReadOnly) -> None:
         raise NotImplementedError("The open() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Opens a stream for reading or writing.
@@ -39,18 +34,18 @@ class FileInterface:
     #   \param mime The MIME type of the stream. This determines what
     #   implementation is used to read/write it.
     #   \param mode The mode with which to open the file (see OpenMode).
-    def openStream(self, stream: BufferedIOBase, mime: str, mode: OpenMode = OpenMode.ReadOnly):
+    def openStream(self, stream: IO[bytes], mime: str, mode: OpenMode = OpenMode.ReadOnly) -> None:
         raise NotImplementedError("The openstream() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Closes the opened file, releasing the resources in use for it.
     #
     #   After the file is closed, this instance can no longer be used until the
     #   ``open`` method is called again.
-    def close(self):
+    def close(self) -> None:
         raise NotImplementedError("The close() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Ensures that no buffered data is still pending to be read or written.
-    def flush(self):
+    def flush(self) -> None:
         raise NotImplementedError("The flush() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Returns a list of all resources and metadata in the file.
@@ -76,7 +71,7 @@ class FileInterface:
     #
     #   The ``data`` parameter provides a dictionary mapping virtual paths to
     #   the new data that should be provided in the path.
-    def setData(self, data: Dict[str, Any]):
+    def setData(self, data: Dict[str, Any]) -> None:
         raise NotImplementedError("The setData() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets metadata entries in the opened file.
@@ -120,7 +115,7 @@ class FileInterface:
     #   \param metadata A dictionary of metadata entries to change.
     #   \raises ReadOnlyError A metadata entry cannot be changed (such as the
     #   file size of a resource).
-    def setMetadata(self, metadata: Dict[str, Any]):
+    def setMetadata(self, metadata: Dict[str, Any]) -> None:
         raise NotImplementedError("The setMetadata() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets an I/O stream to the resource or metadata at the specified virtual
@@ -140,7 +135,7 @@ class FileInterface:
     #   read or write.
     #   \raises ReadOnlyError The resource doesn't exist and there are no write
     #   permissions to create it.
-    def getStream(self, virtual_path) -> BufferedIOBase:
+    def getStream(self, virtual_path: str) -> IO[bytes]:
         raise NotImplementedError("The getStream() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets a bytes representation of the file.

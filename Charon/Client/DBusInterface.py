@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Callable
+from typing import Callable, Optional, Union, Any
 
 # We want to use either dbus-python or QtDBus for handling DBus.
 # We first need to try importing the module, if that fails we know
@@ -59,8 +59,9 @@ class DBusInterface:
     #   \param object_path The object path of the service to call the method on.
     #   \param interface The interface name of the method to call.
     @classmethod
-    def callMethod(cls, method_name: str, signature: str, *args, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> bool:
+    def callMethod(cls, method_name: str, signature: str, *args, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> Any:
         cls.__ensureDBusSetup()
+        assert cls.__connection is not None
 
         if cls.__use_qt:
             message = QDBusMessage.createMethodCall(service_path, object_path, interface, method_name)
@@ -91,10 +92,13 @@ class DBusInterface:
     #   \param object_path The object path of the service to call the method on.
     #   \param interface The interface name of the method to call.
     @classmethod
-    def callAsync(cls, method_name: str, success_callback: Callable[..., None], error_callback: Callable[..., None], signature: str, *args, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> bool:
+    def callAsync(cls, method_name: str, success_callback: Callable[..., None], error_callback: Callable[..., None], signature: str, *args, service_path: str = DefaultServicePath, object_path: str = DefaultObjectPath, interface: str = DefaultInterface) -> None:
         cls.__ensureDBusSetup()
+        assert cls.__connection is not None
 
         if cls.__use_qt:
+            assert cls.__signal_forwarder is not None
+            
             message = QDBusMessage.createMethodCall(service_path, object_path, interface, method_name)
             message.setArguments(args)
             cls.__signal_forwarder.asyncCall(message, success_callback, error_callback)
@@ -117,8 +121,10 @@ class DBusInterface:
         cls.__ensureDBusSetup()
 
         if cls.__use_qt:
+            assert cls.__signal_forwarder is not None
             return cls.__signal_forwarder.addConnection(service_path, object_path, interface, signal_name, callback)
         else:
+            assert cls.__connection is not None
             cls.__connection.add_signal_receiver(callback, signal_name, interface, service_path, object_path)
             return True
 
@@ -138,8 +144,10 @@ class DBusInterface:
         cls.__ensureDBusSetup()
 
         if cls.__use_qt:
+            assert cls.__signal_forwarder is not None
             return cls.__signal_forwarder.removeConnection(service_path, object_path, interface, signal_name, callback)
         else:
+            assert cls.__connection is not None
             cls.__connection.remove_signal_receiver(callback, signal_name, interface, service_path, object_path)
             return True
 
@@ -166,8 +174,8 @@ class DBusInterface:
             cls.__connection = dbus.SystemBus(private=True, mainloop=dbus.mainloop.glib.DBusGMainLoop())
 
     __use_qt = False
-    __connection = None
-    __signal_forwarder = None
+    __connection = None # type: Optional[Union[dbus.SystemBus]]
+    __signal_forwarder = None # type: Optional[DBusSignalForwarder]
 
 if _has_qt:
     ##  Helper class to handle QtDBus signal connections.

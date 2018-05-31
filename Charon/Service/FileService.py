@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 #   Note: This class does not currently use type hinting since type hints,
 #   dbus-python decorators and Python 3.4 do not mix well.
 class FileService(dbus.service.Object):
-    def __init__(self, dbus_bus: dbus.Bus):
+    def __init__(self, dbus_bus: dbus.Bus) -> None:
         super().__init__(
             bus_name = dbus.service.BusName("nl.ultimaker.charon", dbus_bus),
             object_path = "/nl/ultimaker/charon"

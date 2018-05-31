@@ -38,7 +38,7 @@ class VirtualFile(FileInterface):
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
         mime = extension_to_mime[extension]
         implementation = mime_to_implementation[mime]
-        return self.openStream(implementation.stream_handler(path, mode.value + ("b" if implementation.is_binary else "t")), mime, mode, *args, **kwargs)
+        return self.openStream(implementation.stream_handler(path, mode.value + "b"), mime, mode, *args, **kwargs)
 
     def openStream(self, stream, mime, mode = OpenMode.ReadOnly, *args, **kwargs):
         self._implementation = mime_to_implementation[mime]()
