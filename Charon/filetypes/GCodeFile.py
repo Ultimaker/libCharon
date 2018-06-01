@@ -39,9 +39,10 @@ class GCodeFile(FileInterface):
         try:
             metadata = {} # type: Dict[str, Any]
             line_number = 0
-            for line_number, line in enumerate(TextIOWrapper(stream)):
+            for line_number, bytes_line in enumerate(stream):
                 if line_number > GCodeFile.MaximumHeaderLength:
                     break
+                line = bytes_line.decode("utf-8")
 
                 if line.startswith(";START_OF_HEADER"):
                     continue
