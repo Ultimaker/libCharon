@@ -1,10 +1,9 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # Charon is released under the terms of the LGPLv3 or higher.
+import pytest
 import io
 import os
 from typing import List
-
-import pytest
 
 from Charon.OpenMode import OpenMode
 from Charon.filetypes.CuraPackage import CuraPackage
@@ -39,6 +38,28 @@ def test_addPackageJsonMetadata():
     assert "/package_id" in available_package_metadata_files
 
 
+# Tests adding a quality resource and relation to a .curapackage
+@pytest.mark.parametrize("filenames", [
+    ["example_quality.inst.cfg"],  # test a single quality
+    ["example_quality.inst.cfg", "example_quality_two.inst.cfg"],  # test multiple qualities
+])
+def test_addQualities(filenames: List[str]):
+
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode=OpenMode.WriteOnly)
+
+    # Add the quality files.
+    for filename in filenames:
+        original_quality = open(os.path.join(os.path.dirname(__file__), "resources", "qualities", filename),
+                                "rb").read()
+        package.addQuality(original_quality, filename)
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
+
+
 # Tests adding a material resource and relation to a .curapackage.
 @pytest.mark.parametrize("filenames", [
     ["example_material.xml.fdm_material"],  # test a single material
@@ -51,7 +72,7 @@ def test_addMaterials(filenames: List[str]):
     package = CuraPackage()
     package.openStream(stream, mode=OpenMode.WriteOnly)
 
-    # Add the material files
+    # Add the material files.
     for filename in filenames:
         original_material = open(os.path.join(os.path.dirname(__file__), "resources", "materials", filename),
                                  "rb").read()

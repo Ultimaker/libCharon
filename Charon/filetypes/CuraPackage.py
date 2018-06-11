@@ -3,6 +3,7 @@
 from collections import OrderedDict
 from typing import List
 
+from Charon.OpenMode import OpenMode
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 
 
@@ -62,6 +63,13 @@ class CuraPackage(OpenPackagingConvention):
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
         self._validateMetadata()
         return super().toByteArray(offset, count)
+
+    ##  Creates all the required content types for a .curapackage.
+    def _readContentTypes(self):
+        super()._readContentTypes()
+        if self.mode != OpenMode.ReadOnly:
+            self.addContentType(extension="xml.fdm_material", mime_type="application/x-ultimaker-material-profile")
+            self.addContentType(extension="inst.cfg", mime_type="application/x-ultimaker-quality-profile")
 
     ##  Validates if the package.json metadata file contains all the required keys
     #   and if they are in the correct format.
