@@ -52,7 +52,7 @@ def test_listPathsEmpty(empty_read_opc: OpenPackagingConvention):
 ##  Tests getting write streams of various resources that may or may not exist.
 #
 #   Every test will write some arbitrary data to it to see that that also works.
-@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata", "/_rels/.rels"]) #Some extra tests without initial slash to test robustness.
+@pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "dir/file", "file", "/Metadata"]) #Some extra tests without initial slash to test robustness.
 def test_getWriteStream(empty_write_opc: OpenPackagingConvention, virtual_path: str):
     stream = empty_write_opc.getStream(virtual_path)
     stream.write(b"The test is successful.")
