@@ -31,3 +31,7 @@ class CuraPackage(OpenPackagingConvention):
         material_path_alias = "/materials"
         self._ensureRelationExists(virtual_path=material_path_alias, relation_type="material", origin="/package.json")
         self._writeToAlias(material_path_alias, package_filename, material_data)
+
+    ##  Gets a list of paths to quality files in the package.
+    def getQualities(self) -> List[str]:
+        return self.listPaths("/qualities")
