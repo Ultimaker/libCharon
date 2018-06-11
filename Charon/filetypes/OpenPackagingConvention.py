@@ -225,7 +225,7 @@ class OpenPackagingConvention(FileInterface):
         # First check if it already exists.
         for content_type in self.content_types_element.iterfind("Default"):
             if "Extension" in content_type.attrib and content_type.attrib["Extension"] == extension:
-                raise opcError("Content type for extension {extension} already exists.".format(extension = extension))
+                raise OPCError("Content type for extension {extension} already exists.".format(extension = extension))
 
         ET.SubElement(self.content_types_element, "Default", Extension = extension, ContentType = mime_type)
 
@@ -249,7 +249,7 @@ class OpenPackagingConvention(FileInterface):
         else:
             for relationship in self.relations[origin].iterfind("Relationship"):
                 if "Target" in relationship.attrib and relationship.attrib["Target"] == virtual_path:
-                    raise opcError("Relation for virtual path {target} already exists.".format(target = virtual_path))
+                    raise OPCError("Relation for virtual path {target} already exists.".format(target = virtual_path))
 
         # Find a unique name.
         unique_id = 0
@@ -496,7 +496,7 @@ class OpenPackagingConvention(FileInterface):
         if len(self.metadata) > 0:  # If we've written any metadata at all, we must include the content type as well.
             try:
                 self.addContentType(extension = "json", mime_type = "text/json")
-            except opcError:  # User may already have defined this content type himself.
+            except OPCError:  # User may already have defined this content type himself.
                 pass
 
     ##  Writes one dictionary of metadata to a JSON file.
@@ -533,6 +533,20 @@ class OpenPackagingConvention(FileInterface):
 
         self.zipfile.writestr(file_name, json.dumps(document, sort_keys = True, indent = 4))
 
+    ##  Helper method to write data directly into an aliased path.
+    def _writeToAlias(self, path_alias: str, package_filename: str, file_data: bytes) -> None:
+        stream = self.getStream("{}/{}".format(path_alias, package_filename))
+        stream.write(file_data)
+
+    ##  Helper method to ensure a relationship exists.
+    #   Creates the relationship if it does not exists, ignores an OPC error if it already does.
+    def _ensureRelationExists(self, virtual_path: str, relation_type: str, origin: str) -> None:
+        try:
+            # We try to add the relation. If this throws an OPCError, we know the relation already exists and ignore it.
+            self.addRelation(virtual_path, relation_type, origin)
+        except OPCError:
+            pass
+
     ##  Helper function for pretty-printing XML because ETree is stupid.
     #
     #   Source: https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python
@@ -553,5 +567,5 @@ class OpenPackagingConvention(FileInterface):
 
 
 ##  Error to raise that something went wrong with reading/writing a opc file.
-class opcError(Exception):
+class OPCError(Exception):
     pass  # This is just a marker class.

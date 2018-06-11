@@ -23,3 +23,11 @@ class CuraPackage(OpenPackagingConvention):
     ##  Gets a list of paths to material files in the package.
     def getMaterials(self) -> List[str]:
         return self.listPaths("/materials")
+
+    ##  Add a new material file.
+    #   \param material_data The data of the material file in bytes.
+    #   \param package_filename The filename to write the data to inside the package.
+    def addMaterial(self, material_data: bytes, package_filename: str) -> None:
+        material_path_alias = "/materials"
+        self._ensureRelationExists(virtual_path=material_path_alias, relation_type="material", origin="/package.json")
+        self._writeToAlias(material_path_alias, package_filename, material_data)
