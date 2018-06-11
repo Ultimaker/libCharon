@@ -38,18 +38,18 @@ class OpenPackagingConvention(FileInterface):
     ##  Initialises the fields of this class.
     def __init__(self) -> None:
         self.mode = None    # type: Optional[OpenMode]        # Whether we're in read or write mode.
-        self.stream = None  # type: Optional[IO[bytes]]       # The currently open stream.
+        self.stream = None  # type: Optional[BytesIO]       # The currently open stream.
         self.zipfile = None # type: Optional[zipfile.ZipFile] # The zip interface to the currently open stream.
         self.metadata = {}  # type: Dict[str, Any]            # The metadata in the currently open file.
         self.content_types_element = None  # type: Optional[ET.Element] # An XML element holding all the content types.
         self.relations = {} # type: Dict[str, ET.Element]     # For each virtual path, a relations XML element (which is left out of the file if empty).
-        self._open_bytes_streams = {} # type: Dict[str, IO[bytes]] # With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
+        self._open_bytes_streams = {} # type: Dict[str, BytesIO] # With old Python versions, the currently open BytesIO streams that need to be flushed, by their virtual path.
 
         # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
         self._last_open_path = None # type: Optional[str]
-        self._last_open_stream = None # type: Optional[IO[bytes]]
+        self._last_open_stream = None # type: Optional[BytesIO]
 
-    def openStream(self, stream: IO[bytes], mime: str = "application/x-opc", mode: OpenMode = OpenMode.ReadOnly) -> None:
+    def openStream(self, stream: BytesIO, mime: str = "application/x-opc", mode: OpenMode = OpenMode.ReadOnly) -> None:
         self.mode = mode
         self.stream = stream #A copy in case we need to rewind for toByteArray. We should mostly be reading via self.zipfile.
         self.zipfile = zipfile.ZipFile(self.stream, self.mode.value, compression = zipfile.ZIP_DEFLATED)
@@ -162,11 +162,14 @@ class OpenPackagingConvention(FileInterface):
         metadata = {self._processAliases(virtual_path): metadata[virtual_path] for virtual_path in metadata}
         self.metadata.update(metadata)
 
-    def getStream(self, virtual_path: str) -> IO[bytes]:
+    def getStream(self, virtual_path: str) -> BytesIO:
         if not self.stream:
             raise ValueError("Can't get a stream from a closed file.")
         assert self.zipfile is not None
         assert self.mode is not None
+
+        if virtual_path.startswith("/_rels"):
+            raise OPCError("Writing directly to a relationship file is forbidden.")
 
         if virtual_path.startswith(self.metadata_prefix):
             return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
@@ -316,7 +319,7 @@ class OpenPackagingConvention(FileInterface):
     #   \param height The desired height of the image.
     #   \return A bytes stream representing a new PNG image with the desired
     #   width and height.
-    def _resizeImage(self, virtual_path: str, width: int, height: int) -> IO[bytes]:
+    def _resizeImage(self, virtual_path: str, width: int, height: int) -> BytesIO:
         input = self.getStream(virtual_path)
         try:
             from PyQt5.QtGui import QImage
