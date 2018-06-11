@@ -1,23 +1,26 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 
-import os.path #To get the file extension from a path.
+import os
 
-from .FileInterface import FileInterface #The interface we're implementing.
-from .OpenMode import OpenMode #To open local files with the selected open mode.
+from .FileInterface import FileInterface  # The interface we're implementing.
+from .OpenMode import OpenMode  # To open local files with the selected open mode.
 
-#The supported file types.
+# The supported file types.
+from .filetypes.OpenPackagingConvention import OpenPackagingConvention
 from .filetypes.UltimakerFormatPackage import UltimakerFormatPackage
 from .filetypes.GCodeFile import GCodeFile
 from .filetypes.GCodeGzFile import GCodeGzFile
 
 extension_to_mime = {
+    ".opc": "application/x-opc",
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
     ".gz": "text/x-gcode-gz",
     ".gcode.gz": "text/x-gcode-gz"
 }
 mime_to_implementation = {
+    "application/x-opc": OpenPackagingConvention,
     "application/x-ufp": UltimakerFormatPackage,
     "text/x-gcode": GCodeFile,
     "text/x-gcode-gz": GCodeGzFile
