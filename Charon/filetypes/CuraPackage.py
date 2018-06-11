@@ -17,7 +17,9 @@ class CuraPackage(OpenPackagingConvention):
 
     # File aliases for quick and easy access.
     aliases = OrderedDict([
-        (r"/materials", "/files/resources/materials")
+        (r"/materials", "/files/resources/materials"),
+        (r"/qualities", "/files/resources/qualities"),
+        (r"/machines", "/files/resources/machines")
     ])
 
     ##  Gets a list of paths to material files in the package.
@@ -26,7 +28,7 @@ class CuraPackage(OpenPackagingConvention):
 
     ##  Add a new material file.
     #   \param material_data The data of the material file in bytes.
-    #   \param package_filename The filename to write the data to inside the package.
+    #   \param package_filename The location to write the data to inside the package.
     def addMaterial(self, material_data: bytes, package_filename: str) -> None:
         material_path_alias = "/materials"
         self._ensureRelationExists(virtual_path=material_path_alias, relation_type="material", origin="/package.json")
@@ -35,6 +37,26 @@ class CuraPackage(OpenPackagingConvention):
     ##  Gets a list of paths to quality files in the package.
     def getQualities(self) -> List[str]:
         return self.listPaths("/qualities")
+
+    ##  Add a new quality file.
+    #   \param: quality_data The data of the quality file in bytes.
+    #   \param package_filename The location to write the data to inside the package.
+    def addQuality(self, quality_data: bytes, package_filename: str) -> None:
+        quality_path_alias = "/qualities"
+        self._ensureRelationExists(virtual_path=quality_path_alias, relation_type="quality", origin="/package.json")
+        self._writeToAlias(quality_path_alias, package_filename, quality_data)
+
+    ##  Gets a list of paths to machine definition files in the package.
+    def getMachines(self) -> List[str]:
+        return self.listPaths("/machines")
+
+    ##  Add a new machine definition file.
+    #   \param: machine_data The data of the machine definition file in bytes.
+    #   \param package_filename The location to write the data to inside the package.
+    def addMachine(self, machine_data: bytes, package_filename: str) -> None:
+        machine_path_alias = "/machines"
+        self._ensureRelationExists(virtual_path=machine_path_alias, relation_type="machine", origin="/package.json")
+        self._writeToAlias(machine_path_alias, package_filename, machine_data)
 
     ##  Export the package to bytes.
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
