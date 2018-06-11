@@ -87,12 +87,12 @@ class OpenPackagingConvention(FileInterface):
         self._writeContentTypes()
         self._writeRels()
 
-    def listPaths(self) -> List[str]:
+    def listPaths(self, root_path: Optional[str] = "/") -> List[str]:
         if not self.stream:
             raise ValueError("Can't list the paths in a closed file.")
-        assert self.zipfile is not None
-        
-        return list(self.metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist()]
+        paths = [self._zipNameToVirtualPath(zip_name) for zip_name in self.zipfile.namelist() if root_path in
+                 self._zipNameToVirtualPath(zip_name)]
+        return list(self.metadata.keys()) + paths
 
     def getData(self, virtual_path: str) -> Dict[str, Any]:
         if not self.stream:
@@ -102,7 +102,7 @@ class OpenPackagingConvention(FileInterface):
         if self.mode == OpenMode.WriteOnly:
             raise WriteOnlyError(virtual_path)
 
-        result = {} # type: Dict[str, Any]
+        result = {}  # type: Dict[str, Any]
         if virtual_path.startswith(self.metadata_prefix):
             result = self.getMetadata(virtual_path[len(self.metadata_prefix):])
         else:
