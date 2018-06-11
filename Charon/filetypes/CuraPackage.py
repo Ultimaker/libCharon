@@ -35,3 +35,14 @@ class CuraPackage(OpenPackagingConvention):
     ##  Gets a list of paths to quality files in the package.
     def getQualities(self) -> List[str]:
         return self.listPaths("/qualities")
+
+    ##  Export the package to bytes.
+    def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
+        self._validateMetadata()
+        return super().toByteArray(offset, count)
+
+    ##  Validates if the package.json metadata file contains all the required keys
+    #   and if they are in the correct format.
+    def _validateMetadata(self):
+        # TODO
+        pass
