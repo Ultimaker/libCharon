@@ -7,7 +7,7 @@ import pytest #This module contains unit tests.
 import zipfile #To inspect the contents of the zip archives.
 import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
 
-from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention #The class we're testing.
+from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention, OPCError  # The class we're testing.
 from Charon.OpenMode import OpenMode #To open archives.
 
 ##  Returns an empty package that you can read from.
@@ -56,6 +56,12 @@ def test_listPathsEmpty(empty_read_opc: OpenPackagingConvention):
 def test_getWriteStream(empty_write_opc: OpenPackagingConvention, virtual_path: str):
     stream = empty_write_opc.getStream(virtual_path)
     stream.write(b"The test is successful.")
+
+##  Tests not allowing to open relationship file directly to prevent mistakes.
+@pytest.mark.parametrize("virtual_path", ["/_rels/.rels"])
+def test_getWriteStream_forbidOnRels(empty_write_opc: OpenPackagingConvention, virtual_path: str):
+    with pytest.raises(OPCError):
+        empty_write_opc.getStream(virtual_path)
 
 ##  Tests writing data to an archive, then reading it back.
 @pytest.mark.parametrize("virtual_path", ["/dir/file", "/file", "/Metadata"]) #Don't try to read .rels back. That won't work.

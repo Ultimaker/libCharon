@@ -3,6 +3,7 @@
 
 import os
 
+from Charon.filetypes.CuraPackage import CuraPackage
 from .FileInterface import FileInterface  # The interface we're implementing.
 from .OpenMode import OpenMode  # To open local files with the selected open mode.
 
@@ -17,13 +18,15 @@ extension_to_mime = {
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
     ".gz": "text/x-gcode-gz",
-    ".gcode.gz": "text/x-gcode-gz"
+    ".gcode.gz": "text/x-gcode-gz",
+    ".curapackage": "application/x-curapackage"
 }
 mime_to_implementation = {
     "application/x-opc": OpenPackagingConvention,
     "application/x-ufp": UltimakerFormatPackage,
     "text/x-gcode": GCodeFile,
-    "text/x-gcode-gz": GCodeGzFile
+    "text/x-gcode-gz": GCodeGzFile,
+    "application/x-curapackage": CuraPackage
 }
 
 
