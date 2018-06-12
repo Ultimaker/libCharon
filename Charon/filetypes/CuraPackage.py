@@ -1,7 +1,6 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 import io
-import os
 import re
 from collections import OrderedDict
 from typing import List
