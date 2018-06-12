@@ -162,3 +162,36 @@ def test_addMaterials(filenames: List[str]):
     path_alias = read_package.aliases.get("/materials")
     for filename in filenames:
         assert "{}/{}".format(path_alias, filename) in available_material_resources
+
+
+# Tests adding a machine resource and relation to a .curapackage.
+@pytest.mark.parametrize("filenames", [
+    ["example_machine.def.json"],  # test a single machine
+    ["example_machine.def.json", "example_machine_two.def.json"],  # test multiple machines
+])
+def test_addMachines(filenames: List[str]):
+
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode=OpenMode.WriteOnly)
+
+    # Add the material files.
+    for filename in filenames:
+        original_material = open(os.path.join(os.path.dirname(__file__), "resources", "definitions", filename),
+                                 "rb").read()
+        package.addMachine(original_material, filename)
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
+
+    # Open the package as read-only for testing.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    available_machine_resources = read_package.getMachines()
+    assert len(available_machine_resources) == len(filenames)
+
+    # Test if the full paths are there.
+    path_alias = read_package.aliases.get("/definitions")
+    for filename in filenames:
+        assert "{}/{}".format(path_alias, filename) in available_machine_resources

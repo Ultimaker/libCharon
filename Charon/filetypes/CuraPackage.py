@@ -26,7 +26,7 @@ class CuraPackage(OpenPackagingConvention):
     aliases = OrderedDict([
         (r"/materials", "/files/resources/materials"),
         (r"/qualities", "/files/resources/qualities"),
-        (r"/machines", "/files/resources/machines"),
+        (r"/definitions", "/files/resources/definitions"),
         (r"/plugins", "/files/plugins")
     ])
 
@@ -56,14 +56,14 @@ class CuraPackage(OpenPackagingConvention):
 
     ##  Gets a list of paths to machine definition files in the package.
     def getMachines(self) -> List[str]:
-        return self.listPaths("/machines")
+        return self.listPaths("/definitions")
 
     ##  Add a new machine definition file.
     #   \param machine_data The data of the machine definition file in bytes.
     #   \param package_filename The location to write the data to inside the package.
     def addMachine(self, machine_data: bytes, package_filename: str) -> None:
-        machine_path_alias = "/machines"
-        self._ensureRelationExists(virtual_path=machine_path_alias, relation_type="machine", origin="/package.json")
+        machine_path_alias = "/definitions"
+        self._ensureRelationExists(virtual_path=machine_path_alias, relation_type="definition", origin="/package.json")
         self._writeToAlias(machine_path_alias, package_filename, machine_data)
 
     ##  Gets a list of paths to plugins in the package.
@@ -113,7 +113,7 @@ class CuraPackage(OpenPackagingConvention):
             self.addContentType(extension="xml.fdm_material", mime_type="application/x-ultimaker-material-profile")
             self.addContentType(extension="xml.fdm_material.sig", mime_type="application/x-ultimaker-material-sig")
             self.addContentType(extension="inst.cfg", mime_type="application/x-ultimaker-quality-profile")
-            self.addContentType(extension="definition.json", mime_type="application/x-ultimaker-machine-profile")
+            self.addContentType(extension="def.json", mime_type="application/x-ultimaker-machine-definition")
 
     ##  Validates if the package.json metadata file contains all the required keys
     #   and if they are in the correct format.
