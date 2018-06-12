@@ -40,7 +40,8 @@ def test_addPackageJsonMetadata():
 
 # Tests adding a plugin to a .curapackage
 @pytest.mark.parametrize("plugin_paths", [
-    ["CuraTestPlugin"]
+    ["CuraTestPlugin"],
+    ["CuraTestIgnoredFilesPlugin"],
 ])
 def test_addPlugin(plugin_paths: List[str]):
 
