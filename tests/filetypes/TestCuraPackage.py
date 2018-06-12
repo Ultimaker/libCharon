@@ -51,16 +51,11 @@ def test_addPlugin(plugin_paths: List[str]):
 
     # Add the plugins.
     for path in plugin_paths:
-        package.addPlugin(os.path.join(os.path.dirname(__file__), "plugins", path), path)
+        package.addPlugin(open(os.path.join(os.path.dirname(__file__), "plugins", "{}.zip".format(path)), "rb").read(),
+                          plugin_id=path)
 
     # Close the file now that we're finished writing data to it.
     package.close()
-
-    # Write the package to disk as a test.
-    # read_package = CuraPackage()
-    # read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    # with open("test.curapackage.zip", "wb") as f:
-    #     f.write(read_package.toByteArray())
 
 
 # Tests adding a broken plugin to a .curapackage
@@ -77,7 +72,8 @@ def test_addBrokenPlugin(plugin_paths: List[str]):
     # Add the plugins.
     with pytest.raises(FileNotFoundError):
         for path in plugin_paths:
-            package.addPlugin(os.path.join(os.path.dirname(__file__), "plugins", path), path)
+            package.addPlugin(open(os.path.join(os.path.dirname(__file__), "plugins", "{}.zip".format(path)),
+                                   "rb").read(), plugin_id=path)
 
     # Close the file now that we're finished writing data to it.
     package.close()

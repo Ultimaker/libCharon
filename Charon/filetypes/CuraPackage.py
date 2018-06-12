@@ -1,9 +1,11 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
+import io
 import os
 import re
 from collections import OrderedDict
 from typing import List
+from zipfile import ZipFile
 
 from Charon.OpenMode import OpenMode
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
@@ -72,32 +74,32 @@ class CuraPackage(OpenPackagingConvention):
     ##  Add a new plugin.
     #   \param plugin_root_path The folder where the plugin currently is.
     #   \param plugin_id The ID of the plugin within the package.
-    def addPlugin(self, plugin_root_path: str, plugin_id: str) -> None:
+    def addPlugin(self, plugin_data: bytes, plugin_id: str) -> None:
         plugin_path_alias = "/plugins"
         self._ensureRelationExists(virtual_path=plugin_path_alias, relation_type="plugin", origin="/package.json")
         ignore_string = re.compile("|".join(self.PLUGIN_IGNORED_FILES))
+        required_paths = ["{}/plugin.json".format(plugin_id), "{}/__init__.py".format(plugin_id)]
         paths_to_add = []  # type: List[str]
 
-        # Find which files to add.
-        for root, folders, files in os.walk(plugin_root_path):
-            for item_name in folders + files:
-                if ignore_string.search(item_name):
+        # Open the bytes as ZipFile and walk through all the files.
+        with ZipFile(io.BytesIO(plugin_data), "r") as zip_file:
+
+            # Find which files to add.
+            for zip_item in zip_file.filelist:
+                if ignore_string.search(zip_item.filename):
                     continue
-                paths_to_add.append(item_name)
+                paths_to_add.append(zip_item.filename)
 
-        # Validate required files.
-        required_paths = ["plugin.json", "__init__.py"]
-        for required_path in required_paths:
-            if required_path not in paths_to_add:
-                raise FileNotFoundError("Required file {} not found in plugin directory {}"
-                                        .format(required_path, plugin_id))
+            # Validate required files.
+            for required_path in required_paths:
+                if required_path not in paths_to_add:
+                    raise FileNotFoundError("Required file {} not found in plugin directory {}"
+                                            .format(required_path, plugin_id))
 
-        # Add all files.
-        for path in paths_to_add:
-            absolute_path = os.path.join(plugin_root_path, path)
-            stream = self.getStream("{}/{}/{}".format(plugin_path_alias, plugin_id, path))
-            with open(absolute_path, "rb") as f:
-                stream.write(f.read())
+            # Add all files.
+            for path in paths_to_add:
+                stream = self.getStream("{}/{}".format(plugin_path_alias, path))
+                stream.write(zip_file.read(path))
 
     ##  Export the package to bytes.
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:

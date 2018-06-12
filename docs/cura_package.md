@@ -61,3 +61,15 @@ package.setMetadata({"/package_id": "CharonTestPackage"})
 ```
 
 This example added an entry to the JSON object as `{"package_id": "CharonTestPackage"}`.
+
+### Adding a plugin
+A CuraPackage can contain one or more Cura plugins. These are stored under the `/files/plugins` directory in the package.
+A convenience method `addPlugin` is available in the library to sort this all out for you.
+
+```python
+plugin_root_path = os.path.abspath("MyCuraPlugin")
+package.addPlugin(plugin_root_path, plugin_id="MyCuraPlugin")
+```
+
+This code example will take a directory called `MyCuraPlugin` that lives in your current working directory and adds it as plugin to the package.
+The library will also validate the contents of that directory, for example if the required `plugin.json` and `__init__.py` files are available.
