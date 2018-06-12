@@ -1,5 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # Charon is released under the terms of the LGPLv3 or higher.
+import logging
+
 import pytest
 import io
 import os
@@ -57,6 +59,17 @@ def test_addPlugin(plugin_paths: List[str]):
     # Close the file now that we're finished writing data to it.
     package.close()
 
+    # Open the package as read-only for testing.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    available_plugins = read_package.getPlugins()
+
+    # Test if the required paths are there.
+    path_alias = read_package.aliases.get("/plugins")
+    for path in plugin_paths:
+        assert "{}/{}/{}".format(path_alias, path, "plugin.json") in available_plugins
+        assert "{}/{}/{}".format(path_alias, path, "__init__.py") in available_plugins
+
 
 # Tests adding a broken plugin to a .curapackage
 @pytest.mark.parametrize("plugin_paths", [
@@ -77,6 +90,12 @@ def test_addBrokenPlugin(plugin_paths: List[str]):
 
     # Close the file now that we're finished writing data to it.
     package.close()
+
+    # Open the package as read-only for testing.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    available_plugins = read_package.getPlugins()
+    assert len(available_plugins) == 0  # 0 because broken plugins should not be added
 
 
 # Tests adding a quality resource and relation to a .curapackage
@@ -99,6 +118,17 @@ def test_addQualities(filenames: List[str]):
 
     # Close the file now that we're finished writing data to it.
     package.close()
+
+    # Open the package as read-only for testing.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    available_quality_resources = read_package.getQualities()
+    assert len(available_quality_resources) == len(filenames)
+
+    # Test if the full paths are there.
+    path_alias = read_package.aliases.get("/qualities")
+    for filename in filenames:
+        assert "{}/{}".format(path_alias, filename) in available_quality_resources
 
 
 # Tests adding a material resource and relation to a .curapackage.
