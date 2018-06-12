@@ -18,7 +18,7 @@ def test_addPackageJsonMetadata():
     package.openStream(stream, mode=OpenMode.WriteOnly)
 
     # Add the metadata.
-    package.setMetadata({"/package_id": "CharonTestPackage"})
+    package.setMetadata({"package_id": "CharonTestPackage"})
 
     # Close the file now that we're finished writing data to it.
     package.close()
@@ -32,9 +32,9 @@ def test_addPackageJsonMetadata():
     assert read_package.getMetadata("/package_id").get("/metadata/package_id") == "CharonTestPackage"
 
     # Test the Metadata paths.
-    available_package_metadata_files = read_package.listPaths("/Metadata")
-    assert len(available_package_metadata_files) == 2  # /package_id and /Metadata/package.json
-    assert "/Metadata/package.json" in available_package_metadata_files
+    available_package_metadata_files = read_package.listPaths("/package.json")
+    assert len(available_package_metadata_files) == 2  # /package_id and /package.json
+    assert "/package.json" in available_package_metadata_files
     assert "/package_id" in available_package_metadata_files
 
 
@@ -203,7 +203,8 @@ def test_getAsByteArrayAndValidate():
     package = CuraPackage()
     package.openStream(stream, mode=OpenMode.WriteOnly)
 
-    # TODO: add metadata
+    # Add meta data
+    package.setMetadata({"package_id": "CharonTestPackage"})
 
     # Close the file now that we're finished writing data to it.
     package.close()
@@ -212,3 +213,20 @@ def test_getAsByteArrayAndValidate():
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
     read_package.toByteArray()
+
+
+def _test_getAsByteArrayAndValidateInvalid():
+
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode=OpenMode.WriteOnly)
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
+
+    # Get the package as byte array which will trigger the validation of the package.json metadata file.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    with pytest.raises(ValueError):
+        read_package.toByteArray()

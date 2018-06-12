@@ -17,8 +17,9 @@ class CuraPackage(OpenPackagingConvention):
 
     # The following files should be ignored when adding a plugin directory.
     PLUGIN_IGNORED_FILES = [r"__pycache__", r"\.qmlc", r"\.pyc"]
+    REQUIRED_METADATA_FIELDS = ["package_id"]
 
-    global_metadata_file = "/Metadata/package.json"
+    global_metadata_file = "/package.json"
     metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/curapackage_metadata"
     mime_type = "application/x-curapackage"
 
@@ -118,5 +119,6 @@ class CuraPackage(OpenPackagingConvention):
     ##  Validates if the package.json metadata file contains all the required keys
     #   and if they are in the correct format.
     def _validateMetadata(self):
-        # TODO
-        pass
+        for required_field in self.REQUIRED_METADATA_FIELDS:
+            if not self.getMetadata("/{}".format(required_field)):
+                raise ValueError("{} is a required metadata field but was not found".format(required_field))
