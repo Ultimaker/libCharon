@@ -40,7 +40,7 @@ def test_addPackageJsonMetadata():
 
 # Tests adding a plugin to a .curapackage
 @pytest.mark.parametrize("plugin_paths", [
-    ["CuraTestPlugin"],  # test a single quality
+    ["CuraTestPlugin"]
 ])
 def test_addPlugin(plugin_paths: List[str]):
 
@@ -51,7 +51,6 @@ def test_addPlugin(plugin_paths: List[str]):
 
     # Add the plugins.
     for path in plugin_paths:
-        print("test path", path)
         package.addPlugin(os.path.join(os.path.dirname(__file__), "plugins", path), path)
 
     # Close the file now that we're finished writing data to it.
@@ -62,6 +61,26 @@ def test_addPlugin(plugin_paths: List[str]):
     # read_package.openStream(stream, mode=OpenMode.ReadOnly)
     # with open("test.curapackage.zip", "wb") as f:
     #     f.write(read_package.toByteArray())
+
+
+# Tests adding a broken plugin to a .curapackage
+@pytest.mark.parametrize("plugin_paths", [
+    ["CuraTestBrokenPlugin"]
+])
+def test_addBrokenPlugin(plugin_paths: List[str]):
+
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode=OpenMode.WriteOnly)
+
+    # Add the plugins.
+    with pytest.raises(FileNotFoundError):
+        for path in plugin_paths:
+            package.addPlugin(os.path.join(os.path.dirname(__file__), "plugins", path), path)
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
 
 
 # Tests adding a quality resource and relation to a .curapackage

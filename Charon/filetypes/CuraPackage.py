@@ -76,17 +76,28 @@ class CuraPackage(OpenPackagingConvention):
         plugin_path_alias = "/plugins"
         self._ensureRelationExists(virtual_path=plugin_path_alias, relation_type="plugin", origin="/package.json")
         ignore_string = re.compile("|".join(self.PLUGIN_IGNORED_FILES))
+        paths_to_add = []  # type: List[str]
+
+        # Find which files to add.
         for root, folders, files in os.walk(plugin_root_path):
             for item_name in folders + files:
-                # TODO: validate if all required files are available:
-                # TODO: __init__.py, plugin.json
-                absolute_path = os.path.join(plugin_root_path, item_name)
-                print("test", item_name, absolute_path)
-                if ignore_string.search(absolute_path):
+                if ignore_string.search(item_name):
                     continue
-                stream = self.getStream("{}/{}/{}".format(plugin_path_alias, plugin_id, item_name))
-                with open(absolute_path, "rb") as f:
-                    stream.write(f.read())
+                paths_to_add.append(item_name)
+
+        # Validate required files.
+        required_paths = ["plugin.json", "__init__.py"]
+        for required_path in required_paths:
+            if required_path not in paths_to_add:
+                raise FileNotFoundError("Required file {} not found in plugin directory {}"
+                                        .format(required_path, plugin_id))
+
+        # Add all files.
+        for path in paths_to_add:
+            absolute_path = os.path.join(plugin_root_path, path)
+            stream = self.getStream("{}/{}/{}".format(plugin_path_alias, plugin_id, path))
+            with open(absolute_path, "rb") as f:
+                stream.write(f.read())
 
     ##  Export the package to bytes.
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
