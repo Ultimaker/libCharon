@@ -17,7 +17,7 @@ class CuraPackage(OpenPackagingConvention):
 
     # The following files should be ignored when adding a plugin directory.
     PLUGIN_IGNORED_FILES = {r"__pycache__", r"\.qmlc", r"\.pyc"}
-    REQUIRED_METADATA_FIELDS = {"package_id"}
+    REQUIRED_METADATA_FIELDS = {"package_id", "author/author_id"}
 
     global_metadata_file = "/package.json"
     metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/curapackage_metadata"

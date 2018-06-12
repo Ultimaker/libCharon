@@ -204,7 +204,10 @@ def test_getAsByteArrayAndValidate():
     package.openStream(stream, mode=OpenMode.WriteOnly)
 
     # Add meta data
-    package.setMetadata({"package_id": "CharonTestPackage"})
+    package.setMetadata({
+        "package_id": "CharonTestPackage",
+        "author/author_id": "Ultimaker"
+    })
 
     # Close the file now that we're finished writing data to it.
     package.close()
@@ -212,7 +215,9 @@ def test_getAsByteArrayAndValidate():
     # Get the package as byte array which will trigger the validation of the package.json metadata file.
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    read_package.toByteArray()
+    data = read_package.toByteArray()
+    with open("test.curapackage", "wb") as f:
+        f.write(data)
 
 
 def _test_getAsByteArrayAndValidateInvalid():
@@ -223,6 +228,7 @@ def _test_getAsByteArrayAndValidateInvalid():
     package.openStream(stream, mode=OpenMode.WriteOnly)
 
     # Close the file now that we're finished writing data to it.
+    # We explicitly don't add any metadata to test if a value error will be thrown.
     package.close()
 
     # Get the package as byte array which will trigger the validation of the package.json metadata file.
