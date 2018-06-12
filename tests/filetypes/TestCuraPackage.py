@@ -194,3 +194,21 @@ def test_addMachines(filenames: List[str]):
     path_alias = read_package.aliases.get("/definitions")
     for filename in filenames:
         assert "{}/{}".format(path_alias, filename) in available_machine_resources
+
+
+def test_getAsByteArrayAndValidate():
+
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode=OpenMode.WriteOnly)
+
+    # TODO: add metadata
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
+
+    # Get the package as byte array which will trigger the validation of the package.json metadata file.
+    read_package = CuraPackage()
+    read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    read_package.toByteArray()
