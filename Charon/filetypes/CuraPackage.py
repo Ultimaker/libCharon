@@ -98,6 +98,7 @@ class CuraPackage(OpenPackagingConvention):
         super()._readContentTypes()
         if self.mode != OpenMode.ReadOnly:
             self.addContentType(extension="xml.fdm_material", mime_type="application/x-ultimaker-material-profile")
+            self.addContentType(extension="xml.fdm_material.sig", mime_type="application/x-ultimaker-material-sig")
             self.addContentType(extension="inst.cfg", mime_type="application/x-ultimaker-quality-profile")
             self.addContentType(extension="definition.json", mime_type="application/x-ultimaker-machine-profile")
 
