@@ -108,7 +108,7 @@ class CuraPackage(OpenPackagingConvention):
         return super().toByteArray(offset, count)
 
     ##  Creates all the required content types for a .curapackage.
-    def _readContentTypes(self):
+    def _readContentTypes(self) -> None:
         super()._readContentTypes()
         if self.mode != OpenMode.ReadOnly:
             self.addContentType(extension="xml.fdm_material", mime_type="application/x-ultimaker-material-profile")
@@ -118,7 +118,7 @@ class CuraPackage(OpenPackagingConvention):
 
     ##  Validates if the package.json metadata file contains all the required keys
     #   and if they are in the correct format.
-    def _validateMetadata(self):
+    def _validateMetadata(self) -> None:
         for required_field in self.REQUIRED_METADATA_FIELDS:
             if not self.getMetadata("/{}".format(required_field)):
                 raise ValueError("{} is a required metadata field but was not found".format(required_field))

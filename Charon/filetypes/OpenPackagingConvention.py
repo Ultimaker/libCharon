@@ -488,15 +488,15 @@ class OpenPackagingConvention(FileInterface):
                     keys_left.remove(metadata_key)
         # keys_left now contains only global metadata keys.
 
-        global_metadata = {key:self.metadata[key] for key in keys_left}
-        if len(global_metadata) > 0:
+        global_metadata = {key: self.metadata[key] for key in keys_left}
+        if global_metadata:
             self._writeMetadataToFile(global_metadata, self.global_metadata_file)
             self.addRelation(self.global_metadata_file, self.opc_metadata_relationship_type)
         for file_name, metadata in metadata_per_file.items():
-            if len(metadata) > 0:
+            if metadata:
                 self._writeMetadataToFile(metadata, file_name + ".json")
                 self.addRelation(file_name + ".json", self.opc_metadata_relationship_type)
-        if len(self.metadata) > 0:  # If we've written any metadata at all, we must include the content type as well.
+        if self.metadata:  # If we've written any metadata at all, we must include the content type as well.
             try:
                 self.addContentType(extension = "json", mime_type = "text/json")
             except OPCError:  # User may already have defined this content type himself.
