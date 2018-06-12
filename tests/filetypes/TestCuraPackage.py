@@ -38,6 +38,32 @@ def test_addPackageJsonMetadata():
     assert "/package_id" in available_package_metadata_files
 
 
+# Tests adding a plugin to a .curapackage
+@pytest.mark.parametrize("plugin_paths", [
+    ["CuraTestPlugin"],  # test a single quality
+])
+def test_addPlugin(plugin_paths: List[str]):
+
+    # Create the package.
+    stream = io.BytesIO()
+    package = CuraPackage()
+    package.openStream(stream, mode=OpenMode.WriteOnly)
+
+    # Add the plugins.
+    for path in plugin_paths:
+        print("test path", path)
+        package.addPlugin(os.path.join(os.path.dirname(__file__), "plugins", path), path)
+
+    # Close the file now that we're finished writing data to it.
+    package.close()
+
+    # Write the package to disk as a test.
+    # read_package = CuraPackage()
+    # read_package.openStream(stream, mode=OpenMode.ReadOnly)
+    # with open("test.curapackage.zip", "wb") as f:
+    #     f.write(read_package.toByteArray())
+
+
 # Tests adding a quality resource and relation to a .curapackage
 @pytest.mark.parametrize("filenames", [
     ["example_quality.inst.cfg"],  # test a single quality

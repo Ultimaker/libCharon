@@ -1,5 +1,7 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
+import os
+import re
 from collections import OrderedDict
 from typing import List
 
@@ -12,6 +14,9 @@ from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 #   Examples are Cura plugins or a set of material and quality profiles.
 class CuraPackage(OpenPackagingConvention):
 
+    # The following files should be ignored when adding a plugin directory.
+    PLUGIN_IGNORED_FILES = [r"__pycache__", r"\.qmlc", r"\.pyc"]
+
     global_metadata_file = "/Metadata/package.json"
     metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/curapackage_metadata"
     mime_type = "application/x-curapackage"
@@ -20,7 +25,8 @@ class CuraPackage(OpenPackagingConvention):
     aliases = OrderedDict([
         (r"/materials", "/files/resources/materials"),
         (r"/qualities", "/files/resources/qualities"),
-        (r"/machines", "/files/resources/machines")
+        (r"/machines", "/files/resources/machines"),
+        (r"/plugins", "/files/plugins")
     ])
 
     ##  Gets a list of paths to material files in the package.
@@ -52,12 +58,35 @@ class CuraPackage(OpenPackagingConvention):
         return self.listPaths("/machines")
 
     ##  Add a new machine definition file.
-    #   \param: machine_data The data of the machine definition file in bytes.
+    #   \param machine_data The data of the machine definition file in bytes.
     #   \param package_filename The location to write the data to inside the package.
     def addMachine(self, machine_data: bytes, package_filename: str) -> None:
         machine_path_alias = "/machines"
         self._ensureRelationExists(virtual_path=machine_path_alias, relation_type="machine", origin="/package.json")
         self._writeToAlias(machine_path_alias, package_filename, machine_data)
+
+    ##  Gets a list of paths to plugins in the package.
+    def getPlugins(self) -> List[str]:
+        return self.listPaths("/plugins")
+
+    ##  Add a new plugin.
+    #   \param plugin_root_path The folder where the plugin currently is.
+    #   \param plugin_id The ID of the plugin within the package.
+    def addPlugin(self, plugin_root_path: str, plugin_id: str) -> None:
+        plugin_path_alias = "/plugins"
+        self._ensureRelationExists(virtual_path=plugin_path_alias, relation_type="plugin", origin="/package.json")
+        ignore_string = re.compile("|".join(self.PLUGIN_IGNORED_FILES))
+        for root, folders, files in os.walk(plugin_root_path):
+            for item_name in folders + files:
+                # TODO: validate if all required files are available:
+                # TODO: __init__.py, plugin.json
+                absolute_path = os.path.join(plugin_root_path, item_name)
+                print("test", item_name, absolute_path)
+                if ignore_string.search(absolute_path):
+                    continue
+                stream = self.getStream("{}/{}/{}".format(plugin_path_alias, plugin_id, item_name))
+                with open(absolute_path, "rb") as f:
+                    stream.write(f.read())
 
     ##  Export the package to bytes.
     def toByteArray(self, offset: int = 0, count: int = -1) -> bytes:
@@ -70,6 +99,7 @@ class CuraPackage(OpenPackagingConvention):
         if self.mode != OpenMode.ReadOnly:
             self.addContentType(extension="xml.fdm_material", mime_type="application/x-ultimaker-material-profile")
             self.addContentType(extension="inst.cfg", mime_type="application/x-ultimaker-quality-profile")
+            self.addContentType(extension="definition.json", mime_type="application/x-ultimaker-machine-profile")
 
     ##  Validates if the package.json metadata file contains all the required keys
     #   and if they are in the correct format.
