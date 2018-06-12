@@ -71,6 +71,6 @@ plugin_root_path = os.path.abspath("MyCuraPlugin.zip")
 package.addPlugin(open(plugin_root_path, "rb").read(), plugin_id="MyCuraPlugin")
 ```
 
-This code example will take a ZIP called `MyCuraPlugin/zip` that lives in your current working directory and adds it to the package as plugin.
+This code example will take a ZIP called `MyCuraPlugin.zip` that lives in your current working directory and adds it to the package as plugin.
 During this process, the ZIP file will be extracted, scanned for validity and the files are placed in the correct paths.
 The library will also validate the contents of the ZIP file, for example if the required `plugin.json` and `__init__.py` files are available.

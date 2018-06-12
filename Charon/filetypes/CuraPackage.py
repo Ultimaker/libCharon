@@ -3,7 +3,7 @@
 import io
 import re
 from collections import OrderedDict
-from typing import List
+from typing import List, Set
 from zipfile import ZipFile
 
 from Charon.OpenMode import OpenMode
@@ -80,7 +80,7 @@ class CuraPackage(OpenPackagingConvention):
         self._ensureRelationExists(virtual_path=plugin_path_alias, relation_type="plugin", origin="/package.json")
         ignore_string = re.compile("|".join(self.PLUGIN_IGNORED_FILES))
         required_paths = ["{}/plugin.json".format(plugin_id), "{}/__init__.py".format(plugin_id)]
-        paths_to_add = []  # type: List[str]
+        paths_to_add = set()  # type: Set[str]
 
         # Open the bytes as ZipFile and walk through all the files.
         with ZipFile(io.BytesIO(plugin_data), "r") as zip_file:
@@ -89,7 +89,7 @@ class CuraPackage(OpenPackagingConvention):
             for zip_item in zip_file.filelist:
                 if ignore_string.search(zip_item.filename):
                     continue
-                paths_to_add.append(zip_item.filename)
+                paths_to_add.add(zip_item.filename)
 
             # Validate required files.
             for required_path in required_paths:
