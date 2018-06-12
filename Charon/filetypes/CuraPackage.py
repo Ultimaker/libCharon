@@ -72,7 +72,7 @@ class CuraPackage(OpenPackagingConvention):
         return self.listPaths("/plugins")
 
     ##  Add a new plugin.
-    #   \param plugin_root_path The folder where the plugin currently is.
+    #   \param plugin_data The ZIP file containing the plugin files converted to bytes.
     #   \param plugin_id The ID of the plugin within the package.
     #   \raises FileNotFoundError If a required file is not in the plugin ZIP file, this error will be raised.
     def addPlugin(self, plugin_data: bytes, plugin_id: str) -> None:
