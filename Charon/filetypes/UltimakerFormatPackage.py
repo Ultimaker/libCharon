@@ -61,8 +61,9 @@ class UltimakerFormatPackage(FileInterface):
     def close(self) -> None:
         if not self._stream:
             raise ValueError("This file is already closed.")
-        assert self._zipfile is not None
-        
+        if self._zipfile is None:
+            return
+
         self.flush()
         self._zipfile.close()
 
