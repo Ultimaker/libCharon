@@ -6,8 +6,8 @@ from collections import OrderedDict
 from typing import List, Set
 from zipfile import ZipFile
 
-from Charon.OpenMode import OpenMode
-from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
+from ...Charon.OpenMode import OpenMode
+from ...Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 
 
 ##  A container file that contains Cura resources that belong together.
