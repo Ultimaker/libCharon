@@ -41,13 +41,13 @@ class UltimakerFormatPackage(OpenPackagingConvention):
     #   This depends on the relations! Read the relations first!
     def _readMetadata(self) -> None:
         super()._readMetadata()
-        if self.mode != OpenMode.WriteOnly and not self.getMetadata("/3D/model.gcode"):
+        if self._mode != OpenMode.WriteOnly and not self.getMetadata("/3D/model.gcode"):
             try:
                 # Check if the G-code file actually exists in the package.
-                self.zipfile.getinfo("/3D/model.gcode")
+                self._zipfile.getinfo("/3D/model.gcode")
             except KeyError:
                 return
 
-            gcode_stream = self.zipfile.open("/3D/model.gcode")
+            gcode_stream = self._zipfile.open("/3D/model.gcode")
             header_data = GCodeFile.parseHeader(gcode_stream, prefix="/3D/model.gcode/")
-            self.metadata.update(header_data)
+            self._metadata.update(header_data)
