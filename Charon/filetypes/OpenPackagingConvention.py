@@ -83,13 +83,12 @@ class OpenPackagingConvention(FileInterface):
         self._writeContentTypes()
         self._writeRels()
 
-    def listPaths(self) -> List[str]:
+    def listPaths(self, root_path: Optional[str]) -> List[str]:
         if not self._stream:
             raise ValueError("Can't list the paths in a closed file.")
-        assert self._zipfile is not None
-
-        return list(self._metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in
-                                              self._zipfile.namelist()]
+        paths = [self._zipNameToVirtualPath(zip_name) for zip_name in self._zipfile.namelist() if root_path in
+                 self._zipNameToVirtualPath(zip_name)]
+        return list(self._metadata.keys()) + paths
 
     def getData(self, virtual_path: str) -> Dict[str, Any]:
         if not self._stream:
@@ -550,6 +549,20 @@ class OpenPackagingConvention(FileInterface):
                 parent[path[-1]] = current_element[""]  # Fold down the singleton dictionary.
 
         self._zipfile.writestr(file_name, json.dumps(document, sort_keys=True, indent=4))
+
+    ##  Helper method to write data directly into an aliased path.
+    def _writeToAlias(self, path_alias: str, package_filename: str, file_data: bytes) -> None:
+        stream = self.getStream("{}/{}".format(path_alias, package_filename))
+        stream.write(file_data)
+
+    ##  Helper method to ensure a relationship exists.
+    # Creates the relationship if it does not exists, ignores an OPC error if it already does.
+    def _ensureRelationExists(self, virtual_path: str, relation_type: str, origin: str) -> None:
+        try:
+            # We try to add the relation. If this throws an OPCError, we know the relation already exists and ignore it.
+            self.addRelation(virtual_path, relation_type, origin)
+        except OPCError:
+            pass
 
     ##  Helper function for pretty-printing XML because ETree is stupid.
     #

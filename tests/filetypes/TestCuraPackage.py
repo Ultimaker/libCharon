@@ -64,7 +64,7 @@ def test_addPlugin(plugin_paths: List[str]):
     available_plugins = read_package.getPlugins()
 
     # Test if the required paths are there.
-    path_alias = read_package.aliases.get("/plugins")
+    path_alias = read_package._aliases.get("/plugins")
     for path in plugin_paths:
         assert "{}/{}/{}".format(path_alias, path, "plugin.json") in available_plugins
         assert "{}/{}/{}".format(path_alias, path, "__init__.py") in available_plugins
@@ -125,7 +125,7 @@ def test_addQualities(filenames: List[str]):
     assert len(available_quality_resources) == len(filenames)
 
     # Test if the full paths are there.
-    path_alias = read_package.aliases.get("/qualities")
+    path_alias = read_package._aliases.get("/qualities")
     for filename in filenames:
         assert "{}/{}".format(path_alias, filename) in available_quality_resources
 
@@ -158,7 +158,7 @@ def test_addMaterials(filenames: List[str]):
     assert len(available_material_resources) == len(filenames)
 
     # Test if the full paths are there.
-    path_alias = read_package.aliases.get("/materials")
+    path_alias = read_package._aliases.get("/materials")
     for filename in filenames:
         assert "{}/{}".format(path_alias, filename) in available_material_resources
 
@@ -191,7 +191,7 @@ def test_addMachines(filenames: List[str]):
     assert len(available_machine_resources) == len(filenames)
 
     # Test if the full paths are there.
-    path_alias = read_package.aliases.get("/definitions")
+    path_alias = read_package._aliases.get("/definitions")
     for filename in filenames:
         assert "{}/{}".format(path_alias, filename) in available_machine_resources
 

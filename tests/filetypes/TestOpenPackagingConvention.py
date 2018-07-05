@@ -44,6 +44,7 @@ def empty_write_opc() -> OpenPackagingConvention:
     yield result
     result.close()
 
+
 #### Now follow the actual tests. ####
 
 ##  Tests whether an empty file is recognised as empty.
