@@ -19,12 +19,12 @@ class CuraPackage(OpenPackagingConvention):
     PLUGIN_IGNORED_FILES = {r"__pycache__", r"\.qmlc", r"\.pyc"}
     REQUIRED_METADATA_FIELDS = {"package_id", "author/author_id"}
 
-    global_metadata_file = "/package.json"
-    metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/curapackage_metadata"
+    _global_metadata_file = "/package.json"
+    _metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/curapackage_metadata"
     mime_type = "application/x-curapackage"
 
     # File aliases for quick and easy access.
-    aliases = OrderedDict([
+    _aliases = OrderedDict([
         (r"/materials", "/files/resources/materials"),
         (r"/qualities", "/files/resources/qualities"),
         (r"/definitions", "/files/resources/definitions"),
@@ -110,7 +110,7 @@ class CuraPackage(OpenPackagingConvention):
     ##  Creates all the required content types for a .curapackage.
     def _readContentTypes(self) -> None:
         super()._readContentTypes()
-        if self.mode != OpenMode.ReadOnly:
+        if self._mode != OpenMode.ReadOnly:
             self.addContentType(extension="xml.fdm_material", mime_type="application/x-ultimaker-material-profile")
             self.addContentType(extension="xml.fdm_material.sig", mime_type="application/x-ultimaker-material-sig")
             self.addContentType(extension="inst.cfg", mime_type="application/x-ultimaker-quality-profile")
