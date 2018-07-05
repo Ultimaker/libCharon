@@ -171,11 +171,10 @@ class OpenPackagingConvention(FileInterface):
             raise OPCError("Writing directly to a relationship file is forbidden.")
 
         if virtual_path.startswith(self._metadata_prefix):
-            return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
+            return json.dumps(self.getMetadata(virtual_path[len(self._metadata_prefix):])).encode("UTF-8")
 
         virtual_path = self._processAliases(virtual_path)
-        if not self._resourceExists(
-                virtual_path) and self._mode != OpenMode.WriteOnly:  # In write-only mode, create a new file instead of reading metadata.
+        if not self._resourceExists(virtual_path) and self._mode == OpenMode.ReadOnly:  # In write-only mode, create a new file instead of reading metadata.
             raise FileNotFoundError(virtual_path)
 
         # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
