@@ -1,17 +1,15 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
-
 import os
 
-from Charon.filetypes.CuraPackage import CuraPackage
-from .FileInterface import FileInterface  # The interface we're implementing.
-from .OpenMode import OpenMode  # To open local files with the selected open mode.
-
+from Charon.FileInterface import FileInterface  # The interface we're implementing.
+from Charon.OpenMode import OpenMode  # To open local files with the selected open mode.
 # The supported file types.
-from .filetypes.OpenPackagingConvention import OpenPackagingConvention
-from .filetypes.UltimakerFormatPackage import UltimakerFormatPackage
-from .filetypes.GCodeFile import GCodeFile
-from .filetypes.GCodeGzFile import GCodeGzFile
+from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
+from Charon.filetypes.UltimakerFormatPackage import UltimakerFormatPackage
+from Charon.filetypes.GCodeFile import GCodeFile
+from Charon.filetypes.GCodeGzFile import GCodeGzFile
+from Charon.filetypes.CuraPackage import CuraPackage
 
 extension_to_mime = {
     ".opc": "application/x-opc",

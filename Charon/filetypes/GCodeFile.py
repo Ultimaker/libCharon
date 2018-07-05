@@ -1,10 +1,9 @@
 import ast
 
 from typing import Any, Dict, IO, Optional
-from io import TextIOWrapper
 
-from ..FileInterface import FileInterface
-from ..OpenMode import OpenMode
+from Charon.FileInterface import FileInterface
+from Charon.OpenMode import OpenMode
 
 
 def isAPositiveNumber(a: str) -> bool:
@@ -23,8 +22,8 @@ class GCodeFile(FileInterface):
     MaximumHeaderLength = 100
 
     def __init__(self) -> None:
-        self.__stream = None # type: Optional[IO[bytes]]
-        self.__metadata = {} # type: Dict[str, Any]
+        self.__stream = None  # type: Optional[IO[bytes]]
+        self.__metadata = {}  # type: Dict[str, Any]
 
     def openStream(self, stream: IO[bytes], mime: str, mode: OpenMode = OpenMode.ReadOnly) -> None:
         if mode != OpenMode.ReadOnly:

@@ -9,12 +9,12 @@ from typing import Any, Dict, List, IO, Optional
 import xml.etree.ElementTree as ET  # For writing XML manifest files.
 import zipfile
 
-from ..FileInterface import FileInterface  # The interface we're implementing.
-from ..OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
-from ..ReadOnlyError import ReadOnlyError  # To be thrown when trying to write while in read-only mode.
-from ..WriteOnlyError import WriteOnlyError  # To be thrown when trying to read while in write-only mode.
+from Charon.FileInterface import FileInterface  # The interface we're implementing.
+from Charon.OpenMode import OpenMode  # To detect whether we want to read and/or write to the file.
+from Charon.ReadOnlyError import ReadOnlyError  # To be thrown when trying to write while in read-only mode.
+from Charon.WriteOnlyError import WriteOnlyError  # To be thrown when trying to read while in write-only mode.
 
-from .GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
+from Charon.filetypes.GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
 
 
 ##  A container file type that contains multiple 3D-printing related files that
