@@ -2,7 +2,7 @@
 # Charon is released under the terms of the LGPLv3 or higher.
 
 import io #To create fake streams to write to and read from.
-import os.path #To find the resources with test packages.
+import os #To find the resources with test packages.
 import pytest #This module contains unit tests.
 import zipfile #To inspect the contents of the zip archives.
 import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
