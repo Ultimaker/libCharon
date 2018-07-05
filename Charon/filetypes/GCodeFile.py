@@ -1,10 +1,11 @@
+# Copyright (c) 2018 Ultimaker B.V.
+# libCharon is released under the terms of the LGPLv3 or higher.
 import ast
 
 from typing import Any, Dict, IO, Optional
-from io import TextIOWrapper
 
-from ..FileInterface import FileInterface
-from ..OpenMode import OpenMode
+from Charon.FileInterface import FileInterface
+from Charon.OpenMode import OpenMode
 
 
 def isAPositiveNumber(a: str) -> bool:
