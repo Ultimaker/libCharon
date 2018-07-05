@@ -1,14 +1,13 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # Charon is released under the terms of the LGPLv3 or higher.
-import io  # To create fake streams to write to and read from.
-import os  # To find the resources with test packages.
-import pytest  # This module contains unit tests.
-import zipfile  # To inspect the contents of the zip archives.
-import xml.etree.ElementTree as ET  # To inspect the contents of the OPC-spec files in the archives.
+import io #To create fake streams to write to and read from.
+import os #To find the resources with test packages.
+import pytest #This module contains unit tests.
+import zipfile #To inspect the contents of the zip archives.
+import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
 
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention, OPCError  # The class we're testing.
-from Charon.OpenMode import OpenMode  # To open archives.
-
+from Charon.OpenMode import OpenMode #To open archives.
 
 ##  Returns an empty package that you can read from.
 #
@@ -195,7 +194,7 @@ def test_addContentType():
     for default in defaults:
         assert "Extension" in default.attrib
         assert "ContentType" in default.attrib
-        assert default.attrib["Extension"] == "lol" or default.attrib["Extension"] == "rels"
+        assert default.attrib["Extension"] in ["lol", "rels"]
         if default.attrib["Extension"] == "lol":
             assert default.attrib["ContentType"] == "audio/x-laughing"
         elif default.attrib["Extension"] == "rels":
