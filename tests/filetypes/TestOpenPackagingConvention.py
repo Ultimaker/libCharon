@@ -49,7 +49,7 @@ def empty_write_opc() -> OpenPackagingConvention:
 
 ##  Tests whether an empty file is recognised as empty.
 def test_listPathsEmpty(empty_read_opc: OpenPackagingConvention):
-    assert len(empty_read_opc.listPaths()) == 0
+    assert len(empty_read_opc.listPaths("/")) == 0
 
 
 ##  Tests getting write streams of various resources that may or may not exist.
