@@ -32,10 +32,8 @@ def test_addPackageJsonMetadata():
     assert read_package.getMetadata("/package_id").get("/metadata/package_id") == "CharonTestPackage"
 
     # Test the Metadata paths.
-    available_package_metadata_files = [path for path in read_package.listPaths() if "/package.json" in path]
-    assert len(available_package_metadata_files) == 2  # /package_id and /package.json
-    assert "/package.json" in available_package_metadata_files
-    assert "/package_id" in available_package_metadata_files
+    assert "/package.json" in read_package.listPaths()
+    assert "/package_id" in read_package.listPaths()
 
 
 # Tests adding a plugin to a .curapackage
@@ -206,7 +204,15 @@ def test_getAsByteArrayAndValidate():
     # Add meta data
     package.setMetadata({
         "package_id": "CharonTestPackage",
-        "author/author_id": "Ultimaker"
+        "display_name": "Charon Test Package",
+        "description": "A test package for Charon",
+        "package_type": "plugin",
+        "package_version": "1.0.0",
+        "sdk_version": 4,
+        "website": "https://ultimaker.com/test-package",
+        "author/author_id": "Ultimaker",
+        "author/display_name": "Ultimaker B.V.",
+        "author/website": "https://ultimaker.com"
     })
 
     # Close the file now that we're finished writing data to it.
