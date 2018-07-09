@@ -17,8 +17,22 @@ class CuraPackage(OpenPackagingConvention):
 
     # The following files should be ignored when adding a plugin directory.
     PLUGIN_IGNORED_FILES = {r"__pycache__", r"\.qmlc", r"\.pyc"}
-    REQUIRED_METADATA_FIELDS = {"package_id", "author/author_id"}
 
+    # The following entries in package.json are required.
+    REQUIRED_METADATA_FIELDS = {
+        "package_id",
+        "display_name",
+        "description",
+        "package_type",
+        "package_version",
+        "sdk_version",
+        "website",
+        "author/author_id",
+        "author/display_name",
+        "author/website"
+    }
+
+    # Some file type settings.
     _global_metadata_file = "/package.json"
     _metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/curapackage_metadata"
     mime_type = "application/x-curapackage"
@@ -32,47 +46,47 @@ class CuraPackage(OpenPackagingConvention):
     ])
 
     ##  Gets a list of paths to material files in the package.
-    def getMaterials(self) -> List[str]:
-        return self.listPaths("/materials")
+    def getMaterialPaths(self) -> List[str]:
+        return [path for path in self.listPaths() if "/materials" in path]
 
     ##  Add a new material file.
     #   \param material_data The data of the material file in bytes.
-    #   \param package_filename The location to write the data to inside the package.
-    def addMaterial(self, material_data: bytes, package_filename: str) -> None:
+    #   \param name The name of the file in the package.
+    def addMaterial(self, material_data: bytes, name: str) -> None:
         material_path_alias = "/materials"
         self._ensureRelationExists(virtual_path=material_path_alias, relation_type="material", origin="/package.json")
-        self._writeToAlias(material_path_alias, package_filename, material_data)
+        self._writeToAlias(material_path_alias, name, material_data)
 
     ##  Gets a list of paths to quality files in the package.
-    def getQualities(self) -> List[str]:
-        return self.listPaths("/qualities")
+    def getQualityPaths(self) -> List[str]:
+        return [path for path in self.listPaths() if "/qualities" in path]
 
     ##  Add a new quality file.
     #   \param: quality_data The data of the quality file in bytes.
-    #   \param package_filename The location to write the data to inside the package.
-    def addQuality(self, quality_data: bytes, package_filename: str) -> None:
+    #   \param name The name of the file in the package.
+    def addQuality(self, quality_data: bytes, name: str) -> None:
         quality_path_alias = "/qualities"
         self._ensureRelationExists(virtual_path=quality_path_alias, relation_type="quality", origin="/package.json")
-        self._writeToAlias(quality_path_alias, package_filename, quality_data)
+        self._writeToAlias(quality_path_alias, name, quality_data)
 
     ##  Gets a list of paths to machine definition files in the package.
-    def getMachines(self) -> List[str]:
-        return self.listPaths("/definitions")
+    def getMachinePaths(self) -> List[str]:
+        return [path for path in self.listPaths() if "/definitions" in path]
 
     ##  Add a new machine definition file.
     #   \param machine_data The data of the machine definition file in bytes.
-    #   \param package_filename The location to write the data to inside the package.
-    def addMachine(self, machine_data: bytes, package_filename: str) -> None:
+    #   \param name The name of the file in the package.
+    def addMachine(self, machine_data: bytes, name: str) -> None:
         machine_path_alias = "/definitions"
         self._ensureRelationExists(virtual_path=machine_path_alias, relation_type="definition", origin="/package.json")
-        self._writeToAlias(machine_path_alias, package_filename, machine_data)
+        self._writeToAlias(machine_path_alias, name, machine_data)
 
     ##  Gets a list of paths to plugins in the package.
-    def getPlugins(self) -> List[str]:
-        return self.listPaths("/plugins")
+    def getPluginPaths(self) -> List[str]:
+        return [path for path in self.listPaths() if "/plugins" in path]
 
     ##  Add a new plugin.
-    #   \param plugin_data The ZIP file containing the plugin files converted to bytes.
+    #   \param plugin_data The data in the ZIP file as bytes.
     #   \param plugin_id The ID of the plugin within the package.
     #   \raises FileNotFoundError If a required file is not in the plugin ZIP file, this error will be raised.
     def addPlugin(self, plugin_data: bytes, plugin_id: str) -> None:
@@ -82,21 +96,23 @@ class CuraPackage(OpenPackagingConvention):
         required_paths = ["{}/plugin.json".format(plugin_id), "{}/__init__.py".format(plugin_id)]
         paths_to_add = set()  # type: Set[str]
 
+        # First we check if there is already a plugin with this ID in the package.
+        # This is not allowed as it can result in unexpected behaviour (where only half the correct files are there).
+        if "{}/{}".format(plugin_path_alias, plugin_id) in self.listPaths():
+            raise FileExistsError("There is already a plugin with ID {} in the package".format(plugin_id))
+
         # Open the bytes as ZipFile and walk through all the files.
         with ZipFile(io.BytesIO(plugin_data), "r") as zip_file:
-
             # Find which files to add.
             for zip_item in zip_file.filelist:
                 if ignore_string.search(zip_item.filename):
                     continue
                 paths_to_add.add(zip_item.filename)
-
             # Validate required files.
             for required_path in required_paths:
                 if required_path not in paths_to_add:
                     raise FileNotFoundError("Required file {} not found in plugin directory {}"
                                             .format(required_path, plugin_id))
-
             # Add all files.
             for path in paths_to_add:
                 stream = self.getStream("{}/{}".format(plugin_path_alias, path))

@@ -23,7 +23,7 @@ class UltimakerFormatPackage(OpenPackagingConvention):
     metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ufp_metadata"
 
     # Virtual path aliases. Keys are regex. Order matters!
-    aliases = OrderedDict([
+    _aliases = OrderedDict([
         (r"^/preview/default", "/Metadata/thumbnail.png"),
         (r"^/preview", "/Metadata/thumbnail.png"),
         (r"^/toolpath/default", "/3D/model.gcode"),

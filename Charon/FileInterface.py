@@ -46,8 +46,7 @@ class FileInterface:
         raise NotImplementedError("The flush() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Returns a list of all resources and metadata in the file.
-    #   \param root_path The root path to search from if not the whole Zip file is required.
-    def listPaths(self, root_path: Optional[str]) -> List[str]:
+    def listPaths(self) -> List[str]:
         raise NotImplementedError("The listPaths() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Gets the data stored at the specified virtual path and all its descendants.
