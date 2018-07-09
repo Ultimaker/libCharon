@@ -1,13 +1,8 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # Charon is released under the terms of the LGPLv3 or higher.
+import os
 
-import io #To create fake streams to write to and read from.
-import os.path #To find the resources with test packages.
-import pytest #This module contains unit tests.
-import sys
-
-from Charon.VirtualFile import VirtualFile #The class we're testing.
-from Charon.OpenMode import OpenMode #To open archives.
+from Charon.VirtualFile import VirtualFile
 
 
 def test_GCodeReader():
@@ -16,6 +11,7 @@ def test_GCodeReader():
     assert f.getData("/metadata")["/metadata/toolpath/default/flavor"] == "Griffin"
     assert b"M104" in f.getStream("/toolpath").read()
     f.close()
+
 
 def test_GCodeGzReader():
     f = VirtualFile()
