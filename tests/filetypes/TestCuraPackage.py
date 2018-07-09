@@ -32,7 +32,7 @@ def test_addPackageJsonMetadata():
     assert read_package.getMetadata("/package_id").get("/metadata/package_id") == "CharonTestPackage"
 
     # Test the Metadata paths.
-    available_package_metadata_files = read_package.listPaths("/package.json")
+    available_package_metadata_files = [path for path in read_package.listPaths() if "/package.json" in path]
     assert len(available_package_metadata_files) == 2  # /package_id and /package.json
     assert "/package.json" in available_package_metadata_files
     assert "/package_id" in available_package_metadata_files
@@ -61,7 +61,7 @@ def test_addPlugin(plugin_paths: List[str]):
     # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    available_plugins = read_package.getPlugins()
+    available_plugins = read_package.getPluginPaths()
 
     # Test if the required paths are there.
     path_alias = read_package._aliases.get("/plugins")
@@ -93,7 +93,7 @@ def test_addBrokenPlugin(plugin_paths: List[str]):
     # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    available_plugins = read_package.getPlugins()
+    available_plugins = read_package.getPluginPaths()
     assert len(available_plugins) == 0  # 0 because broken plugins should not be added
 
 
@@ -121,7 +121,7 @@ def test_addQualities(filenames: List[str]):
     # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    available_quality_resources = read_package.getQualities()
+    available_quality_resources = read_package.getQualityPaths()
     assert len(available_quality_resources) == len(filenames)
 
     # Test if the full paths are there.
@@ -154,7 +154,7 @@ def test_addMaterials(filenames: List[str]):
     # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    available_material_resources = read_package.getMaterials()
+    available_material_resources = read_package.getMaterialPaths()
     assert len(available_material_resources) == len(filenames)
 
     # Test if the full paths are there.
@@ -187,7 +187,7 @@ def test_addMachines(filenames: List[str]):
     # Open the package as read-only for testing.
     read_package = CuraPackage()
     read_package.openStream(stream, mode=OpenMode.ReadOnly)
-    available_machine_resources = read_package.getMachines()
+    available_machine_resources = read_package.getMachinePaths()
     assert len(available_machine_resources) == len(filenames)
 
     # Test if the full paths are there.
