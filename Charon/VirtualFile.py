@@ -3,7 +3,7 @@
 import os
 
 from Charon.FileInterface import FileInterface  # The interface we're implementing.
-from Charon.OpenMode import OpenMode  #T o open local files with the selected open mode.
+from Charon.OpenMode import OpenMode  #To open local files with the selected open mode.
 # The supported file types.
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 from Charon.filetypes.UltimakerFormatPackage import UltimakerFormatPackage
@@ -12,7 +12,6 @@ from Charon.filetypes.GCodeGzFile import GCodeGzFile
 
 
 extension_to_mime = {
-    ".opc": "application/x-opc",
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
     ".gz": "text/x-gcode-gz",
@@ -20,7 +19,6 @@ extension_to_mime = {
 }
 
 mime_to_implementation = {
-    "application/x-opc": OpenPackagingConvention,
     "application/x-ufp": UltimakerFormatPackage,
     "text/x-gcode": GCodeFile,
     "text/x-gcode-gz": GCodeGzFile
