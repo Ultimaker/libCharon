@@ -8,21 +8,18 @@ from Charon.OpenMode import OpenMode  #To open local files with the selected ope
 from Charon.filetypes.UltimakerFormatPackage import UltimakerFormatPackage
 from Charon.filetypes.GCodeFile import GCodeFile
 from Charon.filetypes.GCodeGzFile import GCodeGzFile
-from Charon.filetypes.CuraPackage import CuraPackage
 
 extension_to_mime = {
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
     ".gz": "text/x-gcode-gz",
-    ".gcode.gz": "text/x-gcode-gz",
-    ".curapackage": "application/x-curapackage"
+    ".gcode.gz": "text/x-gcode-gz"
 }
 
 mime_to_implementation = {
     "application/x-ufp": UltimakerFormatPackage,
     "text/x-gcode": GCodeFile,
-    "text/x-gcode-gz": GCodeGzFile,
-    "application/x-curapackage": CuraPackage
+    "text/x-gcode-gz": GCodeGzFile
 }
 
 
