@@ -2,7 +2,6 @@
 FROM python:3.4-alpine AS base
 WORKDIR /usr/src/app
 RUN apk add --no-cache git
-RUN pip install --upgrade pip==9.0.*
 ADD requirements.txt requirements.txt
 ADD requirements-testing.txt requirements-testing.txt
 
