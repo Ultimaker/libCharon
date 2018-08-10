@@ -65,3 +65,15 @@ To retrieve the default set of metadata, use `/metadata`. This would return a di
 ```
 
 To retrieve a stream for the preview named "top left" at a size of 117x117 pixels, use the path `/preview/top_left/117x117`.
+
+### Read a gcode file:
+```
+from Charon.VirtualFile import VirtualFile
+
+f = VirtualFile()
+f.open("file.gcode")
+print(f.getData("/metadata"))
+for line in f.getStream("/toolpath"):
+    print(line)
+f.close()
+```

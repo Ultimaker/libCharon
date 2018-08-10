@@ -86,10 +86,8 @@ class OpenPackagingConvention(FileInterface):
     def listPaths(self) -> List[str]:
         if not self._stream:
             raise ValueError("Can't list the paths in a closed file.")
-        assert self._zipfile is not None
-
-        return list(self._metadata.keys()) + [self._zipNameToVirtualPath(zip_name) for zip_name in
-                                              self._zipfile.namelist()]
+        paths = [self._zipNameToVirtualPath(zip_name) for zip_name in self._zipfile.namelist()]
+        return list(self._metadata.keys()) + paths
 
     def getData(self, virtual_path: str) -> Dict[str, Any]:
         if not self._stream:
@@ -172,11 +170,10 @@ class OpenPackagingConvention(FileInterface):
             raise OPCError("Writing directly to a relationship file is forbidden.")
 
         if virtual_path.startswith(self._metadata_prefix):
-            return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self.metadata_prefix):])).encode("UTF-8"))
+            return json.dumps(self.getMetadata(virtual_path[len(self._metadata_prefix):])).encode("UTF-8")
 
         virtual_path = self._processAliases(virtual_path)
-        if not self._resourceExists(
-                virtual_path) and self._mode != OpenMode.WriteOnly:  # In write-only mode, create a new file instead of reading metadata.
+        if not self._resourceExists(virtual_path) and self._mode == OpenMode.ReadOnly:  # In write-only mode, create a new file instead of reading metadata.
             raise FileNotFoundError(virtual_path)
 
         # The zipfile module may only have one write stream open at a time. So when you open a new stream, close the previous one.
@@ -550,6 +547,20 @@ class OpenPackagingConvention(FileInterface):
                 parent[path[-1]] = current_element[""]  # Fold down the singleton dictionary.
 
         self._zipfile.writestr(file_name, json.dumps(document, sort_keys=True, indent=4))
+
+    ##  Helper method to write data directly into an aliased path.
+    def _writeToAlias(self, path_alias: str, package_filename: str, file_data: bytes) -> None:
+        stream = self.getStream("{}/{}".format(path_alias, package_filename))
+        stream.write(file_data)
+
+    ##  Helper method to ensure a relationship exists.
+    # Creates the relationship if it does not exists, ignores an OPC error if it already does.
+    def _ensureRelationExists(self, virtual_path: str, relation_type: str, origin: str) -> None:
+        try:
+            # We try to add the relation. If this throws an OPCError, we know the relation already exists and ignore it.
+            self.addRelation(virtual_path, relation_type, origin)
+        except OPCError:
+            pass
 
     ##  Helper function for pretty-printing XML because ETree is stupid.
     #

@@ -1,0 +1,9 @@
+{
+  "id": "CuraTestPlugin",
+  "name": "Cura Test Plugin",
+  "author": "Ultimaker B.V.",
+  "description": "Test Plugin for libCharon Unit Tests",
+  "version": "1.0.0",
+  "api": 4,
+  "i18n-catalog": "cura"
+}
