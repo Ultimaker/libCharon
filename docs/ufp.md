@@ -7,17 +7,17 @@ The goal of this file type is to provide required data for the 3D printer to per
 
 Structure:
 --------
-A UFP file contains the following files:
-`\.rels`
-`\Metadata\thumbnail.png`
-`\Cura\`
-`\3D\model.gcode`
-`\[Content_Types].xml`
-1) The rels and content type files are filled with the required XML data.
-2) The thumbnail.png is a medium sized rendering of the 3D shape to show during file selection. There can be only one thumbnail.
-3) The model.gcode describes how a 3D printer should print a job.
-4) Possible content of Cura folder :
-- *.xml.fdm_material – files describe materials specifications which might be needed for a print job.
+A UFP file contains the following files:</br>
+`\.rels`</br>
+`\Metadata\thumbnail.png`</br>
+`\Cura\`</br>
+`\3D\model.gcode`</br>
+`\[Content_Types].xml`</br>
+- The rels and content type files are filled with the required XML data.
+- The thumbnail.png is a medium sized rendering of the 3D shape to show during file selection. There can be only one thumbnail.
+- The model.gcode describes how a 3D printer should print a job.
+- Possible content of Cura folder :</br>
+&nbsp;&nbsp;*.xml.fdm_material – files describe materials specifications which might be needed for a print job.
 
 Notes:
 -------------
