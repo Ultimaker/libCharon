@@ -1,21 +1,23 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
+import os
 
-import os.path #To get the file extension from a path.
+from Charon.FileInterface import FileInterface  # The interface we're implementing.
+from Charon.OpenMode import OpenMode  #To open local files with the selected open mode.
+# The supported file types.
+from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
+from Charon.filetypes.UltimakerFormatPackage import UltimakerFormatPackage
+from Charon.filetypes.GCodeFile import GCodeFile
+from Charon.filetypes.GCodeGzFile import GCodeGzFile
 
-from .FileInterface import FileInterface #The interface we're implementing.
-from .OpenMode import OpenMode #To open local files with the selected open mode.
-
-#The supported file types.
-from .filetypes.UltimakerFormatPackage import UltimakerFormatPackage
-from .filetypes.GCodeFile import GCodeFile
-from .filetypes.GCodeGzFile import GCodeGzFile
 
 extension_to_mime = {
     ".ufp": "application/x-ufp",
     ".gcode": "text/x-gcode",
-    ".gz": "text/x-gcode-gz"
+    ".gz": "text/x-gcode-gz",
+    ".gcode.gz": "text/x-gcode-gz"
 }
+
 mime_to_implementation = {
     "application/x-ufp": UltimakerFormatPackage,
     "text/x-gcode": GCodeFile,
@@ -37,7 +39,7 @@ class VirtualFile(FileInterface):
             raise IOError("Unknown extension \"{extension}\".".format(extension = extension))
         mime = extension_to_mime[extension]
         implementation = mime_to_implementation[mime]
-        return self.openStream(implementation.stream_handler(path, mode.value + ("b" if implementation.is_binary else "t")), mime, mode, *args, **kwargs)
+        return self.openStream(implementation.stream_handler(path, mode.value + "b"), mime, mode, *args, **kwargs)
 
     def openStream(self, stream, mime, mode = OpenMode.ReadOnly, *args, **kwargs):
         self._implementation = mime_to_implementation[mime]()
@@ -47,13 +49,14 @@ class VirtualFile(FileInterface):
         if self._implementation is None:
             raise IOError("Can't close a file before it's opened.")
         result = self._implementation.close(*args, **kwargs)
-        self._implementation = None #You have to open a file again, which might need a different implementation.
+        self._implementation = None  # You have to open a file again, which might need a different implementation.
         return result
 
     ##  Causes all calls to functions that aren't defined in this class to be
     #   passed through to the implementation.
     def __getattribute__(self, item):
-        if item == "open" or item == "openStream" or item == "close" or item == "__del__" or item == "_implementation": #Attributes that VirtualFile overwrites should be called normally.
+        if item == "open" or item == "openStream" or item == "close" or item == "__del__" or item == "_implementation":
+            # Attributes that VirtualFile overwrites should be called normally.
             return object.__getattribute__(self, item)
         if not object.__getattribute__(self, "_implementation"):
             raise IOError("Can't use '{attribute}' before a file is opened.".format(attribute = item))

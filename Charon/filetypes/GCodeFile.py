@@ -1,10 +1,14 @@
+# Copyright (c) 2018 Ultimaker B.V.
+# libCharon is released under the terms of the LGPLv3 or higher.
 import ast
 
-from ..FileInterface import FileInterface
-from ..OpenMode import OpenMode
+from typing import Any, Dict, IO, Optional
+
+from Charon.FileInterface import FileInterface
+from Charon.OpenMode import OpenMode
 
 
-def isAPositiveNumber(a):
+def isAPositiveNumber(a: str) -> bool:
     try:
         number = float(repr(a))
         return number >= 0
@@ -15,15 +19,15 @@ def isAPositiveNumber(a):
 
 
 class GCodeFile(FileInterface):
-    is_binary = False
+    mime_type = "text/x-gcode"
 
     MaximumHeaderLength = 100
 
-    def __init__(self):
-        self.__stream = None
-        self.__metadata = {}
+    def __init__(self) -> None:
+        self.__stream = None # type: Optional[IO[bytes]]
+        self.__metadata = {} # type: Dict[str, Any]
 
-    def openStream(self, stream, mime, mode):
+    def openStream(self, stream: IO[bytes], mime: str, mode: OpenMode = OpenMode.ReadOnly) -> None:
         if mode != OpenMode.ReadOnly:
             raise NotImplementedError()
 
@@ -32,13 +36,14 @@ class GCodeFile(FileInterface):
         self.__metadata = self.parseHeader(self.__stream, prefix = "/metadata/toolpath/default/")
 
     @staticmethod
-    def parseHeader(stream, *, prefix: str = ""):
+    def parseHeader(stream: IO[bytes], *, prefix: str = "") -> Dict[str, Any]:
         try:
-            metadata = {}
+            metadata = {} # type: Dict[str, Any]
             line_number = 0
-            for line_number, line in enumerate(stream):
+            for line_number, bytes_line in enumerate(stream):
                 if line_number > GCodeFile.MaximumHeaderLength:
                     break
+                line = bytes_line.decode("utf-8")
 
                 if line.startswith(";START_OF_HEADER"):
                     continue
@@ -194,7 +199,9 @@ class GCodeFile(FileInterface):
         except Exception as e:
             raise InvalidHeaderException("Unable to parse the header. An exception occured; %s" % e)
 
-    def getData(self, virtual_path: str):
+    def getData(self, virtual_path: str) -> Dict[str, Any]:
+        assert self.__stream is not None
+
         if virtual_path.startswith("/metadata"):
             result = {}
             for key, value in self.__metadata.items():
@@ -207,13 +214,17 @@ class GCodeFile(FileInterface):
 
         return {}
 
-    def getStream(self, virtual_path: str):
+    def getStream(self, virtual_path: str) -> IO[bytes]:
+        assert self.__stream is not None
+        
         if virtual_path != "/toolpath" and virtual_path != "/toolpath/default":
             raise NotImplementedError("G-code files only support /toolpath as stream")
 
         return self.__stream
 
-    def close(self):
+    def close(self) -> None:
+        assert self.__stream is not None
+        
         self.__stream.close()
 
 

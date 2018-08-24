@@ -1,7 +1,7 @@
 import enum
 import threading
 import uuid
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any, Optional, Callable
 
 from .DBusInterface import DBusInterface
 
@@ -24,20 +24,20 @@ class Request:
     #
     #   \param file_path The path to a file to get data from.
     #   \param virtual_paths A list of virtual paths with the data to retrieve.
-    def __init__(self, file_path: str, virtual_paths: List[str]):
+    def __init__(self, file_path: str, virtual_paths: List[str]) -> None:
         self.__file_path = file_path
         self.__virtual_paths = virtual_paths
 
         self.__state = self.State.Initial
         self.__request_id = 0
-        self.__data = {}
+        self.__data = {} # type: Dict[str, Any]
         self.__error_string = ""
 
         self.__event = threading.Event()
 
-        self.__request_data_callback = None
-        self.__request_completed_callback = None
-        self.__request_error_callback = None
+        self.__request_data_callback = None # type: Optional[Callable[["Request", Dict[str, Any]], None]]
+        self.__request_completed_callback = None # type: Optional[Callable[["Request"], None]]
+        self.__request_error_callback = None # type: Optional[Callable[["Request", str], None]]
 
     ##  Cleanup function.
     def __del__(self):
