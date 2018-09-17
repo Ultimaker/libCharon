@@ -13,4 +13,4 @@ RUN pip install -r requirements-testing.txt
 ARG cache=1
 ADD . .
 RUN ENV_NAME=testing ASYNC_TEST_TIMEOUT=15 coverage run --source="Charon" -m pytest
-RUN coverage report --show-missing  --fail-under=53
+RUN coverage report --show-missing  --fail-under=49
