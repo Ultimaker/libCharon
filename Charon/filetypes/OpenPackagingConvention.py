@@ -170,7 +170,7 @@ class OpenPackagingConvention(FileInterface):
             raise OPCError("Writing directly to a relationship file is forbidden.")
 
         if virtual_path.startswith(self._metadata_prefix):
-            return json.dumps(self.getMetadata(virtual_path[len(self._metadata_prefix):])).encode("UTF-8")
+            return BytesIO(json.dumps(self.getMetadata(virtual_path[len(self._metadata_prefix):])).encode("UTF-8"))
 
         virtual_path = self._processAliases(virtual_path)
         if not self._resourceExists(virtual_path) and self._mode == OpenMode.ReadOnly:  # In write-only mode, create a new file instead of reading metadata.
