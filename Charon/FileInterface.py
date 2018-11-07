@@ -1,6 +1,6 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
-from typing import Any, Dict, List, IO, Callable
+from typing import Any, Dict, List, IO, Optional, Callable
 
 from Charon.OpenMode import OpenMode
 
@@ -30,16 +30,14 @@ class FileInterface:
     #   then on, meaning that the metadata getters/setters and the streams will
     #   be functioning on that stream.
     #   \param stream The stream to read from or write to.
-    #   \param mime The MIME type of the stream. This determines what
-    #   implementation is used to read/write it.
+    #   \param mime The MIME type of the stream. This determines what implementation is used to read/write it.
     #   \param mode The mode with which to open the file (see OpenMode).
     def openStream(self, stream: IO[bytes], mime: str, mode: OpenMode = OpenMode.ReadOnly) -> None:
-        raise NotImplementedError("The openstream() function of " + self.__class__.__qualname__ + " is not implemented.")
+        raise NotImplementedError("The openStream() function of " + self.__class__.__qualname__ + " is not implemented.")
 
     ##  Closes the opened file, releasing the resources in use for it.
     #
-    #   After the file is closed, this instance can no longer be used until the
-    #   ``open`` method is called again.
+    #   After the file is closed, this instance can no longer be used until the ``open`` method is called again.
     def close(self) -> None:
         raise NotImplementedError("The close() function of " + self.__class__.__qualname__ + " is not implemented.")
 
@@ -51,8 +49,7 @@ class FileInterface:
     def listPaths(self) -> List[str]:
         raise NotImplementedError("The listPaths() function of " + self.__class__.__qualname__ + " is not implemented.")
 
-    ##  Gets the data stored at the specified virtual path and all its
-    #   descendants.
+    ##  Gets the data stored at the specified virtual path and all its descendants.
     #
     #   The returned dictionary may contain normal resources as well as
     #   metadata. If it is a normal resource, the value will contain the

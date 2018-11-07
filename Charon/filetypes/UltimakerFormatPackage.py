@@ -1,6 +1,5 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
-##  A container file type that contains multiple 3D-printing related files that belong together.
 from collections import OrderedDict
 
 from Charon.OpenMode import OpenMode
@@ -8,6 +7,7 @@ from Charon.filetypes.GCodeFile import GCodeFile
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention
 
 
+##  A container file type that contains multiple 3D-printing related files that belong together.
 class UltimakerFormatPackage(OpenPackagingConvention):
 
     # Where the global metadata file is.
@@ -15,6 +15,12 @@ class UltimakerFormatPackage(OpenPackagingConvention):
 
     # Unique identifier of the relationship type that relates UFP metadata to files.
     _metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ufp_metadata"
+
+    # Where the global metadata file is.
+    global_metadata_file = "/Metadata/UFP_Global.json"
+
+    # Unique identifier of the relationship type that relates UFP metadata to files.
+    metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/ufp_metadata"
 
     # Virtual path aliases. Keys are regex. Order matters!
     _aliases = OrderedDict([

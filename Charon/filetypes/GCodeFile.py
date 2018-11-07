@@ -24,8 +24,8 @@ class GCodeFile(FileInterface):
     MaximumHeaderLength = 100
 
     def __init__(self) -> None:
-        self.__stream = None # type: Optional[IO[bytes]]
-        self.__metadata = {} # type: Dict[str, Any]
+        self.__stream = None  # type: Optional[IO[bytes]]
+        self.__metadata = {}  # type: Dict[str, Any]
 
     def openStream(self, stream: IO[bytes], mime: str, mode: OpenMode = OpenMode.ReadOnly) -> None:
         if mode != OpenMode.ReadOnly:
