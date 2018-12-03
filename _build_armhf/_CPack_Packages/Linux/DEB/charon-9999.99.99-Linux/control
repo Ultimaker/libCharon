@@ -1,0 +1,10 @@
+Package: charon
+Version: 9999.99.99
+Section: devel
+Priority: optional
+Architecture: all
+Depends: python3 (>= 3.4.2),python3-dbus (>= 1.2.0),dbus (>= 1.8.0)
+Installed-Size: 160
+Maintainer: Ruben Dulek <r.dulek@ultimaker.com>
+Description: Library to read and write 3D printer related files including G-Code and Ultimaker File Package.
+

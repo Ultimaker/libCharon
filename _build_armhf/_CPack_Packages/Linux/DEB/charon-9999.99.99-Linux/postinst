@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# DBus currently does not load config files from /usr but the
+# system-supplied config files really should be installed there.
+# So symlink things to /etc instead.
+ln -s /usr/share/dbus-1/system.d/nl.ultimaker.charon.conf /etc/dbus-1/system.d/
+# Then, make sure DBus knows the policy file exists.
+systemctl reload dbus
+
+# Finally, enable the service
+systemctl daemon-reload
+systemctl enable charon.service
