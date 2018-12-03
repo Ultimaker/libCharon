@@ -125,6 +125,12 @@ class GCodeFile(FileInterface):
                 del metadata["print.size.max.y"]
                 del metadata["print.size.max.z"]
 
+                # Store the amount of models/model groups
+                # One-at-a time prints can have multiple groups.
+                if "print.groups" in metadata:
+                    metadata["print"]["groups"] = metadata["print.groups"]
+                    del metadata["print.groups"]
+
                 if "time" in metadata:
                     metadata["print"]["time"] = metadata["time"]
                 elif "print.time" in metadata:
