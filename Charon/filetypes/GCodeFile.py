@@ -2,7 +2,7 @@
 # libCharon is released under the terms of the LGPLv3 or higher.
 import ast
 
-from typing import Any, Dict, IO, Optional
+from typing import Any, Dict, IO, List, Optional, Union
 
 from Charon.FileInterface import FileInterface
 from Charon.OpenMode import OpenMode
@@ -60,8 +60,9 @@ class GCodeFile(FileInterface):
                         value = ast.literal_eval(value.strip())
                     except:
                         pass
-                    metadata[key] = value
-
+                    key_elements = key.split(".")
+                    GCodeFile.__insertKeyValuePair(metadata, key_elements, value)
+            
             if stream.seekable():
                 stream.seek(0)
 
@@ -69,127 +70,8 @@ class GCodeFile(FileInterface):
             if flavor == "Griffin":
                 if metadata["header_version"] != "0.1":
                     raise InvalidHeaderException("Unsupported Griffin header version: {0}".format(metadata["header_version"]))
-
-                metadata["machine_type"] = metadata["target_machine.name"]
-                del metadata["target_machine.name"]
-
-                if "generator.name" not in metadata or str(metadata["generator.name"]) == "":
-                    raise InvalidHeaderException("GENERATOR.NAME must be set")
-                if "generator.version" not in metadata or str(metadata["generator.version"]) == "":
-                    raise InvalidHeaderException("GENERATOR.VERSION must be set")
-                if "generator.build_date" not in metadata or str(metadata["generator.build_date"]) == "":
-                    raise InvalidHeaderException("GENERATOR.BUILD_DATE must be set")
-
-                generator_metadata = {}
-                generator_metadata["name"] = metadata["generator.name"]
-                generator_metadata["version"] = metadata["generator.version"]
-                generator_metadata["build_date"] = metadata["generator.build_date"]
-                metadata["generator"] = generator_metadata
-                del metadata["generator.name"]
-                del metadata["generator.version"]
-                del metadata["generator.build_date"]
-
-                if "build_plate.initial_temperature" not in metadata or not isAPositiveNumber(metadata["build_plate.initial_temperature"]):
-                    raise InvalidHeaderException("BUILD_PLATE.INITIAL_TEMPERATURE must be set and be a positive real")
-
-                metadata["build_plate"] ={}
-                metadata["build_plate"]["initial_temperature"] = metadata["build_plate.initial_temperature"]
-                del metadata["build_plate.initial_temperature"]
-
-                if "build_plate.type" in metadata:
-                    metadata["build_plate"]["type"] = metadata["build_plate.type"]
-                    del metadata["build_plate.type"]
-
-                if "print.size.min.x" not in metadata or "print.size.min.y" not in metadata or "print.size.min.z" not in metadata:
-                    raise InvalidHeaderException("PRINT.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
-                if "print.size.max.x" not in metadata or "print.size.max.y" not in metadata or "print.size.max.z" not in metadata:
-                    raise InvalidHeaderException("PRINT.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
-
-                metadata["print"] = {}
-
-                min_size = {}
-                min_size["x"] = metadata["print.size.min.x"]
-                min_size["y"] = metadata["print.size.min.y"]
-                min_size["z"] = metadata["print.size.min.z"]
-                metadata["print"]["min_size"] = min_size
-                del metadata["print.size.min.x"]
-                del metadata["print.size.min.y"]
-                del metadata["print.size.min.z"]
-
-                max_size = {}
-                max_size["x"] = metadata["print.size.max.x"]
-                max_size["y"] = metadata["print.size.max.y"]
-                max_size["z"] = metadata["print.size.max.z"]
-                metadata["print"]["max_size"] = max_size
-                del metadata["print.size.max.x"]
-                del metadata["print.size.max.y"]
-                del metadata["print.size.max.z"]
-
-                # Store the amount of models/model groups
-                # One-at-a time prints can have multiple groups.
-                if "print.groups" in metadata:
-                    metadata["print"]["groups"] = metadata["print.groups"]
-                    del metadata["print.groups"]
-
-                if "time" in metadata:
-                    metadata["print"]["time"] = metadata["time"]
-                elif "print.time" in metadata:
-                    metadata["print"]["time"] = metadata["print.time"]
-                    del metadata["print.time"]
-                else:
-                    raise InvalidHeaderException("TIME or PRINT.TIME must be set")
-
-                if int(metadata["print"]["time"]) < 0:
-                    raise InvalidHeaderException("Print Time should be a positive integer")
-
-                for index in range(0, 10):
-                    extruder_key = "extruder_train.%s." % index
-                    extruder_used = False
-                    for key in metadata:
-                        if extruder_key in key:
-                            extruder_used = True
-                            break
-
-                    if not extruder_used:
-                        continue
-
-                    extruder_metadata = {}
-                    nozzle_metadata = {}
-                    material_metadata = {}
-
-                    # Extruder is used. Ensure that all properties that must be set are set.
-                    if extruder_key + "nozzle.diameter" not in metadata or not isAPositiveNumber(metadata[extruder_key + "nozzle.diameter"]):
-                        raise InvalidHeaderException(extruder_key + "nozzle.diameter must be defined and be a positive real")
-                    nozzle_metadata["diameter"] = metadata[extruder_key + "nozzle.diameter"]
-                    del metadata[extruder_key + "nozzle.diameter"]
-
-                    if extruder_key + "nozzle.name" in metadata:
-                        nozzle_metadata["name"] = metadata[extruder_key + "nozzle.name"]
-                        del metadata[extruder_key + "nozzle.name"]
-
-                    extruder_metadata["nozzle"] = nozzle_metadata
-
-                    if extruder_key + "material.volume_used" not in metadata or not isAPositiveNumber(metadata[extruder_key + "material.volume_used"]):
-                        raise InvalidHeaderException(extruder_key + "material.volume_used must be defined and positive")
-                    material_metadata["volume_used"] = metadata[extruder_key + "material.volume_used"]
-                    del metadata[extruder_key + "material.volume_used"]
-
-                    if extruder_key + "material.guid" in metadata:
-                        material_metadata["guid"] = metadata[extruder_key + "material.guid"]
-                        del metadata[extruder_key + "material.guid"]
-
-                    extruder_metadata["material"] = material_metadata
-
-                    initial_temp_key = extruder_key + "initial_temperature"
-                    if initial_temp_key not in metadata or not isAPositiveNumber(metadata[initial_temp_key]):
-                        raise InvalidHeaderException(initial_temp_key + " must be defined and be a positive real ")
-                    extruder_metadata["initial_temperature"] = metadata[initial_temp_key]
-                    del metadata[initial_temp_key]
-
-                    if "extruders" not in metadata:
-                        metadata["extruders"] = {}
-                    metadata["extruders"][index] = extruder_metadata
-
+                GCodeFile.__validateGriffinHeader(metadata)
+                GCodeFile.__cleanGriffinHeader(metadata)
             elif flavor == "UltiGCode":
                 metadata["machine_type"] = "ultimaker2"
             else:
@@ -204,6 +86,26 @@ class GCodeFile(FileInterface):
             return metadata
         except Exception as e:
             raise InvalidHeaderException("Unable to parse the header. An exception occured; %s" % e)
+
+
+    ## Add a key-value pair to the metadata dictionary.
+    # Splits up key each element to it's own dictionary.
+    # @param metadata Metadata collection
+    # @param key_elements List of separate key name elements
+    # @param value Key value
+    @staticmethod
+    def __insertKeyValuePair(metadata: Dict["str", Any], key_elements: Union[str,List[str]], value: Any) -> Any:
+        if not key_elements:
+            return value 
+
+        sub_dict = {}
+
+        if key_elements[0] in metadata:
+            sub_dict = metadata[key_elements[0]]
+
+        metadata[key_elements[0]] = GCodeFile.__insertKeyValuePair(sub_dict, key_elements[1:], value)
+       
+        return metadata    
 
     def getData(self, virtual_path: str) -> Dict[str, Any]:
         assert self.__stream is not None
@@ -220,6 +122,108 @@ class GCodeFile(FileInterface):
 
         return {}
 
+    ## Cleans a parsed GRIFFIN flavoured GCODE header.
+    @staticmethod
+    def __cleanGriffinHeader(metadata) -> None:
+        metadata["machine_type"] = metadata["target_machine"]["name"]
+        del metadata["target_machine"]
+    
+        if GCodeFile.__isAvailable(metadata, ["time"]):
+            GCodeFile.__insertKeyValuePair(metadata, ["print", "time"], metadata["time"])
+            del metadata["time"]
+
+        GCodeFile.__insertKeyValuePair(metadata, ["print", "min_size"], metadata["print"]["size"]["min"])
+        GCodeFile.__insertKeyValuePair(metadata, ["print", "max_size"], metadata["print"]["size"]["max"])
+        del metadata["print"]["size"]
+        
+        for key, value in metadata["extruder_train"].items():
+            GCodeFile.__insertKeyValuePair(metadata, ["extruders", int(key)], value)
+
+        del metadata["extruder_train"]
+
+    ## Checks if a path to a key is available
+    # @param metadata Metadata collection to check for the presence of the key
+    # @param keys List of key elements describing the path to a value
+    # @return True if the key is available and not empty
+    @staticmethod
+    def __isAvailable(metadata, keys) -> None:
+        if not keys:
+            return True
+
+        key = keys[0]
+        
+        if isinstance(key, list):
+            key_is_valid = True
+            for sub_key in key:
+                key_is_valid = key_is_valid and GCodeFile.__isAvailable(metadata, [sub_key] + [keys[1:]])
+        else:
+            key_is_valid = key in metadata and metadata[key] is not None and not str(metadata[key]) == ""
+            key_is_valid = key_is_valid and GCodeFile.__isAvailable(metadata[key], keys[1:])
+
+        return key_is_valid
+    
+    ## Validates a parsed GRIFFIN flavoured GCODE header.
+    # Will raise an exception when the header is invalid.
+    # @param metadata Key/value dictionary based on the header.
+    @staticmethod
+    def __validateGriffinHeader(metadata) -> None:
+
+        # Validate target settings
+        if not GCodeFile.__isAvailable(metadata, ["target_machine", "name"]): 
+            raise InvalidHeaderException("TARGET_MACHINE.NAME must be set")
+
+        # Validate generator settings
+        if not GCodeFile.__isAvailable(metadata, ["generator", "name"]): 
+            raise InvalidHeaderException("GENERATOR.NAME must be set")
+        if not GCodeFile.__isAvailable(metadata, ["generator", "version"]): 
+            raise InvalidHeaderException("GENERATOR.VERSION must be set")
+        if not GCodeFile.__isAvailable(metadata, ["generator", "build_date"]): 
+            raise InvalidHeaderException("GENERATOR.BUILD_DATE must be set")
+
+        # Validate build plate temperature 
+        if not GCodeFile.__isAvailable(metadata, ["build_plate", "initial_temperature"]) or \
+            not isAPositiveNumber(metadata["build_plate"]["initial_temperature"]):
+            raise InvalidHeaderException("BUILD_PLATE.INITIAL_TEMPERATURE must be set and be a positive real")
+      
+        # Validate dimensions 
+        if not GCodeFile.__isAvailable(metadata, ["print", "size", "min", ["x", "y", "z"]]):
+            raise InvalidHeaderException("PRINT.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
+        if not GCodeFile.__isAvailable(metadata, ["print", "size", "max", ["x", "y", "z"]]):
+            raise InvalidHeaderException("PRINT.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
+        
+        # Validate print time
+        print_time = -1
+
+        if GCodeFile.__isAvailable(metadata, ["print", "time"]):
+            print_time = int(metadata["print"]["time"])
+        elif GCodeFile.__isAvailable(metadata, ["time"]):
+            print_time = int(metadata["time"])
+        else:
+            raise InvalidHeaderException("TIME or PRINT.TIME must be set")
+
+        if print_time < 0:
+            raise InvalidHeaderException("Print Time should be a positive integer")
+       
+        # Validata extruder train
+        for index in range(0, 10):
+            index_str = str(index)
+            if GCodeFile.__isAvailable(metadata, ["extruder_train", index_str]):
+
+                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "nozzle", "diameter"]) or \
+                    not isAPositiveNumber(metadata["extruder_train"][index_str]["nozzle"]["diameter"]):
+                        raise InvalidHeaderException(
+                            "extruder_train.{}.nozzle.diameter must be defined and be a positive real".format(index))
+       
+                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "material", "volume_used"]) or \
+                    not isAPositiveNumber(metadata["extruder_train"][index_str]["material"]["volume_used"]):
+                        raise InvalidHeaderException(
+                            "extruder_train.{}.material.volume_used must be defined and positive".format(index))
+
+                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "initial_temperature"]) or \
+                    not isAPositiveNumber(metadata["extruder_train"][index_str]["initial_temperature"]):
+                        raise InvalidHeaderException(
+                            "extruder_train.{}.initial_temperature must be defined and positive".format(index))
+      
     def getStream(self, virtual_path: str) -> IO[bytes]:
         assert self.__stream is not None
         
