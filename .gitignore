@@ -7,6 +7,9 @@ __pycache__/
 # Build folder
 _build_armhf/*
 
+# VIM temp files
+*.swp
+
 # C extensions
 *.so
 
