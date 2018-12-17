@@ -143,7 +143,8 @@ class GCodeFile(FileInterface):
 
     ## Checks if a path to a key is available
     # @param metadata Metadata collection to check for the presence of the key
-    # @param keys List of key elements describing the path to a value
+    # @param keys List of key elements describing the path to a value. If a key element is a list, then all the elements
+    #             must exist on the location of that key element
     # @return True if the key is available and not empty
     @staticmethod
     def __isAvailable(metadata, keys) -> None:
@@ -204,7 +205,7 @@ class GCodeFile(FileInterface):
         if print_time < 0:
             raise InvalidHeaderException("Print Time should be a positive integer")
        
-        # Validata extruder train
+        # Validate extruder train
         for index in range(0, 10):
             index_str = str(index)
             if GCodeFile.__isAvailable(metadata, ["extruder_train", index_str]):
@@ -223,7 +224,7 @@ class GCodeFile(FileInterface):
                     not isAPositiveNumber(metadata["extruder_train"][index_str]["initial_temperature"]):
                         raise InvalidHeaderException(
                             "extruder_train.{}.initial_temperature must be defined and positive".format(index))
-      
+
     def getStream(self, virtual_path: str) -> IO[bytes]:
         assert self.__stream is not None
         
