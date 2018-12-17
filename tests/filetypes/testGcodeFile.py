@@ -48,6 +48,7 @@ class TestGcodeFile(unittest.TestCase):
         self.assertEqual(metadata["build_plate"]["initial_temperature"], 30)
         self.assertEqual(metadata["extruders"][1]["nozzle"]["diameter"], 1.5)
         self.assertEqual(metadata["print"]["time"], 11)
+        self.assertEqual(metadata["time"], 11)  # This was the behavior of the old code.
 
     def testParseHeader_MissingFlavor(self) -> None:
         gcode = ";START_OF_HEADER\n" \

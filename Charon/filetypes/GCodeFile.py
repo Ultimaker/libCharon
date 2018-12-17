@@ -130,7 +130,7 @@ class GCodeFile(FileInterface):
     
         if GCodeFile.__isAvailable(metadata, ["time"]):
             GCodeFile.__insertKeyValuePair(metadata, ["print", "time"], metadata["time"])
-            del metadata["time"]
+            # del metadata["time"]  # We want to delete the old key, but it's behavior of how the code was.
 
         GCodeFile.__insertKeyValuePair(metadata, ["print", "min_size"], metadata["print"]["size"]["min"])
         GCodeFile.__insertKeyValuePair(metadata, ["print", "max_size"], metadata["print"]["size"]["max"])
