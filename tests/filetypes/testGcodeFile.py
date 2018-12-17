@@ -27,12 +27,27 @@ class TestGcodeFile(unittest.TestCase):
         "{}\n" \
         ";END_OF_HEADER"
 
+    def _print(self, d, prefix=""):
+        for k, v in d.items():
+            if type(v) is dict:
+                self._print(v, prefix="{}.{}".format(prefix, k) if prefix else "{}".format(k))
+            else:
+                if prefix:
+                    print("{}.{}: {}".format(prefix, k, v))
+                else:
+                    print("{}: {}".format(k, v))
+
     def testParseGenericParameter_HappyTrail(self) -> None:
         gcode = self.__minimal_griffin_header.format(";A.B.C:5")
         gcode_stream = io.BytesIO(str.encode(gcode))
         metadata = GCodeFile.parseHeader(gcode_stream)
 
+        self._print(metadata)  # print if any assert fails
         self.assertEqual(metadata["a"]["b"]["c"], 5)
+        self.assertEqual(metadata["generator"]["name"], "generator_foo")
+        self.assertEqual(metadata["build_plate"]["initial_temperature"], 30)
+        self.assertEqual(metadata["extruders"][1]["nozzle"]["diameter"], 1.5)
+        self.assertEqual(metadata["print"]["time"], 11)
 
     def testParseHeader_MissingFlavor(self) -> None:
         gcode = ";START_OF_HEADER\n" \
