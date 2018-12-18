@@ -12,3 +12,4 @@ pytest:
     script:
     -   ENV_NAME=testing ASYNC_TEST_TIMEOUT=15 coverage run --source="Charon" -m pytest
     -   coverage report --show-missing  --fail-under=49
+    coverage: "/TOTAL\s+\d+\s+\d+\s+(\d+)%.*/"
