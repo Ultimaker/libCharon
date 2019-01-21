@@ -94,7 +94,11 @@ class GCodeFile(FileInterface):
     # @param key_elements List of separate key name elements
     # @param value Key value
     @staticmethod
-    def __insertKeyValuePair(metadata: Dict["str", Any], key_elements: Union[str,List[str]], value: Any) -> Any:
+    def __insertKeyValuePair(
+        metadata: Dict[str, Any],
+        key_elements: Union[str, List[str]],
+        value: Any
+    ) -> Any:
         if not key_elements:
             return value 
 
@@ -124,7 +128,7 @@ class GCodeFile(FileInterface):
 
     ## Cleans a parsed GRIFFIN flavoured GCODE header.
     @staticmethod
-    def __cleanGriffinHeader(metadata) -> None:
+    def __cleanGriffinHeader(metadata: Dict[str, Any]) -> None:
         metadata["machine_type"] = metadata["target_machine"]["name"]
         del metadata["target_machine"]
     
@@ -147,7 +151,7 @@ class GCodeFile(FileInterface):
     #             must exist on the location of that key element
     # @return True if the key is available and not empty
     @staticmethod
-    def __isAvailable(metadata, keys) -> None:
+    def __isAvailable(metadata: Dict[str, Any], keys: List[str]) -> None:
         if not keys:
             return True
 
@@ -164,10 +168,10 @@ class GCodeFile(FileInterface):
         return key_is_valid
     
     ## Validates a parsed GRIFFIN flavoured GCODE header.
-    # Will raise an exception when the header is invalid.
+    # Will raise an InvalidHeader exception when the header is invalid.
     # @param metadata Key/value dictionary based on the header.
     @staticmethod
-    def __validateGriffinHeader(metadata) -> None:
+    def __validateGriffinHeader(metadata: Dict[str, Any]) -> None:
 
         # Validate target settings
         if not GCodeFile.__isAvailable(metadata, ["target_machine", "name"]): 
