@@ -4,7 +4,7 @@
 import setuptools
 
 setuptools.setup(
-    name = "Charon",
+    name = "libCharon",
     use_scm_version=True,
     description = "Library to read and write file packages.",
     author = "Ultimaker",
