@@ -1,7 +1,7 @@
 # Install pytest python library as well as add all files in current directory
 FROM python:3.4-alpine AS base
 WORKDIR /usr/src/app
-RUN apk add --no-cache git py-dbus
+RUN apk add --no-cache git
 ADD requirements.txt requirements.txt
 ADD requirements-testing.txt requirements-testing.txt
 
