@@ -39,4 +39,5 @@ rm -rf build_env
 echo ""
 echo "Your fresh packages:"
 echo ""
-ls -alp dist
+ls -alp dist/*.whl
+ls -alp $BUILD_DIR/*.deb
