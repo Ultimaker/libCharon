@@ -1,1 +1,3 @@
-typing
+typing==3.6.6
+dbus-python
+
