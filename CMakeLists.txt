@@ -1,5 +1,5 @@
 project(charon NONE)
-cmake_minimum_required(VERSION 3.0.2) #Tested only with 3.6.1 and 3.9.1.
+cmake_minimum_required(VERSION 3.6) #Tested only with 3.6.1 and 3.9.1.
 
 # Use FindPython 3 because if we use 3.4 for instance, it will prefer 3.4, even if there is another
 # Python (say 3.5) in CMAKE_PREFIX_PATH which also meets the requirement. We prefer the Python in
