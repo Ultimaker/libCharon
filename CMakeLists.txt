@@ -1,18 +1,27 @@
 project(charon NONE)
 cmake_minimum_required(VERSION 3.6) #Tested only with 3.6.1 and 3.9.1.
 
-# Use FindPython 3 because if we use 3.4 for instance, it will prefer 3.4, even if there is another
-# Python (say 3.5) in CMAKE_PREFIX_PATH which also meets the requirement. We prefer the Python in
-# CMAKE_PREFIX_PATH if set for the Cura building process, so we specify Python 3 here.
-find_package(PythonInterp 3 REQUIRED)
+# FIXME: Remove the code for CMake <3.12 once we have switched over completely.
+# FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs.
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    # Use FindPythonInterp and FindPythonLibs for CMake <3.12
+    find_package(PythonInterp 3.4 REQUIRED)
+
+    set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+    set(Python3_VERSION_MAJOR ${PYTHON_VERSION_MAJOR})
+    set(Python3_VERSION_MINOR ${PYTHON_VERSION_MINOR})
+else()
+    # Use FindPython3 for CMake >=3.12
+    find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter)
+endif()
 
 option(INSTALL_SERVICE "Install the Charon DBus-service" ON)
 option(INSTALL_CLIENT "Install the Charon Client library" ON)
 
 if(EXISTS /etc/debian_version)
-    set(CHARON_INSTALL_PATH lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}/dist-packages)
+    set(CHARON_INSTALL_PATH lib${LIB_SUFFIX}/python${Python3_VERSION_MAJOR}/dist-packages)
 else()
-    set(CHARON_INSTALL_PATH lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages)
+    set(CHARON_INSTALL_PATH lib${LIB_SUFFIX}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages)
 endif()
 
 set(_excludes PATTERN __pycache__ EXCLUDE)
@@ -50,7 +59,7 @@ endif()
 
 add_test(
     NAME pytest-main
-    COMMAND ${PYTHON_EXECUTABLE} -m pytest --junitxml=${CMAKE_BINARY_DIR}/junit-pytest-main.xml ${CMAKE_SOURCE_DIR}/tests
+    COMMAND ${Python3_EXECUTABLE} -m pytest --junitxml=${CMAKE_BINARY_DIR}/junit-pytest-main.xml ${CMAKE_SOURCE_DIR}/tests
 )
 set_tests_properties(pytest-main PROPERTIES ENVIRONMENT LANG=C)
 set_tests_properties(pytest-main PROPERTIES ENVIRONMENT "PYTHONPATH=${_PYTHONPATH}")
