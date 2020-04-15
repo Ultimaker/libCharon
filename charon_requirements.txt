@@ -1,0 +1,8 @@
+typing
+pycodestyle
+pytest
+pytest-cov
+coverage
+lizard
+vulture
+mypy
