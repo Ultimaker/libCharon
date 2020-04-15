@@ -23,7 +23,6 @@ complexity:
     - .jobs_common
     - .build_test_common
   stage: test
-  allow_failure: true
   script:
     - ./ci/complexity_analysis.sh
 
@@ -32,7 +31,6 @@ dead_code:
     - .jobs_common
     - .build_test_common
   stage: test
-  allow_failure: true
   script:
     - ./ci/dead_code_analysis.sh
 
