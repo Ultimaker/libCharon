@@ -8,3 +8,9 @@ Pull requests to MASTER have to be verified by the Embedded Applications team.
 - [Library](docs/library.md)
 - [UFP](docs/ultimaker_format_package.md)
 - [Service](docs/service.md)
+
+## Installation
+```
+python3 setup.py build
+sudo python3 setup.py install
+```
