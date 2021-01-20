@@ -33,7 +33,7 @@ class GCodeSocket(GCodeFile):
         if path.startswith('file://'):
             print('OOOOPS: socket path contains protocol specifier')
             path = path.replace('file://', '')
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(path)
         file_stream = sock.makefile('r', buffering=0)
 
