@@ -47,11 +47,18 @@ class GCodeSocket(GCodeFile):
                 sock.send(b'0x01')
             return line
         file_stream.readline = hacked_readline
+
+        old_close = file_stream.close
+
+        def hacked_close():
+            old_close()
+            sock.close()
+
+        file_stream.close = hacked_close
         return file_stream
 
     def close(self) -> None:
-        pass
-        # assert self.__stream is not None
-        #
-        # self.__stream.close()
-        # self.__sock.close()
+        # self.__stream is set by super's openStream()
+        assert self.__stream is not None
+        # and this calls hacked_close(), which closes both the file stream and the underlying socket
+        self.__stream.close()
