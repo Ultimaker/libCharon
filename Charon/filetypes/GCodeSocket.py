@@ -4,7 +4,7 @@ import socket
 
 from typing import Any, Dict, IO, TextIO, Optional
 
-from Charon.filetypes import GCodeFile
+from Charon.filetypes.GCodeFile import GCodeFile
 
 
 def isAPositiveNumber(a: str) -> bool:
@@ -23,7 +23,7 @@ class GCodeSocket(GCodeFile):
     MaximumHeaderLength = 100
 
     def __init__(self) -> None:
-        super.__init__(self)
+        super().__init__()
         self.__stream = None  # type: Optional[IO[bytes]]
         self.__metadata = {}  # type: Dict[str, Any]
         self.__sock = None
