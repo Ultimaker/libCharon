@@ -15,7 +15,7 @@ extension_to_mime = {
     ".gcode": "text/x-gcode",
     ".gz": "text/x-gcode-gz",
     ".gcode.gz": "text/x-gcode-gz",
-    ".sock": "text/x-gcode-sock"
+    ".sock": "text/x-gcode-socket"
 }
 
 mime_to_implementation = {
