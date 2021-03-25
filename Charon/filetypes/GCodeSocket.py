@@ -85,6 +85,7 @@ class GCodeSocket(GCodeFile):
         if path.startswith('socket://'):
             print('OOOOPS: socket path contains protocol specifier')
             path = path.replace('socket://', '')
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.connect(path)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        sock.connect((path, 1337))
         return SocketFileStream(sock)
