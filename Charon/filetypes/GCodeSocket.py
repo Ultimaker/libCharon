@@ -7,6 +7,7 @@ from io import TextIOBase, BytesIO, SEEK_SET, SEEK_CUR
 from typing import Any, Dict, IO, TextIO, Optional, AnyStr, List
 
 from Charon.filetypes.GCodeFile import GCodeFile
+from urllib.parse import urlparse
 
 
 def isAPositiveNumber(a: str) -> bool:
@@ -82,10 +83,7 @@ class GCodeSocket(GCodeFile):
 
     @staticmethod
     def stream_handler(path: str, mode: str) -> IO:
-        if path.startswith('socket://'):
-            print('OOOOPS: socket path contains protocol specifier')
-            path = path.replace('socket://', '')
+        url = urlparse(path)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        sock.connect((path, 1337))
+        sock.connect((url.hostname, 1337))
         return SocketFileStream(sock)
