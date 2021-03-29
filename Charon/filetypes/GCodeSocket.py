@@ -1,24 +1,17 @@
 # Copyright (c) 2018 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
+#
+# This class is used to read GCode stream that are served
+# dynamically over a TCP connection.
+
 import socket
 import struct
-from io import TextIOBase, BytesIO, SEEK_SET, SEEK_CUR
+from io import BytesIO, SEEK_SET, SEEK_CUR
 
-from typing import Any, Dict, IO, TextIO, Optional, AnyStr, List
+from typing import Any, Dict, IO, Optional, List
 
 from Charon.filetypes.GCodeFile import GCodeFile
 from urllib.parse import urlparse
-
-
-def isAPositiveNumber(a: str) -> bool:
-    try:
-        number = float(repr(a))
-        x = open()
-        return number >= 0
-    except:
-        bool_a = False
-
-    return bool_a
 
 
 class SocketFileStream(BytesIO):
