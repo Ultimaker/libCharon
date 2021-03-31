@@ -32,7 +32,7 @@ class SocketFileStream(BytesIO):
             raise ValueError('Unsupported whence mode in seek: %d' % whence)
         return offset
 
-    def readline(self, limit: Optional[int] = None) -> bytes:
+    def readline(self, _size: int = -1) -> bytes:
         self.__socket.send(struct.pack('>I', self.current_line))
         line = b''
         char = b''
@@ -44,10 +44,10 @@ class SocketFileStream(BytesIO):
         self.current_line += 1
         return line
 
-    def read(self, __size: Optional[int] = None) -> bytes:
+    def read(self, _size: int = -1) -> bytes:
         assert False
 
-    def readlines(self, __hint: Optional[int] = None) -> List[bytes]:
+    def readlines(self, _hint: int = -1) -> List[bytes]:
         assert False
 
     def tell(self) -> int:
