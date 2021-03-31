@@ -44,10 +44,10 @@ class SocketFileStream(BytesIO):
         self.current_line += 1
         return line
 
-    def read(self, __size: Optional[int] = None) -> str:
+    def read(self, __size: Optional[int] = None) -> bytes:
         assert False
 
-    def readlines(self, __hint: Optional[int] = None) -> List[str]:
+    def readlines(self, __hint: Optional[int] = None) -> List[bytes]:
         assert False
 
     def tell(self) -> int:
