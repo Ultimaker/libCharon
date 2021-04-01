@@ -30,7 +30,7 @@ env_check()
 
 run_build()
 {
-    run_in_docker "./build.sh" "${@:-}"
+    run_in_docker "./build.sh" "${@}"
 }
 
 deliver_pkg()
@@ -114,7 +114,7 @@ if [ "${run_linters}" = "yes" ]; then
     run_linters
 fi
 
-run_build "${@:-}"
+run_build "${@}"
 
 if [ "${run_tests}" = "yes" ]; then
     run_tests
