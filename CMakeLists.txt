@@ -12,7 +12,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     set(Python3_VERSION_MINOR ${PYTHON_VERSION_MINOR})
 else()
     # Use FindPython3 for CMake >=3.12
-    find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter)
+    find_package(Python3 ${CURA_PYTHON_VERSION} EXACT REQUIRED COMPONENTS Interpreter)
 endif()
 
 option(INSTALL_SERVICE "Install the Charon DBus-service" ON)
