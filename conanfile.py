@@ -14,12 +14,9 @@ class CharonConan(ConanFile):
     topics = ("conan", "python", "cura", "ufp")
     settings = "os", "compiler", "build_type", "arch"
     exports = "LICENSE"
-    options = {
-        "python_version": "ANY"
-    }
-    default_options = {
-        "python_version": "3.8"
-    }
+    exports_sources = "Charon/*"
+    no_copy_source = True
+
     scm = {
         "type": "git",
         "subfolder": ".",
@@ -27,34 +24,8 @@ class CharonConan(ConanFile):
         "revision": "auto"
     }
 
-    def build_requirements(self):
-        self.build_requires("cmake/[>=3.16.2]")
-
-    def generate(self):
-        cmake = CMakeDeps(self)
-        cmake.generate()
-
-        tc = CMakeToolchain(self)
-        tc.variables["CURA_PYTHON_VERSION"] = self.options.python_version
-        tc.generate()
-
-    _cmake = None
-
-    def configure_cmake(self):
-        if self._cmake:
-            return self._cmake
-        self._cmake = CMake(self)
-        self._cmake.configure()
-        return self._cmake
-
-    def build(self):
-        cmake = self.configure_cmake()
-        cmake.build()
-
     def package(self):
-        cmake = self.configure_cmake()
-        cmake.install()
-        self.copy("*", src = os.path.join("package", "lib", f"python{self.options.python_version}", "site-packages"), dst = "site-packages")
+        self.copy("*.py", src = "Charon", dst = os.path.join("site-packages", "Charon"))
 
     def package_info(self):
         if self.in_local_cache:
