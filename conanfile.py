@@ -58,7 +58,7 @@ class CharonConan(ConanFile):
 
     def package_info(self):
         if self.in_local_cache:
-            self.runenv_info.prepend_path("PYTHONPATH", self.source_folder)
+            self.runenv_info.prepend_path("PYTHONPATH", os.path.join(self.package_folder, "site-packages"))
         else:
             self.runenv_info.prepend_path("PYTHONPATH", str(pathlib.Path(__file__).parent.absolute()))
 
