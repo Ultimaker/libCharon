@@ -5,6 +5,8 @@ import os #To find the resources with test packages.
 import pytest #This module contains unit tests.
 import zipfile #To inspect the contents of the zip archives.
 import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
+from collections import OrderedDict
+from typing import List
 
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention, OPCError  # The class we're testing.
 from Charon.OpenMode import OpenMode #To open archives.
@@ -88,6 +90,29 @@ def test_cycleSetDataGetData(virtual_path: str):
     assert virtual_path in result #The path must be in the dictionary.
     assert result[virtual_path] == test_data #The data itself is still correct.
 
+
+@pytest.mark.parametrize("virtual_path, path_list", [
+    ("/foo/materials", ["/foo/materials", "/[Content_Types].xml", "/_rels/.rels"]),
+    ("/materials", ["/files/materials", "/[Content_Types].xml", "/_rels/.rels"])
+])
+def test_aliases_replacement(virtual_path: str, path_list: List[str]):
+    test_data = b"Let's see if we can read this data back."
+
+    stream = io.BytesIO()
+    package = OpenPackagingConvention()
+    package._aliases = OrderedDict([
+        (r"/materials", "/files/materials")
+    ])
+    package.openStream(stream, mode = OpenMode.WriteOnly)
+    package.setData({virtual_path: test_data})
+    package.close()
+
+    stream.seek(0)
+    package = OpenPackagingConvention()
+    package.openStream(stream)
+    result = package.listPaths()
+
+    assert result == path_list
 
 ##  Tests writing data via a stream to an archive, then reading it back via a
 #   stream.
