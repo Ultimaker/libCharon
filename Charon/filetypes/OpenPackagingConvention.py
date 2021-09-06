@@ -25,7 +25,7 @@ class OpenPackagingConvention(FileInterface):
     _global_metadata_file = "/Metadata/OPC_Global.json"  # Where the global metadata file is.
     _opc_metadata_relationship_type = "http://schemas.ultimaker.org/package/2018/relationships/opc_metadata"  # Unique identifier of the relationship type that relates OPC metadata to files.
     _metadata_prefix = "/metadata"
-    _aliases = OrderedDict([])  # A standard OPC file doest not have default aliases. These must be implemented in inherited classes.
+    _aliases = OrderedDict([])  # type: Dict[str, Any]  # A standard OPC file doest not have default aliases. These must be implemented in inherited classes.
 
     mime_type = "application/x-opc"
 

@@ -6,7 +6,7 @@ import pytest #This module contains unit tests.
 import zipfile #To inspect the contents of the zip archives.
 import xml.etree.ElementTree as ET #To inspect the contents of the OPC-spec files in the archives.
 from collections import OrderedDict
-from typing import List
+from typing import List, Generator
 
 from Charon.filetypes.OpenPackagingConvention import OpenPackagingConvention, OPCError  # The class we're testing.
 from Charon.OpenMode import OpenMode #To open archives.
@@ -16,7 +16,7 @@ from Charon.OpenMode import OpenMode #To open archives.
 #   The package has no resources at all, so reading from it will not find
 #   anything.
 @pytest.fixture()
-def empty_read_opc() -> OpenPackagingConvention:
+def empty_read_opc() -> Generator[OpenPackagingConvention, None, None]:
     result = OpenPackagingConvention()
     result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "empty.opc"), "rb"))
     yield result
@@ -28,7 +28,7 @@ def empty_read_opc() -> OpenPackagingConvention:
 #   The file is called "hello.txt" and contains the text "Hello world!" encoded
 #   in UTF-8.
 @pytest.fixture()
-def single_resource_read_opc() -> OpenPackagingConvention:
+def single_resource_read_opc() -> Generator[OpenPackagingConvention, None, None]:
     result = OpenPackagingConvention()
     result.openStream(open(os.path.join(os.path.dirname(__file__), "resources", "hello.opc"), "rb"))
     yield result
@@ -40,7 +40,7 @@ def single_resource_read_opc() -> OpenPackagingConvention:
 #   Note that you can't really test the output of the write since you don't have
 #   the stream it writes to.
 @pytest.fixture()
-def empty_write_opc() -> OpenPackagingConvention:
+def empty_write_opc() -> Generator[OpenPackagingConvention, None, None]:
     result = OpenPackagingConvention()
     result.openStream(io.BytesIO(), "application/x-opc", OpenMode.WriteOnly)
     yield result
