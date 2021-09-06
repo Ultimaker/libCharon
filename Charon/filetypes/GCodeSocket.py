@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 
 class SocketFileStream(BytesIO):
-    def __init__(self, sock_object: socket.socket):
+    def __init__(self, sock_object: socket.socket) -> None:
         super().__init__()
         self.current_line = 0
         self.__socket = sock_object
@@ -53,7 +53,7 @@ class SocketFileStream(BytesIO):
     def tell(self) -> int:
         raise NotImplementedError("Only readline has been implemented")
 
-    def close(self):
+    def close(self) -> None:
         self.__socket.close()
 
     def __iter__(self):
