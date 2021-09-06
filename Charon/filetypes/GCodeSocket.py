@@ -45,13 +45,13 @@ class SocketFileStream(BytesIO):
         return line
 
     def read(self, _size: int = -1) -> bytes:
-        assert False
+        raise NotImplementedError("Only readline has been implemented")
 
     def readlines(self, _hint: int = -1) -> List[bytes]:
-        assert False
+        raise NotImplementedError("Only readline has been implemented")
 
     def tell(self) -> int:
-        assert False
+        raise NotImplementedError("Only readline has been implemented")
 
     def close(self):
         self.__socket.close()
