@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Ultimaker B.V.
+# Copyright (c) 2021 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
 #
 # This class is used to read GCode stream that are served
