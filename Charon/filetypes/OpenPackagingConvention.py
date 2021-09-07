@@ -299,7 +299,7 @@ class OpenPackagingConvention(FileInterface):
         # Replace all aliases.
         for regex, replacement in self._aliases.items():
             if regex.startswith("/"):
-                expression = rf"^{regex}"
+                expression = r"^" + regex
             else:
                 expression = regex
             virtual_path = re.sub(expression, replacement, virtual_path)
