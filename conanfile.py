@@ -6,7 +6,7 @@ from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
 
 class CharonConan(ConanFile):
     name = "Charon"
-    version = "4.10.0"
+    version = "4.11.0"
     license = "LGPL-3.0"
     author = "Ultimaker B.V."
     url = "https://github.com/Ultimaker/libCharon"
