@@ -96,7 +96,7 @@ class GCodeFile(FileInterface):
     @staticmethod
     def __insertKeyValuePair(
         metadata: Dict[str, Any],
-        key_elements: Union[str, List[str]],
+        key_elements: Any,
         value: Any
     ) -> Any:
         if not key_elements:
@@ -151,7 +151,7 @@ class GCodeFile(FileInterface):
     #             must exist on the location of that key element
     # @return True if the key is available and not empty
     @staticmethod
-    def __isAvailable(metadata: Dict[str, Any], keys: List[str]) -> None:
+    def __isAvailable(metadata: Dict[str, Any], keys: List[Any]) -> bool:
         if not keys:
             return True
 
