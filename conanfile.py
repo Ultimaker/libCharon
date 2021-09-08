@@ -13,6 +13,8 @@ class CharonConan(ConanFile):
     description = "File metadata and streaming library"
     topics = ("conan", "python", "cura", "ufp")
     settings = "os", "compiler", "build_type", "arch"
+    revision_mode = "scm"
+    build_policy = "missing"
     exports = "LICENSE"
     exports_sources = "Charon/*"
     no_copy_source = True
