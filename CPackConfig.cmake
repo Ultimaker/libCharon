@@ -1,5 +1,5 @@
 set(CPACK_PACKAGE_VENDOR "Ultimaker")
-set(CPACK_PACKAGE_CONTACT "Ruben Dulek <r.dulek@ultimaker.com>")
+set(CPACK_PACKAGE_CONTACT "Ultimaker <plugins@ultimaker.com>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Library to read and write 3D printer related files including G-Code and Ultimaker File Package.")
 set(CPACK_PACKAGE_VERSION_MAJOR 1)
 set(CPACK_PACKAGE_VERSION_MINOR 0)
