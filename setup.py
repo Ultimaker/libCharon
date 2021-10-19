@@ -8,7 +8,7 @@ setup(
     version = "1.0",	
     description = "Library to read and write file packages.",	
     author = "Ultimaker",	
-    author_email = "r.dulek@ultimaker.com",	
+    author_email = "plugins@ultimaker.com",
     url = "https://github.com/Ultimaker/libCharon",	
     packages = ["Charon", "Charon.Client", "Charon.Service", "Charon.filetypes"]	
 )
