@@ -17,6 +17,7 @@ if os.environ.get("CHARON_DEBUG", "0") == "1":
     config["level"] = logging.DEBUG
 else:
     config["level"] = logging.WARNING
+config["format"] = "%(levelname).3s - %(name)s:%(lineno)s - %(message)s"
 logging.basicConfig(**config)
 
 _loop = GLib.MainLoop()
