@@ -1,10 +1,8 @@
-
-import os
 import logging
-
-import dbus.service
-import dbus.mainloop.glib
+import os
 from typing import Dict, Any
+
+import dbus.mainloop.glib
 from gi.repository import GLib
 
 import Charon.Service
