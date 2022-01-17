@@ -2,9 +2,6 @@ import os
 import pathlib
 
 from conans import ConanFile
-from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
-from conan.tools.layout import cmake_layout
-from conan.tools.files.packager import AutoPackager
 
 
 required_conan_version = ">=1.42"
@@ -12,7 +9,7 @@ required_conan_version = ">=1.42"
 
 class CharonConan(ConanFile):
     name = "charon"
-    version = "4.13.0-alpha+001"
+    version = "5.0.0"
     license = "LGPL-3.0"
     author = "Ultimaker B.V."
     url = "https://github.com/Ultimaker/libCharon"
@@ -24,6 +21,8 @@ class CharonConan(ConanFile):
     default_user = "ultimaker"
     default_channel = "testing"
     exports = "LICENSE*"
+    python_requires = ["UltimakerBase/0.1@ultimaker/testing"]
+    python_requires_extend = "UltimakerBase.UltimakerBase"
     no_copy_source = True
 
     scm = {
