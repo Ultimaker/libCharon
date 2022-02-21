@@ -1,8 +1,5 @@
-# Copyright (c) 2018 Ultimaker B.V.
+# Copyright (c) 2021 Ultimaker B.V.
 # libCharon is released under the terms of the LGPLv3 or higher.
-#
-# This class is used to read GCode stream that are served
-# dynamically over a TCP connection.
 
 import socket
 import struct
@@ -14,8 +11,10 @@ from Charon.filetypes.GCodeFile import GCodeFile
 from urllib.parse import urlparse
 
 
+## This class is used to read GCode stream that are served
+#  dynamically over a TCP connection.
 class SocketFileStream(BytesIO):
-    def __init__(self, sock_object: socket.socket):
+    def __init__(self, sock_object: socket.socket) -> None:
         super().__init__()
         self.current_line = 0
         self.__socket = sock_object
@@ -45,15 +44,15 @@ class SocketFileStream(BytesIO):
         return line
 
     def read(self, _size: int = -1) -> bytes:
-        assert False
+        raise NotImplementedError("Only readline has been implemented")
 
     def readlines(self, _hint: int = -1) -> List[bytes]:
-        assert False
+        raise NotImplementedError("Only readline has been implemented")
 
     def tell(self) -> int:
-        assert False
+        raise NotImplementedError("Only readline has been implemented")
 
-    def close(self):
+    def close(self) -> None:
         self.__socket.close()
 
     def __iter__(self):
