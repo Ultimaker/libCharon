@@ -21,15 +21,7 @@ endif()
 option(INSTALL_SERVICE "Install the Charon DBus-service" ON)
 option(INSTALL_CLIENT "Install the Charon Client library" ON)
 
-set(_excludes PATTERN __pycache__ EXCLUDE)
-if(NOT INSTALL_SERVICE)
-    set(_excludes ${_excludes} PATTERN "Service" EXCLUDE)
-endif()
-if(NOT INSTALL_CLIENT)
-    set(_excludes ${_excludes} PATTERN "Client" EXCLUDE)
-endif()
-
-install(DIRECTORY Charon DESTINATION ${Python_SITELIB_LOCAL} ${_excludes})
+install(DIRECTORY Charon DESTINATION "${Python_SITELIB_LOCAL}")
 
 if(INSTALL_SERVICE)
     install(FILES service/charon.service DESTINATION lib/systemd/system)
