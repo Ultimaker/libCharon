@@ -1,3 +1,6 @@
+# For MSVC flags, will be ignored on non-Windows OS's and this project in general. Only needed for cura-build-environment.
+cmake_policy(SET CMP0091 NEW)
+
 project(charon NONE)
 cmake_minimum_required(VERSION 3.18)
 
