@@ -25,7 +25,7 @@ style:
     - .build_test_common
   stage: test
   script:
-    - git fetch origin master:master
+    - git fetch origin master/s-line:master/s-line
     - ./ci/style_analysis.sh
 
 mypy:
@@ -34,7 +34,7 @@ mypy:
     - .build_test_common
   stage: test
   script:
-    - git fetch origin master:master
+    - git fetch origin master/s-line:master/s-line
     - ./ci/mypy.sh
 
 pytest:
