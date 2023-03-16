@@ -22,6 +22,7 @@ class GCodeFile(FileInterface):
     mime_type = "text/x-gcode"
 
     MaximumHeaderLength = 100
+    SkipHeaderValidation = False
 
     def __init__(self) -> None:
         self.__stream = None  # type: Optional[IO[bytes]]
@@ -68,9 +69,13 @@ class GCodeFile(FileInterface):
 
             flavor = metadata.get("flavor", None)
             if flavor == "Griffin":
-                if metadata["header_version"] != "0.1":
+                if metadata["header_version"] != "0.1" and not SkipHeaderValidation:
                     raise InvalidHeaderException("Unsupported Griffin header version: {0}".format(metadata["header_version"]))
-                GCodeFile.__validateGriffinHeader(metadata)
+                try:
+                    GCodeFile.__validateGriffinHeader(metadata)
+                except InvalidHeaderException as ex:
+                    if not GCodeFile.SkipHeaderValidation:
+                        raise ex
                 GCodeFile.__cleanGriffinHeader(metadata)
             elif flavor == "UltiGCode":
                 metadata["machine_type"] = "ultimaker2"
@@ -195,7 +200,25 @@ class GCodeFile(FileInterface):
             raise InvalidHeaderException("PRINT.SIZE.MIN.[x,y,z] must be set. Ensure all three are defined.")
         if not GCodeFile.__isAvailable(metadata, ["print", "size", "max", ["x", "y", "z"]]):
             raise InvalidHeaderException("PRINT.SIZE.MAX.[x,y,z] must be set. Ensure all three are defined.")
-        
+               
+        # Validate extruder train, part I
+        for index in range(0, 15):
+            index_str = str(index)
+            if GCodeFile.__isAvailable(metadata, ["extruder_train", index_str]):
+
+                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "nozzle", "diameter"]) or \
+                    not isAPositiveNumber(metadata["extruder_train"][index_str]["nozzle"]["diameter"]):
+                        raise InvalidHeaderException(
+                            "extruder_train.{}.nozzle.diameter must be defined and be a positive real".format(index))
+       
+                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "initial_temperature"]) or \
+                    not isAPositiveNumber(metadata["extruder_train"][index_str]["initial_temperature"]):
+                        raise InvalidHeaderException(
+                            "extruder_train.{}.initial_temperature must be defined and positive".format(index))
+
+        # Put those closest to 'optional' interpretation last,
+        #   so most of the meta-data is still processed when SkipHeaderValidation is on.
+
         # Validate print time
         print_time = -1
 
@@ -208,26 +231,15 @@ class GCodeFile(FileInterface):
 
         if print_time < 0:
             raise InvalidHeaderException("Print Time should be a positive integer")
-       
-        # Validate extruder train
-        for index in range(0, 10):
+
+        # Validate extruder train, part II
+        for index in range(0, 15):
             index_str = str(index)
             if GCodeFile.__isAvailable(metadata, ["extruder_train", index_str]):
-
-                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "nozzle", "diameter"]) or \
-                    not isAPositiveNumber(metadata["extruder_train"][index_str]["nozzle"]["diameter"]):
-                        raise InvalidHeaderException(
-                            "extruder_train.{}.nozzle.diameter must be defined and be a positive real".format(index))
-       
                 if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "material", "volume_used"]) or \
                     not isAPositiveNumber(metadata["extruder_train"][index_str]["material"]["volume_used"]):
                         raise InvalidHeaderException(
                             "extruder_train.{}.material.volume_used must be defined and positive".format(index))
-
-                if not GCodeFile.__isAvailable(metadata, ["extruder_train", index_str, "initial_temperature"]) or \
-                    not isAPositiveNumber(metadata["extruder_train"][index_str]["initial_temperature"]):
-                        raise InvalidHeaderException(
-                            "extruder_train.{}.initial_temperature must be defined and positive".format(index))
 
     def getStream(self, virtual_path: str) -> IO[bytes]:
         assert self.__stream is not None
