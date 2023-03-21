@@ -69,7 +69,7 @@ class GCodeFile(FileInterface):
 
             flavor = metadata.get("flavor", None)
             if flavor == "Griffin":
-                if not SkipHeaderValidation and metadata["header_version"] != "0.1":
+                if not GCodeFile.SkipHeaderValidation and metadata["header_version"] != "0.1":
                     raise InvalidHeaderException("Unsupported Griffin header version: {0}".format(metadata["header_version"]))
                 try:
                     GCodeFile.__validateGriffinHeader(metadata)
