@@ -11,6 +11,7 @@ BusName=nl.ultimaker.charon
 User=ultimaker
 Type=simple
 Restart=always
+SyslogIdentifier=Charon
 
 [Install]
 WantedBy=griffin.target
