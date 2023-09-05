@@ -18,14 +18,30 @@ log = logging.getLogger(__name__)
 #   Note: This class does not currently use type hinting since type hints,
 #   dbus-python decorators and Python 3.4 do not mix well.
 class FileService(dbus.service.Object):
+
     def __init__(self, dbus_bus: dbus.Bus) -> None:
+        self.__dbus_bus = dbus_bus
         super().__init__(
-            bus_name = dbus.service.BusName("nl.ultimaker.charon", dbus_bus),
-            object_path = "/nl/ultimaker/charon"
+            conn=self.__dbus_bus,
+            object_path="/nl/ultimaker/charon",
+            # Postpone claiming a well-known name until the class is fully initialized.
+            # If we do this right now, the DBus service will be published to the
+            # bus in an incomplete state, and clients connecting early on may
+            # encounter, for instance, emptry introspection data on this service.
+            bus_name=None,
         )
+        self.__bus_name = None
 
         log.debug("FileService initialized")
         self.__queue = RequestQueue.RequestQueue()
+
+    ## Publish the fully initialized DBus service to the bus
+    def publish(self) -> None:
+        # Store a reference to the BusName for as long as the DBus service is alive;
+        # otherwise it gets GC'd, and the well-known name gets released again.
+        # Taking ownership of this well-known name is also the trigger for other services
+        # to notice that we are alive & available.
+        self.__bus_name = dbus.service.BusName("nl.ultimaker.charon", self.__dbus_bus)
 
     ##  Start a request for data from a file.
     #

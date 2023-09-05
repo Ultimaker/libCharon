@@ -31,5 +31,6 @@ else:
     _bus = dbus.SystemBus(private=True, mainloop=dbus.mainloop.glib.DBusGMainLoop())
 
 _service = Charon.Service.FileService(_bus)
+_service.publish()
 
 _loop.run()
