@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ARCH="armhf"
 
@@ -42,7 +42,7 @@ usage()
     echo "NOTE: This script requires root permissions to run."
 }
 
-while getopts ":hc" options; do
+while getopts ":hcs" options; do
     case "${options}" in
     c)
         cleanup
@@ -51,6 +51,9 @@ while getopts ":hc" options; do
     h)
         usage
         exit 0
+        ;;
+    s)
+        # Ignore for compatibility with other build scripts
         ;;
     :)
         echo "Option -${OPTARG} requires an argument."

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2019 Ultimaker B.V.
 #
@@ -19,7 +19,7 @@ run_linters="yes"
 run_tests="yes"
 
 # Run the make_docker.sh script here, within the context of the build_for_ultimaker.sh script
-. ./make_docker.sh
+. ./make_docker.sh ""
 
 env_check()
 {
@@ -71,7 +71,7 @@ usage()
     echo "  -t   Skip tests"
 }
 
-while getopts ":chlt" options; do
+while getopts ":chlst" options; do
     case "${options}" in
     c)
         run_env_check="no"
@@ -85,6 +85,9 @@ while getopts ":chlt" options; do
         ;;
     t)
         run_tests="no"
+        ;;
+    s)
+        # Ignore for compatibility with other build scripts
         ;;
     :)
         echo "Option -${OPTARG} requires an argument."
