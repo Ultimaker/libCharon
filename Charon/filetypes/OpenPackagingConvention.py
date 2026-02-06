@@ -4,7 +4,7 @@ from collections import OrderedDict  # To specify the aliases in order.
 from io import BytesIO
 import json  # The metadata format.
 import re  # To find the path aliases.
-from typing import Any, Dict, List, IO, Optional
+from typing import Any, Dict, List, IO
 import xml.etree.ElementTree as ET  # For writing XML manifest files.
 import zipfile
 
@@ -15,8 +15,8 @@ from Charon.WriteOnlyError import WriteOnlyError  # To be thrown when trying to 
 from Charon.filetypes.GCodeFile import GCodeFile  # Required for fallback G-Code header parsing.
 
 
-##  A container file type that contains multiple 3D-printing related files that
-#   belong together.
+#  A container file type that contains multiple 3D-printing related files that
+#  belong together.
 class OpenPackagingConvention(FileInterface):
     # Some constants related to this format.
     _xml_header = ET.ProcessingInstruction("xml",
@@ -29,7 +29,7 @@ class OpenPackagingConvention(FileInterface):
 
     mime_type = "application/x-opc"
 
-    ##  Initialises the fields of this class.
+    #  Initialises the fields of this class.
     def __init__(self) -> None:
         self._mode = None  # type: Optional[OpenMode]        # Whether we're in read or write mode.
         self._stream = None  # type: Optional[IO[bytes]]       # The currently open stream.
@@ -214,7 +214,7 @@ class OpenPackagingConvention(FileInterface):
         self._zipfile = zipfile.ZipFile(self._stream, self._mode.value, compression=zipfile.ZIP_DEFLATED, allowZip64=True)
         return result
 
-    ##  Adds a new content type to the archive.
+    #  Adds a new content type to the archive.
     #   \param extension The file extension of the type
     def addContentType(self, extension: str, mime_type: str) -> None:
         if not self._stream:
@@ -230,7 +230,7 @@ class OpenPackagingConvention(FileInterface):
 
         ET.SubElement(self._content_types_element, "Default", Extension=extension, ContentType=mime_type)
 
-    ##  Adds a relation concerning a file type.
+    #  Adds a relation concerning a file type.
     #   \param virtual_path The target file that the relation is about.
     #   \param relation_type The type of the relation. Any reader of OPC should
     #   be able to understand all types that are added via relations.
@@ -267,7 +267,7 @@ class OpenPackagingConvention(FileInterface):
         # Create the element itself.
         ET.SubElement(self._relations[origin], "Relationship", Target=virtual_path, Type=relation_type, Id=unique_name)
 
-    ##  Figures out if a resource exists in the archive.
+    #  Figures out if a resource exists in the archive.
     #
     #   This will not match on metadata, only on normal resources.
     #   \param virtual_path: The path to test for.
@@ -287,7 +287,7 @@ class OpenPackagingConvention(FileInterface):
                     return True
         return False
 
-    ##  Dereference the aliases for OPC files.
+    #  Dereference the aliases for OPC files.
     #
     #   This also adds a slash in front of every virtual path if it has no slash
     #   yet, to allow referencing virtual paths with or without the initial
@@ -306,7 +306,7 @@ class OpenPackagingConvention(FileInterface):
 
         return virtual_path
 
-    ##  Convert the resource name inside the zip to a virtual path as this
+    #  Convert the resource name inside the zip to a virtual path as this
     #   library specifies it should be.
     #   \param zip_name The name in the zip file according to zipfile module.
     #   \return The virtual path of that resource.
@@ -315,7 +315,7 @@ class OpenPackagingConvention(FileInterface):
             return "/" + zip_name
         return zip_name
 
-    ##  Resize an image to the specified dimensions.
+    #  Resize an image to the specified dimensions.
     #
     #   For now you may assume that the input image is PNG formatted.
     #   \param virtual_path The virtual path pointing to an image in the
@@ -342,9 +342,9 @@ class OpenPackagingConvention(FileInterface):
             # TODO: Try other image loaders.
             raise  # Raise import error again if we find no other image loaders.
 
-    #### Below follow some methods to read/write components of the archive. ####
+    # Below follow some methods to read/write components of the archive.
 
-    ##  When loading a file, load the relations from the archive.
+    #  When loading a file, load the relations from the archive.
     #
     #   If the relations are missing, empty elements are created.
     def _readRels(self) -> None:
@@ -374,12 +374,12 @@ class OpenPackagingConvention(FileInterface):
             origin_filename = virtual_path[virtual_path.rfind("/") + 1:-len(
                 ".rels")]  # Just the filename (no path) and without .rels extension.
             origin_directory = directory[
-                               :-len("/_rels")]  # The parent path. We already know it's in the _rels directory.
+                :-len("/_rels")]  # The parent path. We already know it's in the _rels directory.
             origin = (origin_directory + "/" if (origin_directory != "") else "") + origin_filename
 
             self._relations[origin] = document
 
-    ##  At the end of writing a file, write the relations to the archive.
+    #  At the end of writing a file, write the relations to the archive.
     #
     #   This should be written at the end of writing an archive, when all
     #   relations are known.
@@ -403,7 +403,7 @@ class OpenPackagingConvention(FileInterface):
             self._indent(element)
             self._zipfile.writestr(relations_file, ET.tostring(self._xml_header) + b"\n" + ET.tostring(element))
 
-    ##  When loading a file, load the content types from the archive.
+    #  When loading a file, load the content types from the archive.
     #
     #   If the content types are missing, an empty element is created.
     def _readContentTypes(self) -> None:
@@ -428,7 +428,7 @@ class OpenPackagingConvention(FileInterface):
                 ET.SubElement(self._content_types_element, "Default", Extension="rels",
                               ContentType="application/vnd.openxmlformats-package.relationships+xml")
 
-    ##  At the end of writing a file, write the content types to the archive.
+    #  At the end of writing a file, write the content types to the archive.
     #
     #   This should be written at the end of writing an archive, when all
     #   content types are known.
@@ -440,7 +440,7 @@ class OpenPackagingConvention(FileInterface):
         self._zipfile.writestr(self._content_types_file,
                                ET.tostring(self._xml_header) + b"\n" + ET.tostring(self._content_types_element))
 
-    ##  When loading a file, read its metadata from the archive.
+    #  When loading a file, read its metadata from the archive.
     #
     #   This depends on the relations! Read the relations first!
     def _readMetadata(self) -> None:
@@ -452,7 +452,7 @@ class OpenPackagingConvention(FileInterface):
                 if "Target" not in relationship.attrib or "Type" not in relationship.attrib:  # These two are required, and we actually need them here. Better ignore this one.
                     continue
                 if relationship.attrib[
-                    "Type"] != self._opc_metadata_relationship_type:  # Not interested in this one. It's not metadata that we recognise.
+                        "Type"] != self._opc_metadata_relationship_type:  # Not interested in this one. It's not metadata that we recognise.
                     continue
                 metadata_file = relationship.attrib["Target"]
                 if metadata_file not in self._zipfile.namelist():  # The metadata file is unknown to us.
@@ -477,7 +477,7 @@ class OpenPackagingConvention(FileInterface):
             header_data = GCodeFile.parseHeader(gcode_stream, prefix="/3D/model.gcode/")
             self._metadata.update(header_data)
 
-    ##  Reads a single node of metadata from a JSON document (recursively).
+    #  Reads a single node of metadata from a JSON document (recursively).
     #   \param element The node in the JSON document to read.
     #   \param current_path The path towards the current document.
     def _readMetadataElement(self, element: Dict[str, Any], current_path: str) -> None:
@@ -487,7 +487,7 @@ class OpenPackagingConvention(FileInterface):
             else:
                 self._metadata[current_path + "/" + key] = value
 
-    ##  At the end of writing a file, write the metadata to the archive.
+    #  At the end of writing a file, write the metadata to the archive.
     #
     #   This should be written at the end of writing an archive, when all
     #   metadata is known.
@@ -522,7 +522,7 @@ class OpenPackagingConvention(FileInterface):
             except OPCError:  # User may already have defined this content type himself.
                 pass
 
-    ##  Writes one dictionary of metadata to a JSON file.
+    #  Writes one dictionary of metadata to a JSON file.
     #   \param metadata The metadata dictionary to write.
     #   \param file_name The virtual path of the JSON file to write to.
     def _writeMetadataToFile(self, metadata: Dict[str, Any], file_name: str) -> None:
@@ -556,12 +556,12 @@ class OpenPackagingConvention(FileInterface):
 
         self._zipfile.writestr(file_name, json.dumps(document, sort_keys=True, indent=4))
 
-    ##  Helper method to write data directly into an aliased path.
+    #  Helper method to write data directly into an aliased path.
     def _writeToAlias(self, path_alias: str, package_filename: str, file_data: bytes) -> None:
         stream = self.getStream("{}/{}".format(path_alias, package_filename))
         stream.write(file_data)
 
-    ##  Helper method to ensure a relationship exists.
+    #  Helper method to ensure a relationship exists.
     # Creates the relationship if it does not exists, ignores an OPC error if it already does.
     def _ensureRelationExists(self, virtual_path: str, relation_type: str, origin: str) -> None:
         try:
@@ -570,7 +570,7 @@ class OpenPackagingConvention(FileInterface):
         except OPCError:
             pass
 
-    ##  Helper function for pretty-printing XML because ETree is stupid.
+    #  Helper function for pretty-printing XML because ETree is stupid.
     #
     #   Source: https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python
     def _indent(self, elem: ET.Element, level: int = 0) -> None:
@@ -589,6 +589,6 @@ class OpenPackagingConvention(FileInterface):
                 elem.tail = i
 
 
-##  Error to raise that something went wrong with reading/writing a OPC file.
+#  Error to raise that something went wrong with reading/writing a OPC file.
 class OPCError(Exception):
     pass  # This is just a marker class.
