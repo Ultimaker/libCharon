@@ -47,7 +47,7 @@ class OpenPackagingConvention(FileInterface):
                    mode: OpenMode = OpenMode.ReadOnly) -> None:
         self._mode = mode
         self._stream = stream  # A copy in case we need to rewind for toByteArray. We should mostly be reading via self._zipfile.
-        self._zipfile = zipfile.ZipFile(self._stream, self._mode.value, compression=zipfile.ZIP_DEFLATED)
+        self._zipfile = zipfile.ZipFile(self._stream, self._mode.value, compression=zipfile.ZIP_DEFLATED, allowZip64=True)
 
         self._readContentTypes()  # Load or create the content types element.
         self._readRels()  # Load or create the relations.
@@ -211,7 +211,7 @@ class OpenPackagingConvention(FileInterface):
         self._stream.seek(offset)
         result = self._stream.read(count)
 
-        self._zipfile = zipfile.ZipFile(self._stream, self._mode.value, compression=zipfile.ZIP_DEFLATED)
+        self._zipfile = zipfile.ZipFile(self._stream, self._mode.value, compression=zipfile.ZIP_DEFLATED, allowZip64=True)
         return result
 
     ##  Adds a new content type to the archive.
