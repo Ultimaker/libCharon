@@ -4,7 +4,7 @@ from collections import OrderedDict  # To specify the aliases in order.
 from io import BytesIO
 import json  # The metadata format.
 import re  # To find the path aliases.
-from typing import Any, Dict, List, IO
+from typing import Any, Dict, List, IO, Optional  # noqa: F401
 import xml.etree.ElementTree as ET  # For writing XML manifest files.
 import zipfile
 
