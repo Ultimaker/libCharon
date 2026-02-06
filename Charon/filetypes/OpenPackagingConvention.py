@@ -350,8 +350,10 @@ class OpenPackagingConvention(FileInterface):
     def _readRels(self) -> None:
         assert self._zipfile is not None
 
-        self._relations[""] = ET.Element("Relationships",
-                                         xmlns="http://schemas.openxmlformats.org/package/2006/relationships")  # There must always be a global relationships document.
+        self._relations[""] = ET.Element(
+            "Relationships",
+            xmlns="http://schemas.openxmlformats.org/package/2006/relationships"
+        )  # There must always be a global relationships document.
 
         # Below is some parsing of paths and extensions.
         # Normally you'd use os.path for this. But this is platform-dependent.
@@ -412,8 +414,10 @@ class OpenPackagingConvention(FileInterface):
             if content_types_element:
                 self._content_types_element = content_types_element
         if not self._content_types_element:
-            self._content_types_element = ET.Element("Types",
-                                                     xmlns="http://schemas.openxmlformats.org/package/2006/content-types")
+            self._content_types_element = ET.Element(
+                "Types",
+                xmlns="http://schemas.openxmlformats.org/package/2006/content-types"
+            )
         # If there is no type for the .rels file, create it.
         if self._mode != OpenMode.ReadOnly:
             for type_element in self._content_types_element.iterfind(
