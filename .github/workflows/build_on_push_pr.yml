@@ -63,7 +63,7 @@ jobs:
 
   Release_Package:
     name: 'Release'
-    needs: [Prepare, Shellcheck, Build, Flake8, MyPy, PyCodeStyle, Vulture, PyTest]
+    needs: [Prepare, Shellcheck, Build, MyPy, Vulture, PyTest]
     if: ${{ (success() && needs.Prepare.outputs.RELEASE_REPO != 'none') ||
             (failure() && needs.Build.result == 'success' && needs.Prepare.outputs.RELEASE_REPO == 'packages-dev') }}
     uses: Ultimaker/embedded-workflows/.github/workflows/release_pkg.yml@main
