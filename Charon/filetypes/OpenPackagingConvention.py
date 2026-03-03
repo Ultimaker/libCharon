@@ -192,7 +192,7 @@ class OpenPackagingConvention(FileInterface):
 
         self._last_open_path = virtual_path
         try:  # If it happens to match some existing PNG file, we have to rescale that file and return the result.
-            self._last_open_stream = self._zipfile.open(virtual_path, self._mode.value)
+            self._last_open_stream = self._zipfile.open(virtual_path, self._mode.value, force_zip64=True)
         except RuntimeError:  # Python 3.5 and before couldn't open resources in the archive in write mode.
             self._last_open_stream = BytesIO()
             self._open_bytes_streams[virtual_path] = self._last_open_stream  # Save this for flushing later.
