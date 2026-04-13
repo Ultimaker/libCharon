@@ -3,7 +3,7 @@ flake8-polyfill==1.0.2
 flake8-quotes==3.3.1
 mypy==0.910
 pep8-naming==0.12.1
-pytest==6.2.5
+pytest==9.0.3
 pytest-cov==3.0.0
 pytest-mock==1.10.4
 pytest-raises==0.11
