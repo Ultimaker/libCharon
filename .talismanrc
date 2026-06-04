@@ -1,0 +1,9 @@
+fileignoreconfig:
+  - filename: .github/copilot-instructions/accessibility-auditor.instructions.md
+    checksum: 75f83341ee386159939d2543859b5c85a93bc4a0be9d7a2a3a1144993d831048
+  - filename: .github/copilot-instructions.md
+    checksum: 0b069062157eb330296b9b2c2e4e43e8bf2e8e8b1b9b0b993368582c8de8e9c7
+  - filename: .github/copilot-instructions/code-reviewer.instructions.md
+    checksum: 1e02dc0220352d02e9d44b994b76af38a769aaf7092d6d83cac0966b549a88e0
+  - filename: AGENTS.md
+    checksum: 0ce0be0b2f2edf2986d318eabb979aef1fcd0f73868f6ae94477e36b09fa6555
