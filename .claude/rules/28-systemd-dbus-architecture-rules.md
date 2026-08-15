@@ -1,0 +1,1 @@
+../../.agents/rules/28-systemd-dbus-architecture-rules.md
