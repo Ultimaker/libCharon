@@ -1,0 +1,1 @@
+../../.agents/agents/ecosystem_contract_investigator/agent.md

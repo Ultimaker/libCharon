@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "python3 .agents/hooks/pretool_guard.py",
+        "timeoutSec": 15
+      },
+
+      {
+        "type": "command",
+        "bash": "python3 .agents/hooks/block_name_matched_kill.py",
+        "timeoutSec": 10
+      },
+
+      {
+        "type": "command",
+        "bash": "python3 .agents/hooks/suggest-skills.py --pre-edit",
+        "timeoutSec": 15
+      }
+
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "bash .agents/hooks/post-edit-linter.sh",
+        "timeoutSec": 60
+      }
+
+    ]
+  }
+}

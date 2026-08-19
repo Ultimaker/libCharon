@@ -1,0 +1,1 @@
+../../.agents/rules/29-gcode-architecture-rules.md

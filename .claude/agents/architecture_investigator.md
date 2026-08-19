@@ -1,0 +1,1 @@
+../../.agents/agents/architecture_investigator/agent.md

@@ -1,0 +1,392 @@
+{
+  "repository": {
+    "name": "libCharon",
+    "source": "git-remote:origin"
+  },
+  "stacks": {
+    "has_frontend": false,
+    "has_cloud": false,
+    "has_cpp": false,
+    "has_infra": false,
+    "has_qml": false,
+    "has_freertos": false,
+    "has_debian": false,
+    "has_materials": false
+  },
+  "git": {
+    "commits_sampled": 200,
+    "jira_keys": {
+      "SEM": 6,
+      "CES": 1
+    },
+    "branch_jira_key": "UC",
+    "history_jira_key": "SEM",
+    "dominant_jira_key": "UC",
+    "semantic_prefix_ratio": 0.0
+  },
+  "base_branch": "main",
+  "submodules": [
+    "ci"
+  ],
+  "ci": {
+    "providers": [
+      "github-actions"
+    ],
+    "workflows": [
+      ".github/workflows/build_on_push_pr.yml"
+    ],
+    "signals": {
+      "tests": true,
+      "lint": true,
+      "build": false
+    }
+  },
+  "tests": {
+    "frameworks": [
+      "ctest",
+      "pytest"
+    ],
+    "commands": [
+      "pytest -x -q",
+      "ctest --test-dir build --output-on-failure",
+      "./run_pytest.sh"
+    ]
+  },
+  "linters": {
+    "ruff": false,
+    "black": false,
+    "flake8": false,
+    "mypy": true,
+    "eslint": false,
+    "prettier": false,
+    "stylelint": false,
+    "clang_format": false,
+    "clang_tidy": false,
+    "pre_commit_config": false
+  },
+  "lint_scripts": [],
+  "protected_branches": [
+    "main",
+    "rc_8.4"
+  ],
+  "cpp": {},
+  "c": {},
+  "python": {
+    "sampled_files": 27,
+    "total_defs": 149,
+    "typed_def_ratio": 0.66,
+    "async_def_ratio": 0.0,
+    "frameworks": [
+      "dbus"
+    ],
+    "logging_over_print": true,
+    "has_secret_string": false,
+    "prefers_pathlib": false,
+    "python_requires": null,
+    "string_format_style": ".format()",
+    "string_format_counts": {
+      "f-strings": 0,
+      ".format()": 24,
+      "%-formatting": 3
+    },
+    "docstring_style": null
+  },
+  "ui": {
+    "has_ui": false,
+    "design_md_exists": false,
+    "token_sources": [],
+    "uses_stardust": false
+  },
+  "pr_template": {
+    "exists": false,
+    "path": ".github/PULL_REQUEST_TEMPLATE.md",
+    "has_why": false,
+    "has_what": false,
+    "has_how": false,
+    "content": "Jira ticket: [{{ jira_example }}](https://ultimaker.atlassian.net/browse/{{ jira_example }})\n\n## Why\n<!-- Describe the problem, user request, or business context driving this change -->\n\n## What\n<!-- High-level summary of the changes introduced in this PR -->\n\n## How\n<!-- Technical & architectural implementation details, design decisions, and changed components -->\n\n## Verification & Validation (V&V)\n<!-- Detail how changes were tested: unit tests, integration tests, E2E visual checks, screenshots/recordings -->\n- [ ] Automated unit/integration tests pass\n- [ ] Pre-commit static checks pass cleanly on this branch's diff (`scripts/verify_and_create_pr.sh`)\n- [ ] Visual evidence attached for UI changes (if applicable)\n\n## PR Checklist\n- [ ] Initiating developer reviewed AI-generated code\n- [ ] No hardcoded absolute local paths or secrets introduced\n- [ ] Standing file-size and complexity budgets respected\n"
+  },
+  "build_commands": [
+    "./build_for_ultimaker.sh",
+    "cmake --build build"
+  ],
+  "directory_map": [
+    {
+      "name": "Charon",
+      "count": 21,
+      "extensions": ".py"
+    },
+    {
+      "name": "tests",
+      "count": 9,
+      "extensions": ".py, .opc, .gz"
+    },
+    {
+      "name": "docs",
+      "count": 7,
+      "extensions": ".md, .png, .plantuml"
+    },
+    {
+      "name": "service",
+      "count": 3,
+      "extensions": ".conf, .service"
+    },
+    {
+      "name": "docker_env",
+      "count": 3,
+      "extensions": ".sh"
+    }
+  ],
+  "artifact_dirs": [],
+  "has_api_surface": false,
+  "interface_dirs": [],
+  "api_doc_paths": [],
+  "has_storybook": false,
+  "host": {
+    "os": "linux",
+    "has_secret_tool": true,
+    "has_security": false
+  },
+  "vendored": [
+    "ci/"
+  ],
+  "generated": [],
+  "evidence": {
+    "has_systemd": true,
+    "systemd_units": [
+      "service/charon.service"
+    ],
+    "has_udev": false,
+    "udev_rules": [],
+    "has_dbus": true,
+    "dbus_policy": [
+      "service/nl.ultimaker.charon.conf"
+    ],
+    "has_machine_json": false,
+    "machine_json_files": [],
+    "has_gcode": true,
+    "gcode_evidence": [
+      "tests/filetypes/TestGCodeFormat.py"
+    ],
+    "has_po_files": false,
+    "po_files": [],
+    "has_debian_packaging": false,
+    "debian_evidence": [],
+    "shell_script_count": 12
+  },
+  "license": {
+    "declared": "GNU GENERAL PUBLIC",
+    "source": "LICENSE",
+    "proprietary": false
+  },
+  "has_package_json": false,
+  "file_count": 68,
+  "complexity": {},
+  "skills": {
+    "catalog_root": "/tmp/uc-integrate",
+    "catalog_size": 28,
+    "matched": [
+      "cmake",
+      "python-pro",
+      "ultimaker-gcode-architecture",
+      "software-architect",
+      "ultimaker-firmware-development",
+      "ultimaker-printer-ssh",
+      "ultimaker-printer-logs"
+    ]
+  },
+  "observations": [
+    {
+      "category": "architecture",
+      "title": "The repository documents its own architecture in-tree",
+      "evidence": [
+        "`docs/library.md` \u2014 79 lines",
+        "`docs/ultimaker_format_package.md` \u2014 12 lines",
+        "`docs/service.md` \u2014 2 lines"
+      ],
+      "question": "Read these before writing anything about this repository's architecture. Which of them state a convention that is a correctness requirement rather than a style preference, and which name a footgun a newcomer would hit? Anything already written here belongs in AGENTS.md as a CITATION, never as a paraphrase that will drift from the original.",
+      "draft_rule": "Before changing `<area>`, read `<doc path>` \u2014 it is the authored convention for this subsystem. State the constraint it carries (`<constraint>`) and cite the document rather than restating it here.",
+      "confidence": "high",
+      "data": {
+        "docs": [
+          "docs/library.md",
+          "docs/ultimaker_format_package.md",
+          "docs/service.md"
+        ]
+      }
+    },
+    {
+      "category": "ecosystem_contract",
+      "title": "This repository defines or consumes an inter-process interface (D-Bus / IDL / protobuf)",
+      "evidence": [
+        "`Charon/Service/main.py`",
+        "`Charon/Service/RequestQueue.py`",
+        "`Charon/Service/FileService.py`",
+        "`Charon/Client/test_glib.py`",
+        "`Charon/Client/DBusInterface.py`"
+      ],
+      "question": "Which of these definitions does this repository OWN, and which are copies or generated proxies of a definition owned elsewhere? Who are the peers on the other side of the interface, and what happens to them when a signal, method or field changes here?",
+      "draft_rule": "The interface definitions under `<paths>` are owned by `<owning repo>`. Never edit a generated proxy \u2014 change the canonical definition and regenerate with `<command>`. A change to a method, signal or field is a cross-repository change: name the affected peers (`<repos>`) in the PR and land the coordinated change before merging. Relevant catalogue skills: `ultimaker-firmware-development`.",
+      "confidence": "high",
+      "data": {
+        "surface": "dbus_interface",
+        "files": [
+          "Charon/Service/main.py",
+          "Charon/Service/RequestQueue.py",
+          "Charon/Service/FileService.py",
+          "Charon/Client/test_glib.py",
+          "Charon/Client/DBusInterface.py"
+        ],
+        "skills": [
+          "ultimaker-firmware-development"
+        ]
+      }
+    },
+    {
+      "category": "ecosystem_contract",
+      "title": "This repository participates in the G/M-code command contract",
+      "evidence": [
+        "`tests/filetypes/TestGCodeFile.py`"
+      ],
+      "question": "Does this repository SEND, FORWARD or HANDLE these codes? A code is a contract shared by every repository on its path \u2014 which sibling has the parser, which has the dispatcher, and which document is the registry of record?",
+      "draft_rule": "Adding or changing a G/M-code is an ecosystem change, never a local one. Register the code and its parameter definitions in `<registry path>` and synchronise the parser, dispatch and handler in `<sibling repos>` in the same ticket. Load `ultimaker-gcode-architecture` before touching a code; do not restate the registry in this repository. Relevant catalogue skills: `ultimaker-gcode-architecture`.",
+      "confidence": "high",
+      "data": {
+        "surface": "gcode_registry",
+        "files": [
+          "tests/filetypes/TestGCodeFile.py"
+        ],
+        "skills": [
+          "ultimaker-gcode-architecture"
+        ]
+      }
+    },
+    {
+      "category": "ecosystem_contract",
+      "title": "This repository is a provider or consumer in a submodule graph",
+      "evidence": [
+        "`ci`"
+      ],
+      "question": "For each submodule: does this repository merely consume it, or does it own it? Who else pins the same submodule, and what is the ordering discipline when a change spans both trees (innermost first, push the submodule branch before moving the parent pointer)?",
+      "draft_rule": "Submodule pointers in this repository are moved only after the corresponding change is merged and pushed in `<submodule repo>`. Never commit inside a submodule tree from this checkout. A pointer bump is its own commit and names the upstream revision it moves to.",
+      "confidence": "high",
+      "data": {
+        "submodules": [
+          "ci"
+        ]
+      }
+    },
+    {
+      "category": "architecture",
+      "title": "Tests are collected in a top-level test tree",
+      "evidence": [
+        "11 test files: 9 in a central tree, 2 beside sources"
+      ],
+      "question": "Should the test-placement convention be stated so agents stop guessing where a new test belongs?",
+      "draft_rule": "Place new tests in the top-level test tree, mirroring the source directory structure.",
+      "confidence": "medium",
+      "data": {}
+    },
+    {
+      "category": "commit-style",
+      "title": "Commits are small and tightly scoped",
+      "evidence": [
+        "median 1 files per commit, 90th percentile 2"
+      ],
+      "question": "Should the scope rule name a concrete file-count expectation derived from this repository's own history?",
+      "draft_rule": "Keep commits tightly scoped: this repository's median commit touches 1 files. A commit touching more than 3 files needs an explicit justification in the message.",
+      "confidence": "medium",
+      "data": {}
+    },
+    {
+      "category": "code-pattern",
+      "title": "Observed file-size distribution (input to the ratchet)",
+      "evidence": [
+        "median 35 lines, 90th percentile 262, largest sampled 591",
+        "1 of 27 sampled files exceed the 400-line budget and will be grandfathered at their current size"
+      ],
+      "question": "The file-size ratchet is already generated as a managed rule (`10-file-size-and-decomposition-rules.md`) with a 400-line budget. Is 400 the right budget for this codebase, or does its shape justify a different number (90th percentile is 262)? Re-run the bootstrap with `--file-size-budget N` to change it \u2014 do not write a competing rule.",
+      "draft_rule": "No new rule needed: adjust the managed budget instead. Consider whether the largest grandfathered files deserve a decomposition ticket of their own.",
+      "confidence": "low",
+      "data": {
+        "median": 35,
+        "p90": 262,
+        "largest": 591,
+        "over_budget": 1
+      }
+    },
+    {
+      "category": "code-pattern",
+      "title": "File names are predominantly PascalCase",
+      "evidence": [
+        "{'PascalCase': 17, 'snake_case': 2} across 19 multi-word file names"
+      ],
+      "question": "Does the convention differ per language or per directory, and is it worth stating so new files match?",
+      "draft_rule": "Name new source files in PascalCase, matching the existing tree.",
+      "confidence": "low",
+      "data": {}
+    },
+    {
+      "category": "commit-style",
+      "title": "Commit subjects are kept short",
+      "evidence": [
+        "137/150 subjects are 72 characters or fewer",
+        "longest sampled subject: 106 characters"
+      ],
+      "question": "Is a hard subject-length limit worth stating explicitly?",
+      "draft_rule": "Keep commit subjects at or below 72 characters.",
+      "confidence": "low",
+      "data": {}
+    }
+  ],
+  "hook_verification": {
+    "block-secrets": {
+      "fired": true,
+      "blocked": true,
+      "detail": "staged violation rejected",
+      "at": "2026-08-15T11:57:33+00:00",
+      "sha": "e284859"
+    },
+    "block-absolute-paths": {
+      "fired": true,
+      "blocked": true,
+      "detail": "staged violation rejected",
+      "at": "2026-08-15T11:57:33+00:00",
+      "sha": "e284859"
+    },
+    "pretool-guard": {
+      "fired": true,
+      "blocked": true,
+      "detail": "secret payload denied",
+      "at": "2026-08-15T11:57:33+00:00",
+      "sha": "e284859"
+    },
+    "block-name-matched-kill": {
+      "fired": true,
+      "blocked": true,
+      "detail": "pkill denied",
+      "at": "2026-08-15T11:57:33+00:00",
+      "sha": "e284859"
+    },
+    "check-rule-frontmatter": {
+      "fired": true,
+      "blocked": null,
+      "detail": "exit 0 (advisory; executed, not violated)",
+      "at": "2026-08-15T11:57:33+00:00",
+      "sha": "e284859"
+    },
+    "audit-quad-agent-parity": {
+      "fired": true,
+      "blocked": null,
+      "detail": "exit 0 (advisory; executed, not violated)",
+      "at": "2026-08-15T11:57:33+00:00",
+      "sha": "e284859"
+    },
+    "check-upstream-alignment": {
+      "fired": true,
+      "blocked": null,
+      "detail": "exit 0 (advisory; executed, not violated)",
+      "at": "2026-08-15T11:57:34+00:00",
+      "sha": "e284859"
+    }
+  }
+}

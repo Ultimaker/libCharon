@@ -118,3 +118,6 @@ ENV/
 # KDevelop project files
 *.kdev4
 
+
+# Added by the agentic bootstrap: byproducts of the hooks it installs.
+.agents/**/*.bootstrap-tmp
