@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .agents/hooks/pretool_guard.py",
+            "command": "python3 hooks/pretool_guard.py",
             "timeout": 15
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .agents/hooks/block_name_matched_kill.py",
+            "command": "python3 hooks/block_name_matched_kill.py",
             "timeout": 10
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .agents/hooks/suggest-skills.py --pre-edit",
+            "command": "python3 hooks/suggest-skills.py --pre-edit",
             "timeout": 15
           }
         ]
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .agents/hooks/post-edit-linter.sh",
+            "command": "bash hooks/post-edit-linter.sh",
             "timeout": 60
           }
         ]

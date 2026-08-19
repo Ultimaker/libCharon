@@ -58,7 +58,7 @@ def script_name(command: str) -> str:
         # Explicitly routed through the managed hooks directory (Claude,
         # Copilot), or a bare script name resolved against it (Antigravity
         # runs hook commands from .agents/hooks/ itself).
-        if ".agents/hooks/" in token:
+        if ".agents/hooks/" in token or "hooks/" in token:
             return token.rsplit("/", 1)[-1]
         if "/" not in token and token.endswith((".py", ".sh")):
             return token

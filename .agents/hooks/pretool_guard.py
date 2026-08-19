@@ -211,25 +211,28 @@ def deny(platform, reason):
 
 def main():
     try:
-        raw = sys.stdin.read()
-    except (OSError, ValueError):
-        return
-    if not raw.strip():
-        return
-    try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError:
-        return
-    if not isinstance(payload, dict):
-        return
+        try:
+            raw = sys.stdin.read()
+        except (OSError, ValueError):
+            return
+        if not raw.strip():
+            return
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            return
+        if not isinstance(payload, dict):
+            return
 
-    platform, tool, path, blobs = parse_request(payload)
-    if platform is None:
-        return
+        platform, tool, path, blobs = parse_request(payload)
+        if platform is None:
+            return
 
-    reason = find_violation(tool, path, blobs)
-    if reason:
-        deny(platform, reason)
+        reason = find_violation(tool, path, blobs)
+        if reason:
+            deny(platform, reason)
+    except Exception:
+        return
     # Silence means "no opinion" on every platform: the normal permission flow
     # continues. Never print an allow decision — that would override the user's
     # own settings.
