@@ -21,7 +21,7 @@ def isAPositiveNumber(a: str) -> bool:
 class GCodeFile(FileInterface):
     mime_type = "text/x-gcode"
 
-    MaximumHeaderLength = 100
+    MaximumHeaderLength = 1000
 
     def __init__(self) -> None:
         self.__stream = None  # type: Optional[IO[bytes]]
@@ -53,7 +53,7 @@ class GCodeFile(FileInterface):
                     # Header version is a number but should not be parsed as number, so special case it.
                     metadata["header_version"] = line.split(":")[1].strip()
                 elif line.startswith(";") and ":" in line:
-                    key, value = line[1:].split(":")
+                    key, value = line[1:].split(":", 1)
                     key = key.strip().lower()
                     value = value.strip()
                     try:
@@ -144,6 +144,12 @@ class GCodeFile(FileInterface):
             GCodeFile.__insertKeyValuePair(metadata, ["extruders", int(key)], value)
 
         del metadata["extruder_train"]
+
+        if "skip_enable" in metadata and isinstance(metadata["skip_enable"], dict):
+            mesh_names = metadata["skip_enable"].get("mesh_name")
+            if isinstance(mesh_names, dict):
+                for mesh_id, mesh_name in list(mesh_names.items()):
+                    mesh_names[str(mesh_id)] = str(mesh_name)
 
     ## Checks if a path to a key is available
     # @param metadata Metadata collection to check for the presence of the key

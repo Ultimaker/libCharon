@@ -241,3 +241,29 @@ class TestGcodeFile(unittest.TestCase):
 
         self.assertEqual(metadata["a"]["b"]["c"], '')
 
+    def testParseHeader_SkipEnableMeshesAndBoundingBoxes(self) -> None:
+        skip_lines = "\n".join([
+            ";SKIP_ENABLE.MESH_NAME.0:xyz-cube-test-20mm.stl",
+            ";SKIP_ENABLE.MESH_NAME.1:xyz-cube-test-20mm.stl(1)",
+            ";SKIP_ENABLE.MESH_NAME.2:12345",
+            ";SKIP_ENABLE.MESH_NAME.3:part:with:colon.stl",
+            ";SKIP_ENABLE.BOUNDING_BOX.0:[[41.947,328.117],[61.939,328.117],[61.939,308.125],[41.947,308.125]]",
+            ";SKIP_ENABLE.BOUNDING_BOX.1:[[443.345,74.152],[463.337,74.152],[463.337,54.16],[443.345,54.16]]",
+            ";SKIP_ENABLE.BOUNDING_BOX.2:[[298.088,192.261],[318.08,192.261],[318.08,172.269],[298.088,172.269]]",
+            ";SKIP_ENABLE.BOUNDING_BOX.3:[[471.873,306.54],[491.865,306.54],[491.865,286.548],[471.873,286.548]]",
+        ])
+        gcode = self.__minimal_griffin_header.format(skip_lines)
+        gcode_stream = io.BytesIO(str.encode(gcode))
+        metadata = GCodeFile.parseHeader(gcode_stream)
+
+        self.assertIn("skip_enable", metadata)
+        self.assertEqual(metadata["skip_enable"]["mesh_name"]["0"], "xyz-cube-test-20mm.stl")
+        self.assertEqual(metadata["skip_enable"]["mesh_name"]["1"], "xyz-cube-test-20mm.stl(1)")
+        self.assertEqual(metadata["skip_enable"]["mesh_name"]["2"], "12345")
+        self.assertEqual(metadata["skip_enable"]["mesh_name"]["3"], "part:with:colon.stl")
+        self.assertEqual(
+            metadata["skip_enable"]["bounding_box"]["0"],
+            [[41.947, 328.117], [61.939, 328.117], [61.939, 308.125], [41.947, 308.125]],
+        )
+
+
